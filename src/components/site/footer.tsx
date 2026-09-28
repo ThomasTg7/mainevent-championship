@@ -19,7 +19,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-cond font-semibold uppercase tracking-[.04em] text-muted hover:text-white transition-colors"
+                    className="font-cond font-semibold uppercase tracking-[.04em] text-muted-foreground hover:text-white transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -35,7 +35,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/nosotros"
-                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted hover:text-white transition-colors"
+                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted-foreground hover:text-white transition-colors"
                 >
                   Nosotros
                 </Link>
@@ -43,7 +43,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/quiero-pelear"
-                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted hover:text-white transition-colors"
+                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted-foreground hover:text-white transition-colors"
                 >
                   Quiero pelear
                 </Link>
@@ -51,7 +51,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/patrocinar"
-                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted hover:text-white transition-colors"
+                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted-foreground hover:text-white transition-colors"
                 >
                   Patrocinar
                 </Link>
@@ -66,7 +66,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/contacto"
-                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted hover:text-white transition-colors"
+                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted-foreground hover:text-white transition-colors"
                 >
                   Contacto
                 </Link>
@@ -74,7 +74,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/privacidad"
-                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted hover:text-white transition-colors"
+                  className="font-cond font-semibold uppercase tracking-[.04em] text-muted-foreground hover:text-white transition-colors"
                 >
                   Privacidad
                 </Link>

@@ -14,6 +14,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  // El puerto 3100 es el que usan los e2e (playwright.config.ts) para no
+  // chocar con lo que ya esté sirviendo el 3000 en la máquina de desarrollo.
+  trustedOrigins:
+    process.env.NODE_ENV === "production" ? undefined : ["http://localhost:3000", "http://localhost:3100"],
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
