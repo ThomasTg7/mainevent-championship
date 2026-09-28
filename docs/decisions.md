@@ -51,6 +51,12 @@ Formato:
 - **Impacto:** `src/lib/auth.ts`, `playwright.config.ts`, `e2e/global-setup.ts`, `e2e/admin-auth.spec.ts`. Si un plan siguiente cambia el puerto de e2e, actualizar ambos lugares.
 - **Estado:** aplicado
 
+## [Plan 00] Script `pnpm typecheck` agregado (no estaba en el plan) — 2026-09-28
+- **Qué:** se agrega `"typecheck": "next typegen && tsc --noEmit"` a `package.json`. El Plan 00 (Task 1) nunca pidió este script — su lista de scripts era `dev|build|test|test:e2e|lint|db:generate|db:migrate|db:seed` — pero CLAUDE.md exige correr `pnpm typecheck` antes de cerrar cualquier tarea. Un `tsc --noEmit` sin más falla en frío (`Cannot find name 'LayoutProps'`) porque los tipos de rutas de Next.js (`LayoutProps`, `PageProps`, etc.) se generan en `.next/types` recién al correr `next dev`/`next build`/`next typegen`; por eso el script corre `next typegen` primero.
+- **Por qué:** cerrar tareas sin poder correr `pnpm typecheck` (tal como pide CLAUDE.md) no es viable; esto lo destraba para el resto del proyecto.
+- **Impacto:** `package.json`. Ningún plan siguiente necesita tocar esto — el comando ya existe y funciona.
+- **Estado:** aplicado
+
 ## [Plan 00 · Task 4] `agentRules: false` en next.config.ts — 2026-09-28
 - **Qué:** se agrega `agentRules: false` a `next.config.ts`. Next.js 16 trae una función que reescribe `CLAUDE.md` en cada `next dev`/`next build`, agregando un bloque `<!-- BEGIN:nextjs-agent-rules -->` con avisos genéricos para agentes de IA sobre cambios de la versión.
 - **Por qué:** este proyecto ya tiene un `CLAUDE.md` con reglas propias del proyecto (spec, arquitectura, convenciones); dejar que Next lo reescriba en cada arranque ensucia el diff y mezcla contenido no controlado por el equipo con las reglas del proyecto.
