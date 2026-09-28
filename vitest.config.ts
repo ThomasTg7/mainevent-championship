@@ -13,5 +13,9 @@ export default defineConfig({
     environment: "node",
     setupFiles: ["./src/test/setup.ts"],
     globals: false,
+    // PGlite (WASM) arranca varias instancias en paralelo durante la suite
+    // completa; el timeout por defecto (5s) alcanza a fallar por contención
+    // de CPU aunque cada test, aislado, tarde ~1s.
+    testTimeout: 15000,
   },
 });
