@@ -20,6 +20,12 @@ Formato:
 - **Impacto:** `vitest.config.ts`. Todo `*.test.tsx` futuro (Task 6 en adelante) debe llevar el pragma `// @vitest-environment jsdom` en la primera línea del archivo.
 - **Estado:** aplicado
 
+## [Plan 00 · Task 5] `DATABASE_URL` de relleno en `src/test/setup.ts` — 2026-09-28
+- **Qué:** el setup global de Vitest fija `process.env.DATABASE_URL` a un valor de relleno si no está definida.
+- **Por qué:** `src/db/index.ts` lanza al importarse si falta `DATABASE_URL` (por diseño, para fallar rápido en producción). Rutas como `/api/cron/purge` importan el singleton `db` a nivel de módulo para su handler real (`GET`), aunque sus tests unitarios inyectan una base de prueba (PGlite) y nunca tocan `db`. Sin el valor de relleno, el solo hecho de importar el archivo de la ruta rompía el test. `postgres.js` conecta de forma perezosa (recién en la primera consulta), así que el valor de relleno nunca abre una conexión real.
+- **Impacto:** `src/test/setup.ts`. Cualquier test futuro que importe (sin ejecutar) un módulo que re-exporta `db` queda cubierto.
+- **Estado:** aplicado
+
 ## [Plan 00 · Task 4] `agentRules: false` en next.config.ts — 2026-09-28
 - **Qué:** se agrega `agentRules: false` a `next.config.ts`. Next.js 16 trae una función que reescribe `CLAUDE.md` en cada `next dev`/`next build`, agregando un bloque `<!-- BEGIN:nextjs-agent-rules -->` con avisos genéricos para agentes de IA sobre cambios de la versión.
 - **Por qué:** este proyecto ya tiene un `CLAUDE.md` con reglas propias del proyecto (spec, arquitectura, convenciones); dejar que Next lo reescriba en cada arranque ensucia el diff y mezcla contenido no controlado por el equipo con las reglas del proyecto.
