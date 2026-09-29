@@ -54,7 +54,8 @@ export function TextAreaField({ name, label, hint, maxLength, onChange, ...props
         {...props}
       />
       {maxLength ? (
-        <p aria-live="polite" className={`text-right text-xs ${length >= maxLength ? "text-destructive" : "text-muted-foreground"}`}>
+        // Sin aria-live: se anunciaría en cada tecla. El límite ya lo impone `maxLength`.
+        <p className={`text-right text-xs ${length >= maxLength ? "text-destructive" : "text-muted-foreground"}`}>
           {length}/{maxLength} caracteres
         </p>
       ) : null}

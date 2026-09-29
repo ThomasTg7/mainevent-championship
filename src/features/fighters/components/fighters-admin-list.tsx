@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/format-date";
 import type { AdminFighterRow } from "../dto";
 import { CAREER_STATUS_LABELS } from "../labels";
 import { FighterRowActions } from "./fighter-row-actions";
+import { FighterSilhouette } from "./fighter-silhouette";
 
 function displayName(fighter: AdminFighterRow): string {
   return `${fighter.firstName} ${fighter.lastName}`;
@@ -15,7 +16,11 @@ function displayName(fighter: AdminFighterRow): string {
 function Thumbnail({ fighter }: { fighter: AdminFighterRow }) {
   return (
     <div className="size-12 shrink-0 overflow-hidden bg-muted">
-      {fighter.bodyMedia ? <MediaImage media={fighter.bodyMedia} sizes="48px" className="size-full object-cover object-top" /> : null}
+      {fighter.bodyMedia ? (
+        <MediaImage media={fighter.bodyMedia} sizes="48px" className="size-full object-cover object-top" />
+      ) : (
+        <FighterSilhouette className="size-full text-yellow" />
+      )}
     </div>
   );
 }

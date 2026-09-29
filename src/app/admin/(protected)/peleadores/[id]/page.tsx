@@ -8,6 +8,7 @@ import { createFighterPreviewLinkAction, updateFighterAction } from "@/features/
 import { FighterForm } from "@/features/fighters/components/fighter-form";
 import { fighterToFormValues } from "@/features/fighters/form-values";
 import { getFighterForEdit } from "@/features/fighters/queries";
+import { fighterIdSchema } from "@/features/fighters/schema";
 import { requireAdmin } from "@/lib/require-admin";
 
 export const metadata: Metadata = { title: "Editar peleador" };
@@ -15,6 +16,7 @@ export const metadata: Metadata = { title: "Editar peleador" };
 export default async function AdminEditarPeleadorPage({ params, searchParams }: PageProps<"/admin/peleadores/[id]">) {
   await requireAdmin();
   const { id } = await params;
+  if (!fighterIdSchema.safeParse(id).success) notFound();
   const [edit, divisions, query] = await Promise.all([getFighterForEdit(db, id), listDivisions(db), searchParams]);
   if (!edit) notFound();
 

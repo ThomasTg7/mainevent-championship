@@ -34,7 +34,7 @@ export function FighterInfoTabs({ details, socials }: FighterInfoTabsProps) {
 
   return (
     <Tabs value={tab} onValueChange={select} className="gap-8">
-      <TabsList variant="line" className="relative h-auto w-full max-w-sm justify-start gap-0 border-b border-border p-0">
+      <TabsList variant="line" className="relative h-auto w-full max-w-sm group-data-horizontal/tabs:h-auto justify-start gap-0 border-b border-border p-0">
         {TABS.map((item) => (
           <TabsTrigger
             key={item.value}

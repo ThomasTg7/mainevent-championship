@@ -27,9 +27,20 @@ export async function saveDivision(db: Db, input: DivisionInput, actorId: string
   const { id, name, gender, limitKg, rankingSlots } = parsed.data;
 
   if (id) {
+    const [current] = await db.select({ gender: divisions.gender }).from(divisions).where(eq(divisions.id, id)).limit(1);
+    if (!current) {
+      throw new UserFacingError("No se encontró la división");
+    }
+    const genderChanged = current.gender !== gender;
+    if (genderChanged) {
+      // Incluye la papelera: al restaurar, el peleador volvería a una división de otra categoría.
+      const [inUse] = await db.select({ id: fighters.id }).from(fighters).where(eq(fighters.divisionId, id)).limit(1);
+      if (inUse) throw new UserFacingError("La división tiene peleadores: no se puede cambiar de categoría");
+    }
+
     const [updated] = await db
       .update(divisions)
-      .set({ name, gender, limitKg, rankingSlots })
+      .set({ name, gender, limitKg, rankingSlots, ...(genderChanged ? { sortOrder: await nextSortOrder(db, gender) } : {}) })
       .where(eq(divisions.id, id))
       .returning();
     if (!updated) {

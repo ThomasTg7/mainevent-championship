@@ -50,7 +50,8 @@ export function FighterHero({ fighter, figures }: FighterHeroProps) {
           <CountFigures items={figures} className="mt-7 grid max-w-xl grid-cols-3 border-t border-border" valueClassName="text-[clamp(40px,6.5vw,72px)]" />
         </div>
 
-        <div className="relative order-1 mx-auto aspect-[3/4] w-full max-w-[520px] overflow-hidden lg:order-2 lg:max-w-none">
+        {/* En celular la foto se limita a ~60 % de la pantalla: nombre y cifras quedan a la vista sin desplazarse. */}
+        <div className="relative order-1 mx-auto aspect-[3/4] max-h-[60svh] w-full max-w-[520px] overflow-hidden lg:order-2 lg:max-h-none lg:max-w-none">
           <HeroParallax className="absolute inset-0 will-change-transform">
             {fighter.bodyMedia ? (
               <MediaImage media={fighter.bodyMedia} sizes={FIGHTER_HERO_SIZES} priority className="size-full object-contain object-bottom" />

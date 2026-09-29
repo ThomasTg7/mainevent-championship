@@ -5,27 +5,23 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { formValues, zodFieldErrors, type FormActionState } from "@/lib/form-errors";
 import { requireAdmin } from "@/lib/require-admin";
-import { UserFacingError } from "@/lib/user-facing-error";
+import { runUserFacing } from "@/lib/user-facing-error";
 import { publicationInputSchema } from "@/features/publication/schema";
-import { and, eq, isNull } from "drizzle-orm";
-import { fighters } from "@/db/schema/fighters";
 import { createPreviewToken } from "@/features/publication/preview";
 import { revalidateFighter } from "./cache";
-import { fighterInputSchema } from "./schema";
+import { getFighterSlug } from "./queries";
+import { fighterIdSchema, fighterInputSchema } from "./schema";
 import { createFighter, deleteFighter, setFighterPublication, updateFighter } from "./service";
 
 const ADMIN_PATH = "/admin/peleadores";
+const NOT_FOUND: FormActionState = { error: "No se encontró al peleador" };
+
+const isFighterId = (id: unknown): id is string => fighterIdSchema.safeParse(id).success;
 
 async function run(task: () => Promise<FormActionState | void>, formData?: FormData): Promise<FormActionState> {
-  try {
-    return (await task()) ?? {};
-  } catch (error) {
-    if (error instanceof UserFacingError) {
-      return { error: error.message, ...(formData ? { values: formValues(formData) } : {}) };
-    }
-    console.error("Error en peleadores", error);
-    return { error: "No se pudo completar la acción. Inténtalo de nuevo.", ...(formData ? { values: formValues(formData) } : {}) };
-  }
+  const result = await runUserFacing("Error en peleadores", task);
+  if ("value" in result) return result.value ?? {};
+  return { error: result.error, ...(formData ? { values: formValues(formData) } : {}) };
 }
 
 /** Valida en el servidor para devolver un error por campo; el servicio vuelve a validar. */
@@ -52,6 +48,7 @@ export async function createFighterAction(_previous: FormActionState, formData: 
 
 export async function updateFighterAction(id: string, _previous: FormActionState, formData: FormData): Promise<FormActionState> {
   const admin = await requireAdmin();
+  if (!isFighterId(id)) return NOT_FOUND;
   const invalid = invalidForm(formData);
   if (invalid) return invalid;
 
@@ -65,6 +62,7 @@ export async function updateFighterAction(id: string, _previous: FormActionState
 
 export async function setFighterPublicationAction(id: string, input: unknown): Promise<FormActionState> {
   const admin = await requireAdmin();
+  if (!isFighterId(id)) return NOT_FOUND;
   const parsed = publicationInputSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
 
@@ -78,6 +76,7 @@ export async function setFighterPublicationAction(id: string, input: unknown): P
 
 export async function deleteFighterAction(id: string): Promise<FormActionState> {
   const admin = await requireAdmin();
+  if (!isFighterId(id)) return NOT_FOUND;
   return run(async () => {
     await deleteFighter(db, id, admin.userId);
     revalidateFighter(id);
@@ -90,10 +89,7 @@ export async function deleteFighterAction(id: string): Promise<FormActionState> 
 /** Enlace de vista previa del peleador (borrador incluido), válido 1 hora. Se pide al hacer clic para que no caduque. */
 export async function createFighterPreviewLinkAction(id: string): Promise<string | null> {
   await requireAdmin();
-  const [fighter] = await db
-    .select({ slug: fighters.slug })
-    .from(fighters)
-    .where(and(eq(fighters.id, id), isNull(fighters.deletedAt)))
-    .limit(1);
-  return fighter ? `/peleadores/${fighter.slug}?preview=${createPreviewToken("fighter", id)}` : null;
+  if (!isFighterId(id)) return null;
+  const slug = await getFighterSlug(db, id);
+  return slug ? `/peleadores/${slug}?preview=${createPreviewToken("fighter", id)}` : null;
 }

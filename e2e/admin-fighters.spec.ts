@@ -100,9 +100,23 @@ test("el formulario se usa en celular sin scroll horizontal", async ({ page }) =
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/admin/peleadores/nuevo");
   await expectNoHorizontalScroll(page);
+  // Las pestañas ocupan dos filas en celular: la lista crece y no tapa el primer campo.
+  const tabsBottom = await page.getByRole("tablist").evaluate((element) => element.getBoundingClientRect().bottom);
+  const lastTabBottom = await page.getByRole("tab", { name: "Publicación" }).evaluate((element) => element.getBoundingClientRect().bottom);
+  const firstFieldTop = await page.getByText("Nombre", { exact: true }).evaluate((element) => element.getBoundingClientRect().top);
+  expect(tabsBottom).toBeGreaterThanOrEqual(lastTabBottom);
+  expect(firstFieldTop).toBeGreaterThan(lastTabBottom);
   for (const tab of ["Físico", "Récord total", "Fotos", "Redes", "Publicación"]) {
     await page.getByRole("tab", { name: tab }).click();
     await expectNoHorizontalScroll(page);
   }
   await expect(page.getByRole("button", { name: "Crear peleador" })).toBeInViewport();
+});
+
+// El panel transmite la página por partes (loading.tsx): el código HTTP ya salió como 200, así que se mira el contenido.
+test("un peleador que no existe (o un id inválido) muestra «no encontrado» en español", async ({ page }) => {
+  for (const id of ["no-es-un-id", "00000000-0000-4000-8000-000000000000"]) {
+    await page.goto(`/admin/peleadores/${id}`);
+    await expect(page.getByRole("heading", { name: "No encontramos lo que buscas" })).toBeVisible();
+  }
 });

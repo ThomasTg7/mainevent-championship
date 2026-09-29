@@ -5,24 +5,19 @@ import { db } from "@/db";
 import { formValues, zodFieldErrors, type FormActionState } from "@/lib/form-errors";
 import { DIVISIONS_CACHE_TAG } from "./cache";
 import { requireAdmin } from "@/lib/require-admin";
-import { UserFacingError } from "@/lib/user-facing-error";
+import { runUserFacing } from "@/lib/user-facing-error";
 import { divisionInputSchema, reorderDivisionsSchema, toggleDivisionSchema } from "./schema";
 import { reorderDivisions, saveDivision, toggleDivision } from "./service";
 
 const ADMIN_PATH = "/admin/divisiones";
 
 async function run(task: () => Promise<string>): Promise<FormActionState> {
-  try {
-    const success = await task();
-    revalidatePath(ADMIN_PATH);
-    // Tarjetas, fichas y filtros públicos muestran el nombre y el peso de la división.
-    updateTag(DIVISIONS_CACHE_TAG);
-    return { success };
-  } catch (error) {
-    if (error instanceof UserFacingError) return { error: error.message };
-    console.error("Error en divisiones", error);
-    return { error: "No se pudo completar la acción. Inténtalo de nuevo." };
-  }
+  const result = await runUserFacing("Error en divisiones", task);
+  if ("error" in result) return result;
+  revalidatePath(ADMIN_PATH);
+  // Tarjetas, fichas y filtros públicos muestran el nombre y el peso de la división.
+  updateTag(DIVISIONS_CACHE_TAG);
+  return { success: result.value };
 }
 
 export async function saveDivisionAction(formData: FormData): Promise<FormActionState> {

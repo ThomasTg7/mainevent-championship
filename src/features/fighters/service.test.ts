@@ -3,7 +3,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
 import { auditLog } from "@/db/schema/audit";
 import { fighters } from "@/db/schema/fighters";
-import { toggleDivision } from "@/features/divisions/service";
+import { divisions } from "@/db/schema/divisions";
+import { saveDivision, toggleDivision } from "@/features/divisions/service";
 import { createTestDb } from "@/test/db";
 import { createFighter, deleteFighter, setFighterPublication, updateFighter } from "./service";
 import { divisionIdBySlug, insertMedia, validFighterInput } from "./test-helpers";
@@ -152,5 +153,24 @@ describe("division guard", () => {
     const { id: trashed } = await createFighter(db, validFighterInput(mosca, { firstName: "Tra", lastName: "Shed" }), "admin-1");
     await deleteFighter(db, trashed, "admin-1");
     await expect(toggleDivision(db, mosca, false, "admin-1")).resolves.toBeUndefined();
+  });
+
+  it("does not let a division with fighters (even trashed) change gender, but allows other edits", async () => {
+    const [division] = await db.select().from(divisions).where(eq(divisions.id, ligero));
+    const edit = { id: ligero, name: division!.name, limitKg: division!.limitKg, rankingSlots: division!.rankingSlots };
+    await expect(saveDivision(db, { ...edit, gender: "female" }, "admin-1")).rejects.toThrow(
+      "La división tiene peleadores: no se puede cambiar de categoría",
+    );
+    await expect(saveDivision(db, { ...edit, gender: "male", rankingSlots: 6 }, "admin-1")).resolves.toMatchObject({ rankingSlots: 6 });
+  });
+
+  it("moves an empty division to the end of its new gender", async () => {
+    const female = await db.select({ sortOrder: divisions.sortOrder }).from(divisions).where(eq(divisions.gender, "female"));
+    const lastFemale = Math.max(...female.map((row) => row.sortOrder));
+    const empty = await saveDivision(db, { name: "Vacía", gender: "male", limitKg: 50, rankingSlots: 5 }, "admin-1");
+    expect(empty.sortOrder).not.toBe(lastFemale + 1);
+    const moved = await saveDivision(db, { id: empty.id, name: "Vacía", gender: "female", limitKg: 50, rankingSlots: 5 }, "admin-1");
+    expect(moved.gender).toBe("female");
+    expect(moved.sortOrder).toBe(lastFemale + 1);
   });
 });

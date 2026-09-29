@@ -66,6 +66,8 @@ test("sin resultados muestra un mensaje y la salida para ver a todos", async ({ 
   await expect(page.getByText("Sin resultados")).toBeVisible();
   await page.getByRole("link", { name: "Ver todos los peleadores" }).click();
   await expect(card(page, "Matías Pérez")).toBeVisible();
+  // Los filtros vuelven a coincidir con la URL (no queda la búsqueda anterior escrita).
+  await expect(page.getByRole("searchbox", { name: "Buscar" })).toHaveValue("");
 });
 
 for (const width of [320, 375, 768, 1440]) {

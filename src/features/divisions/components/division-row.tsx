@@ -50,7 +50,8 @@ export function DivisionRow({ division, position, total, disabled, onMove, onEdi
         </span>
       </div>
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-        <label className="flex items-center gap-2 text-sm">
+        {/* La etiqueta entera es el área táctil (44 px): el interruptor solo mide 18. */}
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 px-1 text-sm">
           <Switch checked={division.active} disabled={disabled} onCheckedChange={onToggle} aria-label={`Activa: ${label}`} />
           Activa
         </label>

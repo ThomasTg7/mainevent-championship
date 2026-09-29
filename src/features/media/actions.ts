@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { logAudit } from "@/features/audit/log";
 import { getStorage } from "@/lib/storage";
 import { requireAdmin } from "@/lib/require-admin";
+import { runUserFacing } from "@/lib/user-facing-error";
 import { MEDIA_ANY_TAG, mediaCacheTag } from "./cache";
 import type { MediaDTO } from "./dto";
 import { getMediaEdit } from "./queries";
@@ -13,15 +14,10 @@ import { MediaError, createUpload, finalizeUpload, saveMediaEdit } from "./servi
 
 export type MediaActionResult<T> = { error: string } | { data: T };
 
+/** `MediaError` es un `UserFacingError`: su mensaje llega tal cual; lo demás queda en el log y se ve `fallbackError`. */
 async function run<T>(fallbackError: string, task: () => Promise<T>): Promise<MediaActionResult<T>> {
-  try {
-    return { data: await task() };
-  } catch (error) {
-    if (error instanceof MediaError) return { error: error.message };
-    // El mensaje para la persona es genérico; la causa real queda en el log del servidor.
-    console.error(fallbackError, error);
-    return { error: fallbackError };
-  }
+  const result = await runUserFacing(fallbackError, task, fallbackError);
+  return "value" in result ? { data: result.value } : result;
 }
 
 export async function createUploadAction(input: unknown) {

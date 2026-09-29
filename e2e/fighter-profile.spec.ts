@@ -59,6 +59,8 @@ test("en celular la foto no se mueve con el scroll y no invade el texto de abajo
   await page.goto("/peleadores/matias-perez");
   const photo = page.locator('section [data-slot="fighter-silhouette"]').first().locator("xpath=..");
   await expect(photo).toBeVisible();
+  // La foto no ocupa toda la pantalla: el nombre se lee sin desplazarse.
+  await expect(page.getByRole("heading", { name: "Matías Pérez", level: 1 })).toBeInViewport();
   for (const y of [0, 250, 450]) {
     await page.evaluate((top) => window.scrollTo(0, top), y);
     await page.waitForTimeout(300);

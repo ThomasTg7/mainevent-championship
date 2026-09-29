@@ -6,6 +6,7 @@ import type { Db } from "@/db";
 import { media, type MediaRow, type StoredVariant } from "@/db/schema/media";
 import { MAX_INPUT_PIXELS, MAX_UPLOAD_BYTES, MEDIA_SPECS, checkResolution, isMediaKind, type MediaKind } from "@/domain/media-specs";
 import type { StorageDriver } from "@/lib/storage";
+import { UserFacingError } from "@/lib/user-facing-error";
 import { toMediaDTO, type MediaDTO } from "./dto";
 import { renderVariants, sanitizeSvg, visibleSize } from "./process";
 import { MEDIA_REFERENCES, type MediaReference } from "./references";
@@ -31,7 +32,8 @@ const FORMAT_MIME: Record<string, string> = {
 };
 
 /** Error con un mensaje pensado para mostrarse tal cual a la persona. */
-export class MediaError extends Error {}
+/** Error de imágenes con mensaje para la persona (la action lo muestra tal cual). */
+export class MediaError extends UserFacingError {}
 
 export type UploadInput = { kind: MediaKind; contentType: string; size: number };
 

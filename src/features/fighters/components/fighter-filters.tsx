@@ -29,6 +29,26 @@ export function FighterFilters({ filters, divisions, countries }: FighterFilters
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
+  // Los campos no son controlados: si la URL cambia por otro camino («Ver todos», «Atrás»), se alinean con ella.
+  // El campo que se está usando no se toca, para no pisar lo que se escribe mientras llega la respuesta.
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const expected: Record<string, string> = {
+      q: filters.q ?? "",
+      division: filters.division ?? "",
+      pais: filters.nationality ?? "",
+      genero: filters.gender ?? "",
+      estado: filters.status ?? "all",
+    };
+    for (const [name, value] of Object.entries(expected)) {
+      const field = form.elements.namedItem(name);
+      if ((field instanceof HTMLInputElement || field instanceof HTMLSelectElement) && field !== document.activeElement) {
+        field.value = value;
+      }
+    }
+  }, [filters]);
+
   function apply() {
     const form = formRef.current;
     if (!form) return;

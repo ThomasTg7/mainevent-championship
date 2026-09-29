@@ -257,3 +257,13 @@ export async function getPublicFighterRef(
     .limit(1);
   return row ?? null;
 }
+
+/** Slug de un peleador fuera de la papelera (enlace de vista previa). */
+export async function getFighterSlug(db: Db, id: string): Promise<string | null> {
+  const [row] = await db
+    .select({ slug: fighters.slug })
+    .from(fighters)
+    .where(and(eq(fighters.id, id), isNull(fighters.deletedAt)))
+    .limit(1);
+  return row?.slug ?? null;
+}

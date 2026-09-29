@@ -17,7 +17,8 @@ import { verifyPreviewToken } from "@/features/publication/preview";
  * en cualquier otro caso, solo si es público ahora. Se comparte entre la página y `generateMetadata`.
  */
 const loadFighter = cache(async (slug: string, previewToken: string | undefined) => {
-  if (previewToken) {
+  // La firma y la fecha se revisan antes de leer: un `?preview=` inventado no cuesta una consulta sin caché.
+  if (previewToken && verifyPreviewToken(previewToken)) {
     const draft = await getPublicFighterBySlug(db, slug, { preview: true });
     if (draft && verifyPreviewToken(previewToken, { entity: "fighter", id: draft.id })) {
       return { fighter: draft, isPreview: true };

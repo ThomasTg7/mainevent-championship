@@ -2,6 +2,7 @@ import { Flag } from "@/components/ui-gc/flag";
 import { socialUrl, type SocialNetwork } from "@/domain/socials";
 import { ageOn, countryName, formatHeight, formatWeight } from "@/domain/units";
 import { formatDate } from "@/lib/format-date";
+import { santiagoToday } from "@/lib/santiago-time";
 import type { FighterProfileDTO } from "../dto";
 import { CAREER_STATUS_LABELS, STANCE_LABELS, divisionTitle } from "../labels";
 import { FighterInfoTabs } from "./fighter-info-tabs";
@@ -22,7 +23,7 @@ function Details({ fighter }: { fighter: FighterProfileDTO }) {
       ),
     },
     { label: "Ciudad de origen", value: fighter.hometown },
-    { label: "Edad", value: birth ? `${ageOn(birth, new Date())} años (nació el ${formatDate(birth)})` : null },
+    { label: "Edad", value: birth ? `${ageOn(birth, santiagoToday())} años (nació el ${formatDate(birth)})` : null },
     { label: "División", value: `${divisionTitle(fighter.division)} · ${formatWeight(fighter.division.limitKg)}` },
     { label: "Peso", value: fighter.weightKg ? formatWeight(fighter.weightKg) : null },
     { label: "Estatura", value: fighter.heightCm ? formatHeight(fighter.heightCm) : null },

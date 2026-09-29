@@ -53,3 +53,11 @@ export function toSantiagoInputs(instant: Date): { date: string; time: string } 
   const two = (value: number) => String(value).padStart(2, "0");
   return { date: `${p.year}-${two(p.month)}-${two(p.day)}`, time: `${two(p.hour)}:${two(p.minute)}` };
 }
+
+/**
+ * El día de hoy en Chile, fijado a mediodía UTC (igual que las fechas sin hora, como la de nacimiento): así `ageOn`
+ * compara días de calendario de Santiago y no cambia la edad a las 20:00/21:00, cuando en UTC ya es mañana.
+ */
+export function santiagoToday(now: Date = new Date()): Date {
+  return new Date(`${toSantiagoInputs(now).date}T12:00:00Z`);
+}

@@ -192,7 +192,8 @@ export async function setFighterPublication(db: Db, id: string, input: Publicati
 export async function deleteFighter(db: Db, id: string, actorId: string): Promise<void> {
   try {
     await softDelete(db, "fighter", id, actorId);
-  } catch {
-    throw new UserFacingError(NOT_FOUND);
+  } catch (error) {
+    // Solo «no existe o ya estaba en la papelera» se explica así; un fallo de la base sigue su curso (y queda en el log).
+    throw error instanceof UserFacingError ? new UserFacingError(NOT_FOUND) : error;
   }
 }

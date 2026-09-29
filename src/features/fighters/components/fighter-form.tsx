@@ -74,7 +74,7 @@ export function FighterForm({ action, defaults, divisions, countries, bodyMedia 
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
       <FighterFieldsProvider value={{ defaults, errors }}>
         <Tabs value={tab} onValueChange={(value) => setTab(value as FighterTab)}>
-          <TabsList variant="line" className="h-auto w-full flex-wrap justify-start gap-x-1 gap-y-1.5 pb-2">
+          <TabsList variant="line" className="h-auto w-full flex-wrap group-data-horizontal/tabs:h-auto justify-start gap-x-1 gap-y-1.5 pb-2">
             {(Object.keys(FIELD_TABS) as FighterTab[]).map((key) => (
               <TabsTrigger key={key} value={key} className="flex-none px-3">
                 {TAB_LABELS[key]}

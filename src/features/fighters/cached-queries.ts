@@ -12,7 +12,12 @@ import type { FighterFilters } from "./schema";
 // Un tope de tiempo cubre lo que ninguna action dispara: peleadores programados que llegan a su fecha.
 const REVALIDATE_SECONDS = 300;
 
+/**
+ * Las búsquedas de texto van directo a la base: cada texto (y cada letra que se escribe) sería una entrada de caché
+ * de un solo uso. Los filtros de las listas tienen pocas combinaciones y sí se cachean.
+ */
 export function getCachedPublicFighters(filters: FighterFilters, page: number) {
+  if (filters.q) return listPublicFighters(db, filters, { page });
   return unstable_cache(() => listPublicFighters(db, filters, { page }), ["fighters-list", JSON.stringify(filters), String(page)], {
     tags: [FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG],
     revalidate: REVALIDATE_SECONDS,

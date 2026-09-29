@@ -132,3 +132,6 @@ export type FighterFilters = {
   gender?: "male" | "female";
   status?: "active" | "inactive" | "retired";
 };
+
+/** Id de peleador que llega de la URL o de una action: uuid o nada. */
+export const fighterIdSchema = z.uuid();
