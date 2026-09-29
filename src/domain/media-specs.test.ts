@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MEDIA_SPECS, checkResolution, clampCrop, variantWidthsFor } from "./media-specs";
+import { MEDIA_SPECS, checkResolution, clampCrop, describeSpec, variantWidthsFor } from "./media-specs";
 
 describe("checkResolution", () => {
   it("warns with the exact minimum when the image is too small", () => {
@@ -69,5 +69,18 @@ describe("MEDIA_SPECS", () => {
       .filter(([, spec]) => spec.accepts.includes("image/svg+xml"))
       .map(([kind]) => kind);
     expect(withSvg).toEqual(["sponsor_logo"]);
+  });
+});
+
+describe("describeSpec", () => {
+  it("describes fixed-aspect kinds with recommended, minimum and ratio", () => {
+    expect(describeSpec("fighter_body")).toBe("Recomendado: 1200×1800 · Mínimo: 800×1200 · Proporción 2:3");
+    expect(describeSpec("og_image")).toBe("Recomendado: 1200×630 · Mínimo: 1200×630 · Proporción 1.91:1");
+  });
+
+  it("describes free-form kinds by their longest side", () => {
+    expect(describeSpec("gallery")).toBe(
+      "Recomendado: lado largo 2400 px · Mínimo: lado largo 1200 px · Proporción libre",
+    );
   });
 });
