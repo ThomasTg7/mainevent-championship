@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MEDIA_KINDS } from "@/domain/media-specs";
 
 const adjustment = z.number().min(0.5).max(1.5);
 const unit = z.number().min(0).max(1);
@@ -21,3 +22,11 @@ export const mediaEditSchema = z.object({
 export type MediaEdit = z.infer<typeof mediaEditSchema>;
 
 export const DEFAULT_ADJUSTMENTS: MediaEdit["adjustments"] = { brightness: 1, contrast: 1, saturation: 1 };
+
+export const createUploadSchema = z.object({
+  kind: z.enum(MEDIA_KINDS),
+  contentType: z.string().min(1).max(100),
+  size: z.number().int().positive(),
+});
+
+export const mediaIdSchema = z.uuid();

@@ -1,15 +1,16 @@
 import DOMPurify from "isomorphic-dompurify";
-import sharp from "sharp";
+import sharp, { type Metadata } from "sharp";
 import { MEDIA_SPECS, clampCrop, variantWidthsFor, type Crop, type MediaKind, type Size } from "@/domain/media-specs";
 import type { MediaEdit } from "./schema";
 
 const WEBP_OPTIONS = { quality: 82, alphaQuality: 90 } as const;
 
 /** Tamaño de la imagen tal como la ve la persona: con EXIF aplicado y ya girada. */
-async function orientedSize(original: Buffer, rotation: MediaEdit["rotation"]): Promise<Size> {
-  const { width = 0, height = 0, orientation = 1 } = await sharp(original).metadata();
-  const exifSwapped = orientation >= 5;
-  const [w, h] = exifSwapped ? [height, width] : [width, height];
+export function visibleSize(
+  { width = 0, height = 0, orientation = 1 }: Metadata,
+  rotation: MediaEdit["rotation"] = 0,
+): Size {
+  const [w, h] = orientation >= 5 ? [height, width] : [width, height];
   return rotation === 90 || rotation === 270 ? { w: h, h: w } : { w, h };
 }
 
@@ -32,7 +33,7 @@ export async function renderVariants(
   kind: MediaKind,
   edit: MediaEdit,
 ): Promise<{ width: number; buffer: Buffer }[]> {
-  const size = await orientedSize(original, edit.rotation);
+  const size = visibleSize(await sharp(original).metadata(), edit.rotation);
   const crop = clampCrop(edit.crop ?? defaultCrop(size, MEDIA_SPECS[kind].aspect, edit.focal), size);
   const { brightness, contrast, saturation } = edit.adjustments;
 
