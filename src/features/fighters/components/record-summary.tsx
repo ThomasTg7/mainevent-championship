@@ -32,10 +32,11 @@ function isEmpty(record: ManualRecord): boolean {
   return record.wins + record.losses + record.draws + record.noContests === 0;
 }
 
+const hasFights = (record: ComputedRecord): boolean => !isEmpty(record);
+
 const RECORD_CLASS = "font-display text-[clamp(30px,8vw,64px)] leading-none tabular-nums whitespace-nowrap text-white";
 
 function TotalRecord({ record, title }: { record: ManualRecord; title: string }) {
-  if (isEmpty(record)) return <p className="py-2 text-sm text-muted-foreground">Sin datos cargados.</p>;
   const extra = noContestsLabel(record.noContests);
   return (
     <>
@@ -48,9 +49,6 @@ function TotalRecord({ record, title }: { record: ManualRecord; title: string })
 }
 
 function GuerraCampalRecord({ record, title }: { record: ComputedRecord; title: string }) {
-  const fights = record.wins + record.losses + record.draws + record.noContests;
-  if (fights === 0) return <p className="py-2 text-sm text-muted-foreground">Sin peleas aún</p>;
-
   const extra = [noContestsLabel(record.noContests), record.streak ? `Racha: ${record.streak.count} ${STREAK_LABELS[record.streak.type]}` : null]
     .filter(Boolean)
     .join(" · ");
@@ -83,12 +81,20 @@ const labelClass = "mb-1 font-cond text-[12px] font-bold uppercase tracking-[.14
 /**
  * Récord profesional y amateur por separado; cada uno con el récord total (manual) y el de Guerra Campal
  * (calculado) lado a lado, también en celular, donde "Guerra Campal" se abrevia a "GC" para caber en una línea.
+ * Lo que no tiene datos no se muestra: sin récord amateur no hay bloque amateur, sin peleas en GC no hay columna GC,
+ * y sin nada de eso no hay sección.
  */
 export function RecordSummary({ manual, computed }: RecordSummaryProps) {
-  const levels = [
-    { key: "pro", title: "Profesional" },
-    { key: "amateur", title: "Amateur" },
-  ] as const;
+  const levels = (
+    [
+      { key: "pro", title: "Profesional" },
+      { key: "amateur", title: "Amateur" },
+    ] as const
+  )
+    .map((level) => ({ ...level, showTotal: !isEmpty(manual[level.key]), showGc: hasFights(computed[level.key]) }))
+    .filter((level) => level.showTotal || level.showGc);
+
+  if (levels.length === 0) return null;
 
   return (
     <section aria-labelledby="fighter-record-heading" className="border-y border-border bg-[#0a0a0a]">
@@ -96,24 +102,28 @@ export function RecordSummary({ manual, computed }: RecordSummaryProps) {
         <h2 id="fighter-record-heading" className="mb-8 font-display text-[clamp(32px,5vw,56px)] uppercase leading-none text-white">
           Récord
         </h2>
-        <div className="grid gap-10 md:grid-cols-2">
-          {levels.map(({ key, title }) => (
+        <div className={`grid gap-10 ${levels.length > 1 ? "md:grid-cols-2" : ""}`}>
+          {levels.map(({ key, title, showTotal, showGc }) => (
             <div key={key} data-level={key}>
               <h3 className="mb-4 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow">{title}</h3>
-              <div className="grid grid-cols-2 gap-4 sm:gap-8">
-                <div data-record="total">
-                  <p className={labelClass}>Récord total</p>
-                  <TotalRecord record={manual[key]} title={title} />
-                </div>
-                <div data-record="gc">
-                  <p className={labelClass}>
-                    <span className="sm:hidden" aria-hidden="true">
-                      GC
-                    </span>
-                    <span className="sr-only sm:not-sr-only sm:inline">Guerra Campal</span>
-                  </p>
-                  <GuerraCampalRecord record={computed[key]} title={title} />
-                </div>
+              <div className={`grid gap-4 sm:gap-8 ${showTotal && showGc ? "grid-cols-2" : "grid-cols-1"}`}>
+                {showTotal ? (
+                  <div data-record="total">
+                    <p className={labelClass}>Récord total</p>
+                    <TotalRecord record={manual[key]} title={title} />
+                  </div>
+                ) : null}
+                {showGc ? (
+                  <div data-record="gc">
+                    <p className={labelClass}>
+                      <span className="sm:hidden" aria-hidden="true">
+                        GC
+                      </span>
+                      <span className="sr-only sm:not-sr-only sm:inline">Guerra Campal</span>
+                    </p>
+                    <GuerraCampalRecord record={computed[key]} title={title} />
+                  </div>
+                ) : null}
               </div>
             </div>
           ))}

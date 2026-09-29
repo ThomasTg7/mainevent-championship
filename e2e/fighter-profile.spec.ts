@@ -44,18 +44,47 @@ test("la bio breve va en la tarjeta y las pestañas son Datos y Redes", async ({
   await expect(page.getByText("Rancagua")).toBeVisible();
 });
 
-test("el récord muestra el total y el de Guerra Campal, con GC como abreviatura en el celular", async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 800 });
+test("el récord solo muestra lo que tiene datos: sin amateur ni peleas en GC no aparecen", async ({ page }) => {
   await page.goto("/peleadores/matias-perez");
   const pro = page.locator('[data-level="pro"]');
   await expect(pro.locator('[data-record="total"]')).toContainText("12-2-0");
-  await expect(pro.locator('[data-record="gc"]')).toBeVisible();
-  await expect(pro.getByText("GC", { exact: true })).toBeVisible();
-  // En celular la etiqueta cabe en una línea (el nombre completo queda solo para lectores de pantalla).
-  expect((await pro.locator('[data-record="gc"] p').first().boundingBox())?.height).toBeLessThan(24);
+  await expect(page.locator('[data-record="gc"]')).toHaveCount(0);
+  await expect(page.locator('[data-level="amateur"]')).toHaveCount(0);
+  await expect(page.getByText(/Sin peleas|Sin datos/)).toHaveCount(0);
+});
+
+test("en celular la foto no se mueve con el scroll y no invade el texto de abajo", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 375, height: 700 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await page.goto("/peleadores/matias-perez");
+  const photo = page.locator('section [data-slot="fighter-silhouette"]').first().locator("xpath=..");
+  await expect(photo).toBeVisible();
+  for (const y of [0, 250, 450]) {
+    await page.evaluate((top) => window.scrollTo(0, top), y);
+    await page.waitForTimeout(300);
+    expect(await photo.evaluate((element) => (element as HTMLElement).style.transform)).toBe("");
+  }
+  // El contenedor recorta la foto: nada se sale por debajo hacia las etiquetas.
+  const overflow = await photo.evaluate((element) => getComputedStyle(element.parentElement as HTMLElement).overflow);
+  expect(overflow).toBe("hidden");
+  await context.close();
+});
+
+test("en escritorio el parallax es suave, con tope, y la foto queda recortada", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect(pro.getByText("Guerra Campal")).toBeVisible();
-  await expect(pro.getByText("GC", { exact: true })).toBeHidden();
+  await page.goto("/peleadores/matias-perez");
+  const photo = page.locator('section [data-slot="fighter-silhouette"]').first().locator("xpath=..");
+  // El parallax solo corre mientras el hero se ve: se hace scroll dentro de él, poco a poco, hasta que responda.
+  await expect
+    .poll(async () => {
+      await page.mouse.wheel(0, 200);
+      return photo.evaluate((element) => (element as HTMLElement).style.transform);
+    })
+    .toMatch(/translate3d\(0px, [1-9]\d*px, 0px\)/);
+  await page.evaluate(() => window.scrollTo(0, 600));
+  const shift = Number((await photo.evaluate((element) => (element as HTMLElement).style.transform)).match(/, (\d+)px/)?.[1]);
+  expect(shift).toBeLessThanOrEqual(60);
+  expect(await photo.evaluate((element) => getComputedStyle(element.parentElement as HTMLElement).overflow)).toBe("hidden");
 });
 
 test("las cifras del hero traen su valor final aunque se pida reducir el movimiento", async ({ browser }) => {

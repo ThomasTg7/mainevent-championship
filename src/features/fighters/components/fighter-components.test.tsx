@@ -134,22 +134,41 @@ describe("FighterHero", () => {
 });
 
 describe("RecordSummary", () => {
-  it("formats records and shows pro and amateur apart", () => {
+  const empty = { wins: 0, losses: 0, draws: 0, noContests: 0 };
+  const noFights = { pro: emptyComputed, amateur: emptyComputed };
+
+  it("formats records as wins-losses-draws", () => {
     expect(formatRecord({ wins: 12, losses: 2, draws: 0, noContests: 0 })).toBe("12-2-0");
     expect(formatRecord({ wins: 3, losses: 1, draws: 0, noContests: 2 })).toBe("3-1-0");
-
-    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: profile.amateurRecord }} computed={{ pro: emptyComputed, amateur: emptyComputed }} />);
-    expect(container.querySelector('[data-level="pro"]')).toHaveTextContent("12-2-0");
-    expect(container.querySelector('[data-level="amateur"]')).toHaveTextContent("Sin datos cargados.");
   });
 
-  it("always shows the Guerra Campal record next to the total, with GC as the short label", () => {
-    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: profile.amateurRecord }} computed={{ pro: { ...emptyComputed, wins: 3, losses: 1 }, amateur: emptyComputed }} />);
+  it("shows only the total record when there are no fights in Guerra Campal, and no amateur block without amateur record", () => {
+    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: empty }} computed={noFights} />);
+    expect(container.querySelector('[data-level="pro"] [data-record="total"]')).toHaveTextContent("12-2-0");
+    expect(container.querySelector('[data-record="gc"]')).toBeNull();
+    expect(container.querySelector('[data-level="amateur"]')).toBeNull();
+    expect(container).not.toHaveTextContent("Sin datos");
+    expect(container).not.toHaveTextContent("Sin peleas");
+  });
+
+  it("shows the Guerra Campal record next to the total, with GC as the short label", () => {
+    const { container } = render(
+      <RecordSummary manual={{ pro: profile.proRecord, amateur: empty }} computed={{ pro: { ...emptyComputed, wins: 3, losses: 1 }, amateur: emptyComputed }} />,
+    );
     const pro = container.querySelector('[data-level="pro"]')!;
     expect(pro.querySelector('[data-record="gc"]')).toHaveTextContent("3-1-0");
     expect(pro.querySelector('[data-record="total"]')).toHaveTextContent("12-2-0");
     expect(pro).toHaveTextContent("GC");
     expect(pro).toHaveTextContent("Guerra Campal");
-    expect(container.querySelector('[data-level="amateur"] [data-record="gc"]')).toHaveTextContent("Sin peleas aún");
+  });
+
+  it("shows the amateur block only when it has an amateur record", () => {
+    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: { ...empty, wins: 4 } }} computed={noFights} />);
+    expect(container.querySelector('[data-level="amateur"] [data-record="total"]')).toHaveTextContent("4-0-0");
+  });
+
+  it("renders no section at all when there is nothing to show", () => {
+    const { container } = render(<RecordSummary manual={{ pro: empty, amateur: empty }} computed={noFights} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
