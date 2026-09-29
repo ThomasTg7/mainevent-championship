@@ -1,4 +1,4 @@
-import { Slot } from "@radix-ui/react-slot";
+import { Slot } from "radix-ui";
 import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "@/lib/cn";
 
@@ -19,7 +19,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 };
 
 export function Button({ variant, asChild, className, ...props }: ButtonProps) {
-  const Component = asChild ? Slot : "button";
+  const Component = asChild ? Slot.Root : "button";
 
   return <Component className={cn(baseClasses, variantClasses[variant], className)} {...props} />;
 }

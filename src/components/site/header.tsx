@@ -1,24 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui-gc/button";
 import { cn } from "@/lib/cn";
 import { MobileMenu } from "./mobile-menu";
-
-export const NAV_LINKS = [
-  { href: "/eventos", label: "Eventos" },
-  { href: "/peleadores", label: "Peleadores" },
-  { href: "/rankings", label: "Rankings" },
-  { href: "/noticias", label: "Noticias" },
-  { href: "/entradas", label: "Entradas" },
-];
+import { NAV_LINKS } from "./nav-links";
 
 export function Header() {
   const [solid, setSolid] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -34,12 +28,20 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const closeMenu = useCallback(() => {
+    setMenuOpen(false);
+    // El botón vuelve a ser visible recién al cerrar; se enfoca en el siguiente frame.
+    requestAnimationFrame(() => menuButtonRef.current?.focus());
+  }, []);
+
   return (
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-[100] h-[76px] flex items-center border-b border-transparent transition-[background-color,border-color,transform] duration-300 ease-gc",
-          solid && "bg-black/90 backdrop-blur-md border-border",
+          // Fondo sólido como capa aparte con opacity: solo se animan transform y opacity.
+          "fixed top-0 left-0 right-0 z-[100] h-[76px] flex items-center transition-transform duration-300 ease-gc",
+          "before:absolute before:inset-0 before:-z-10 before:bg-black/90 before:backdrop-blur-md before:border-b before:border-border before:opacity-0 before:transition-opacity before:duration-300",
+          solid && "before:opacity-100",
           hidden && "-translate-y-full",
         )}
       >
@@ -63,10 +65,13 @@ export function Header() {
               <Link href="/entradas">Comprar entradas</Link>
             </Button>
             <button
+              ref={menuButtonRef}
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-label="Menú"
-              className={cn("lg:hidden w-11 h-11 grid place-items-center text-white", menuOpen && "invisible")}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              className="lg:hidden w-11 h-11 grid place-items-center text-white"
             >
               <svg
                 width="26"
@@ -83,7 +88,7 @@ export function Header() {
           </div>
         </div>
       </header>
-      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileMenu open={menuOpen} onClose={closeMenu} />
     </>
   );
 }

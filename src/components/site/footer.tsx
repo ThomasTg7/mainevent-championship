@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
-import { NAV_LINKS } from "./header";
+import { NAV_LINKS } from "./nav-links";
 
 export function Footer() {
   return (

@@ -1,20 +1,22 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const QUERY = "(prefers-reduced-motion: reduce)";
 
+function subscribe(callback: () => void) {
+  const mediaQuery = window.matchMedia(QUERY);
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getSnapshot() {
+  return window.matchMedia(QUERY).matches;
+}
+
+// En el servidor no se sabe; se asume "sin preferencia" y React corrige tras hidratar.
+function getServerSnapshot() {
+  return false;
+}
+
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(() =>
-    typeof window === "undefined" ? false : window.matchMedia(QUERY).matches,
-  );
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(QUERY);
-    const onChange = () => setReduced(mediaQuery.matches);
-
-    onChange();
-    mediaQuery.addEventListener("change", onChange);
-    return () => mediaQuery.removeEventListener("change", onChange);
-  }, []);
-
-  return reduced;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
