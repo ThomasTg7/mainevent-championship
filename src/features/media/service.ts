@@ -87,15 +87,19 @@ export async function finalizeUpload(
     metadata = {} as Metadata;
   }
   const { w, h } = visibleSize(metadata);
-  if (!metadata.format || FORMAT_MIME[metadata.format] !== row.mime || w === 0 || h === 0) {
+  // Se confía en el contenido real, no en la etiqueta del archivo (un PNG guardado como .jpg es común).
+  // Lo que no puede cambiar es ser SVG o no: el SVG se sanitiza y no lleva variantes.
+  const actualMime = metadata.format ? FORMAT_MIME[metadata.format] : undefined;
+  const isSvg = row.mime === "image/svg+xml";
+  if (!actualMime || w === 0 || h === 0 || (actualMime === "image/svg+xml") !== isSvg || !MEDIA_SPECS[row.kind].accepts.includes(actualMime)) {
     await discardUpload(db, storage, row);
     throw new MediaError("El archivo no es una imagen válida");
   }
 
-  if (row.mime === "image/svg+xml") {
+  if (isSvg) {
     await storage.put(row.originalKey, original, row.mime);
   }
-  await db.update(media).set({ width: w, height: h }).where(eq(media.id, row.id));
+  await db.update(media).set({ width: w, height: h, mime: actualMime }).where(eq(media.id, row.id));
 
   const { warning } = checkResolution(row.kind, w, h);
   return { width: w, height: h, ...(warning ? { warning } : {}) };

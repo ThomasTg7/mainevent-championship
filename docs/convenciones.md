@@ -52,4 +52,14 @@ Patrones que ya existen en el código. Los planes 01–07 los heredan: **úsalos
 - `*.test.tsx` que necesitan DOM: primera línea `// @vitest-environment jsdom`.
 - Integración con BD: `createTestDb()` (clon de una plantilla PGlite ya migrada; rápido). Tablas de prueba temporales con `create temporary table`.
 - E2E: BD propia `guerra_campal_e2e` (se vacía en cada corrida, requiere Docker). Login con `signInAsAdmin(page)` de `e2e/fixtures/admin.ts`. Locators de alertas por texto (Next agrega su propio `role="alert"`).
+- E2E y build usan carpeta propia (`E2E_DIST_DIR=.next-e2e`, ya fijada por `playwright.config.ts`): corren aunque haya un `pnpm dev` abierto. Para construir sin tocar el `.next` del dev: `E2E_DIST_DIR=.next-e2e pnpm build`.
 - Verificación completa: `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e`, `pnpm build`.
+
+## Imágenes (Plan 01)
+
+- **Subir/editar en formularios:** `<MediaField kind name media? onChange? />` y `<MediaGalleryField name media? />` (`src/features/media/components`). Envían el id (uno por foto en galería) como `<input type="hidden" name>`; la action del formulario solo guarda el id. Pasar `media` (DTO ya guardado) para mostrar la miniatura al editar.
+- **Leer:** `getMedia(db, id)` / `getMediaByIds(db, ids)` (una consulta; solo imágenes `ready`). Nunca una consulta por imagen.
+- **Mostrar:** siempre `<MediaImage media sizes priority? className />` (`src/components/media`): `srcset` de variantes WebP + `object-position` del punto de enfoque. `sizes` es obligatorio; `priority` solo para la imagen LCP. Los logos SVG no tienen variantes (usa `originalUrl`, ya sanitizado).
+- **Formatos por tipo:** `MEDIA_SPECS` en `src/domain/media-specs.ts` (aspecto, mínimo, variantes). No repetir esas cifras en otro lado.
+- **Almacenamiento:** `getStorage()` (`STORAGE_DRIVER=local|s3`); claves de variantes las genera `saveMediaEdit`, no armarlas a mano.
+- **Página de pruebas** (solo desarrollo): `/admin/medios`.

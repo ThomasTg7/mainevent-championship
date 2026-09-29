@@ -144,3 +144,67 @@ Formato:
 - **Por qué:** se deja anotado para decidirlo al desplegar.
 - **Impacto:** Plan 07 (despliegue).
 - **Estado:** pendiente
+
+---
+
+# Plan 01 · Medios (ejecución) — 2026-09-28
+
+## [Plan 01 · Task 2] Claves de variantes con versión y límite de tamaño verificado al finalizar
+- **Qué:** las variantes se guardan en `variants/<mediaId>/<versión>/<ancho>.webp` (el plan decía `variants/<mediaId>/<ancho>.webp`). Cada edición genera una versión nueva y borra las claves anteriores. El driver S3 marca `variants/*` con `Cache-Control: public, max-age=31536000, immutable`. Además, la URL prefirmada de S3 no puede limitar el tamaño (haría falta conocer el largo exacto al firmar): el límite de 15 MB se verifica en `finalizeUpload` con el archivo real (lo descarta si lo supera). El driver local sí lo valida al recibir el PUT.
+- **Por qué:** con la clave fija, un cambio de recorte se vería con la imagen vieja en el CDN/navegador hasta que venciera la caché; con versión en la clave se puede cachear para siempre (CLAUDE.md: rendimiento) y una re-edición nunca deja a medias una imagen en uso.
+- **Impacto:** `src/features/media/service.ts`, `src/lib/storage/s3.ts`. Nadie fuera de `media` debe armar claves a mano: se usa `MediaDTO.variants[].url`.
+- **Estado:** aplicado
+
+## [Plan 01 · Task 4] Lógica en `service.ts`, las actions quedan delgadas; actions devuelven `{ error } | { data }`
+- **Qué:** `createUpload`, `finalizeUpload`, `saveMediaEdit` y `purgeOrphanMedia` reciben `(db, storage, …)` y se prueban con PGlite + `LocalDriver` en carpeta temporal (`service.test.ts`). `actions.ts` solo hace `requireAdmin()` → Zod → servicio → `logAudit`. Los errores para personas son `MediaError`; cualquier otro error se reemplaza por un mensaje genérico (no se filtran detalles). Las actions devuelven `{ data }` en éxito porque el cliente necesita `mediaId`, `uploadUrl`, dimensiones y el DTO (la convención `{ error?, success? }` no lleva datos).
+- **Por qué:** el plan pedía probar `actions.ts` directo, pero usa `headers()` (docs/convenciones.md ya lo dice). Se agregó además `getMediaByIds` (una consulta para galerías, sin N+1) y `getMediaEdit`/`getMediaEditAction` (reabrir el editor con recorte/giro/ajustes guardados; el `MediaDTO` del plan no los trae). `getMedia*` solo devuelve imágenes `ready` y sin `deleted_at`: una subida abortada nunca se ve.
+- **Impacto:** Planes 02–04 usan `getMedia`/`getMediaByIds` en sus queries y `MediaField`/`MediaGalleryField` en sus formularios; no llaman a las actions de media directamente.
+- **Estado:** aplicado · pendiente de reflejar en planes 02–04 (lo hace la revisión)
+
+## [Plan 01 · Task 4] El cron de purga también limpia subidas abandonadas
+- **Qué:** `handlePurge` acepta la dependencia opcional `purgeOrphanMedia`; `/api/cron/purge` la pasa. La respuesta pasa a `{ purged, orphanMedia }` cuando se entrega (con la firma anterior sigue igual) y se audita como `entityType: "media"`.
+- **Por qué:** el plan pedía "registrada en el cron del Plan 00"; el handler solo conocía `purgeExpired`.
+- **Impacto:** `src/features/trash/purge-handler.ts`, `src/app/api/cron/purge/route.ts`.
+- **Estado:** aplicado
+
+## [Plan 01 · Task 3] Tabla `media`, `MediaEdit` con Zod, recorte por defecto centrado
+- **Qué:** `media.width/height` son nulables (una subida `pending` aún no tiene dimensiones). `MediaEdit` es un esquema Zod (`src/features/media/schema.ts`, ajustes 0.5–1.5, giro 0/90/180/270, enfoque 0–1) porque la action valida el input con él. Si `crop` es `null`, `renderVariants` recorta al aspecto del tipo centrado en el punto de enfoque (garantiza el formato fijo). Recorte y ajustes se aplican una vez y cada ancho se redimensiona desde ese resultado. Si el recorte es menor que todas las variantes, se genera una sola del ancho del recorte (el plan las omitía todas y no quedaba imagen). El `focal` es relativo al resultado recortado (coincide con `object-position` de las variantes servidas).
+- **Por qué:** ver arriba; todo dentro del espíritu del spec §5.
+- **Impacto:** Planes 02–04: `object-position` ya lo aplica `MediaImage`.
+- **Estado:** aplicado
+
+## [Plan 01 · Task 5] Editor: controles nativos y proporción libre
+- **Qué:** zoom/brillo/contraste/saturación usan `<input type="range">` y la proporción libre (galería) un `<select>` nativo, no shadcn Slider/Select. `react-easy-crop` no soporta recorte libre, así que `gallery` ofrece proporciones predefinidas (Original por defecto). La vista previa recortada se dibuja en un canvas (`crop-preview.ts`); si la imagen original vive en un bucket sin CORS, el canvas no puede leerla y la vista cae a la imagen completa sin recortar (el resultado guardado no se afecta). Se agregó `aspectLabel` a `MEDIA_SPECS` y `describeSpec()`.
+- **Por qué:** objetivos táctiles de 44 px, sin dependencias nuevas ni `ResizeObserver` en tests.
+- **Impacto:** al configurar S3/R2 en producción, el bucket necesita CORS: `PUT` (subida directa desde el navegador) y `GET` (editar de nuevo una imagen). Anotar en Plan 07 (despliegue).
+- **Estado:** aplicado · pendiente para Plan 07 (CORS del bucket)
+
+## [Plan 01 · Task 6] Quitar fondo: Xenova/modnet
+- **Qué:** modelo `Xenova/modnet` (Apache-2.0, verificado en la ficha) con `@huggingface/transformers` (Apache-2.0) en un Web Worker; el modelo se baja del Hub de Hugging Face la primera vez y queda en caché del navegador. Documentado en `src/features/media/bg-removal/README.md`. El resultado (PNG con alfa) se sube como un original nuevo y reemplaza al anterior en el editor. Verificado a mano con una foto de prueba: esquina alpha 0, cuerpo opaco.
+- **Por qué:** pedido por el plan (licencia permisiva verificada antes de fijar el modelo).
+- **Impacto:** si se quiere no depender del Hub en producción, alojar el modelo en el bucket (nota en el README). Plan 07 puede decidirlo.
+- **Estado:** aplicado
+
+## [Plan 01 · Task 7] Campos con imagen ya cargada, galería y página de pruebas
+- **Qué:** `MediaField` recibe además `media?: MediaDTO` (imagen ya guardada; la carga el servidor) y `MediaGalleryField` `media?: MediaDTO[]`; ambos emiten un `<input type="hidden" name>` por valor para usarse en `<form action>`. En galería cada foto se guarda con la edición neutra al subirla (sin abrir el editor una por una) y se puede editar después; el orden se cambia arrastrando o con los botones Subir/Bajar. Los logos SVG se guardan tal cual (sanitizados) sin editor. Se agregó una página **solo de desarrollo** `/admin/medios` ("Prueba de imágenes", 404 en producción) para revisar el flujo a mano y en los e2e, porque el plan no trae ninguna pantalla que use los campos.
+- **Por qué:** sin `media` inicial no hay con qué mostrar la miniatura al editar una entidad; sin página no hay dónde probar (los Planes 02–04 traen los formularios reales).
+- **Impacto:** Planes 02–04 pasan `media` (de `getMediaByIds`) a los campos. Cuando existan formularios reales, se puede borrar `/admin/medios`.
+- **Estado:** aplicado · pendiente de reflejar en planes 02–04 (lo hace la revisión)
+
+## [Plan 01] E2E y build con carpeta propia (`.next-e2e`) y almacenamiento temporal
+- **Qué:** `next.config.ts` usa `distDir: process.env.E2E_DIST_DIR ?? ".next"`; `playwright.config.ts` fija `E2E_DIST_DIR=.next-e2e` y `STORAGE_LOCAL_DIR` (carpeta temporal del sistema). `tsconfig.json`, `.gitignore` y ESLint conocen `.next-e2e`. El `LocalDriver` lee `STORAGE_LOCAL_DIR` (por defecto `.storage/`, ignorado por git).
+- **Por qué:** con un `pnpm dev` abierto (caso real: el usuario lo tenía corriendo), Next 16 se niega a levantar un segundo servidor sobre el mismo `.next` ("Another next dev server is already running") y los e2e no arrancaban. Así los e2e y `pnpm build` (con `E2E_DIST_DIR=.next-e2e`) corren aunque haya un `pnpm dev` abierto, sin cerrarlo, y las imágenes de prueba no ensucian el proyecto.
+- **Impacto:** convención de tests (anotada en `docs/convenciones.md`).
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 01 · Task 2] ESLint: argumentos no usados con prefijo `_`
+- **Qué:** `@typescript-eslint/no-unused-vars` ignora argumentos que empiezan con `_` (los drivers de almacenamiento implementan una interfaz común y a veces no usan todos los parámetros).
+- **Por qué:** mantener lint sin warnings sin quitar parámetros de la interfaz.
+- **Impacto:** `eslint.config.mjs`.
+- **Estado:** aplicado
+
+## [Plan 01 · Pendientes] Para planes siguientes
+- **Qué:** (1) "Quitar" una imagen en un campo solo desliga el id del formulario: la fila `media` queda `ready` sin dueño. Falta una limpieza de medios ya usados y luego huérfanos (Plan 02+, cuando exista quién referencie `media.id`; decidir si se borran al guardar o por cron). (2) Cuando un peleador/evento/noticia vaya a la papelera o se purgue, sus `media` no se borran. (3) `media` no está en el registro de papelera: no se elimina de forma independiente.
+- **Por qué:** el Plan 01 no tiene entidades que referencien medios.
+- **Impacto:** Planes 02–04 (FKs a `media.id`) y Plan 07 (limpieza).
+- **Estado:** pendiente

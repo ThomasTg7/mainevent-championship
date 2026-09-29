@@ -130,6 +130,25 @@ describe("media service", () => {
       expect(await db.select().from(media).where(eq(media.id, mediaId))).toEqual([]);
     });
 
+    it("accepts a PNG saved with a .jpg label and records the real type", async () => {
+      const png = await sharp({ create: { width: 800, height: 1200, channels: 3, background: "#369" } }).png().toBuffer();
+      const mediaId = await upload("fighter_body", "image/jpeg", png);
+
+      await expect(finalizeUpload(db, storage, mediaId)).resolves.toMatchObject({ width: 800, height: 1200 });
+
+      const [row] = await db.select().from(media).where(eq(media.id, mediaId));
+      expect(row.mime).toBe("image/png");
+    });
+
+    it("rejects a raster image uploaded as SVG and the other way around", async () => {
+      const png = await sharp({ create: { width: 300, height: 150, channels: 3, background: "#369" } }).png().toBuffer();
+      const asSvg = await upload("sponsor_logo", "image/svg+xml", png);
+      const asRaster = await upload("sponsor_logo", "image/png", Buffer.from(SVG));
+
+      await expect(finalizeUpload(db, storage, asSvg)).rejects.toThrow("El archivo no es una imagen válida");
+      await expect(finalizeUpload(db, storage, asRaster)).rejects.toThrow("El archivo no es una imagen válida");
+    });
+
     it("rejects and discards an upload that exceeds 15 MB after the fact", async () => {
       // El cliente declara un tamaño pequeño y sube más: S3 no limita el PUT firmado.
       const mediaId = await upload("gallery", "image/jpeg", Buffer.alloc(15 * 1024 * 1024 + 1), 1000);
