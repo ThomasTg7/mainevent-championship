@@ -159,7 +159,7 @@ Formato:
 - **Qué:** `createUpload`, `finalizeUpload`, `saveMediaEdit` y `purgeOrphanMedia` reciben `(db, storage, …)` y se prueban con PGlite + `LocalDriver` en carpeta temporal (`service.test.ts`). `actions.ts` solo hace `requireAdmin()` → Zod → servicio → `logAudit`. Los errores para personas son `MediaError`; cualquier otro error se reemplaza por un mensaje genérico (no se filtran detalles). Las actions devuelven `{ data }` en éxito porque el cliente necesita `mediaId`, `uploadUrl`, dimensiones y el DTO (la convención `{ error?, success? }` no lleva datos).
 - **Por qué:** el plan pedía probar `actions.ts` directo, pero usa `headers()` (docs/convenciones.md ya lo dice). Se agregó además `getMediaByIds` (una consulta para galerías, sin N+1) y `getMediaEdit`/`getMediaEditAction` (reabrir el editor con recorte/giro/ajustes guardados; el `MediaDTO` del plan no los trae). `getMedia*` solo devuelve imágenes `ready` y sin `deleted_at`: una subida abortada nunca se ve.
 - **Impacto:** Planes 02–04 usan `getMedia`/`getMediaByIds` en sus queries y `MediaField`/`MediaGalleryField` en sus formularios; no llaman a las actions de media directamente.
-- **Estado:** aplicado · pendiente de reflejar en planes 02–04 (lo hace la revisión)
+- **Estado:** aplicado · aplicado a planes siguientes
 
 ## [Plan 01 · Task 4] El cron de purga también limpia subidas abandonadas
 - **Qué:** `handlePurge` acepta la dependencia opcional `purgeOrphanMedia`; `/api/cron/purge` la pasa. La respuesta pasa a `{ purged, orphanMedia }` cuando se entrega (con la firma anterior sigue igual) y se audita como `entityType: "media"`.
@@ -177,19 +177,19 @@ Formato:
 - **Qué:** zoom/brillo/contraste/saturación usan `<input type="range">` y la proporción libre (galería) un `<select>` nativo, no shadcn Slider/Select. `react-easy-crop` no soporta recorte libre, así que `gallery` ofrece proporciones predefinidas (Original por defecto). La vista previa recortada se dibuja en un canvas (`crop-preview.ts`); si la imagen original vive en un bucket sin CORS, el canvas no puede leerla y la vista cae a la imagen completa sin recortar (el resultado guardado no se afecta). Se agregó `aspectLabel` a `MEDIA_SPECS` y `describeSpec()`.
 - **Por qué:** objetivos táctiles de 44 px, sin dependencias nuevas ni `ResizeObserver` en tests.
 - **Impacto:** al configurar S3/R2 en producción, el bucket necesita CORS: `PUT` (subida directa desde el navegador) y `GET` (editar de nuevo una imagen). Anotar en Plan 07 (despliegue).
-- **Estado:** aplicado · pendiente para Plan 07 (CORS del bucket)
+- **Estado:** aplicado · aplicado a planes siguientes (Plan 07, Task 6)
 
 ## [Plan 01 · Task 6] Quitar fondo: Xenova/modnet
 - **Qué:** modelo `Xenova/modnet` (Apache-2.0, verificado en la ficha) con `@huggingface/transformers` (Apache-2.0) en un Web Worker; el modelo se baja del Hub de Hugging Face la primera vez y queda en caché del navegador. Documentado en `src/features/media/bg-removal/README.md`. El resultado (PNG con alfa) se sube como un original nuevo y reemplaza al anterior en el editor. Verificado a mano con una foto de prueba: esquina alpha 0, cuerpo opaco.
 - **Por qué:** pedido por el plan (licencia permisiva verificada antes de fijar el modelo).
-- **Impacto:** si se quiere no depender del Hub en producción, alojar el modelo en el bucket (nota en el README). Plan 07 puede decidirlo.
-- **Estado:** aplicado
+- **Impacto:** si se quiere no depender del Hub en producción, alojar el modelo en el bucket (nota en el README). Decidido en la revisión: se aloja en el bucket (ver abajo).
+- **Estado:** aplicado · aplicado a planes siguientes (Plan 07, Task 6)
 
 ## [Plan 01 · Task 7] Campos con imagen ya cargada, galería y página de pruebas
 - **Qué:** `MediaField` recibe además `media?: MediaDTO` (imagen ya guardada; la carga el servidor) y `MediaGalleryField` `media?: MediaDTO[]`; ambos emiten un `<input type="hidden" name>` por valor para usarse en `<form action>`. En galería cada foto se guarda con la edición neutra al subirla (sin abrir el editor una por una) y se puede editar después; el orden se cambia arrastrando o con los botones Subir/Bajar. Los logos SVG se guardan tal cual (sanitizados) sin editor. Se agregó una página **solo de desarrollo** `/admin/medios` ("Prueba de imágenes", 404 en producción) para revisar el flujo a mano y en los e2e, porque el plan no trae ninguna pantalla que use los campos.
 - **Por qué:** sin `media` inicial no hay con qué mostrar la miniatura al editar una entidad; sin página no hay dónde probar (los Planes 02–04 traen los formularios reales).
-- **Impacto:** Planes 02–04 pasan `media` (de `getMediaByIds`) a los campos. Cuando existan formularios reales, se puede borrar `/admin/medios`.
-- **Estado:** aplicado · pendiente de reflejar en planes 02–04 (lo hace la revisión)
+- **Impacto:** Planes 02–04 pasan `media` (de `getMediaByIds`) a los campos. `/admin/medios` se mantiene como banco de pruebas solo de desarrollo (lo usan los e2e de medios).
+- **Estado:** aplicado · aplicado a planes siguientes
 
 ## [Plan 01] E2E y build con carpeta propia (`.next-e2e`) y almacenamiento temporal
 - **Qué:** `next.config.ts` usa `distDir: process.env.E2E_DIST_DIR ?? ".next"`; `playwright.config.ts` fija `E2E_DIST_DIR=.next-e2e` y `STORAGE_LOCAL_DIR` (carpeta temporal del sistema). `tsconfig.json`, `.gitignore` y ESLint conocen `.next-e2e`. El `LocalDriver` lee `STORAGE_LOCAL_DIR` (por defecto `.storage/`, ignorado por git).
@@ -207,7 +207,7 @@ Formato:
 - **Qué:** (1) "Quitar" una imagen en un campo solo desliga el id del formulario: la fila `media` queda `ready` sin dueño. Falta una limpieza de medios ya usados y luego huérfanos (Plan 02+, cuando exista quién referencie `media.id`; decidir si se borran al guardar o por cron). (2) Cuando un peleador/evento/noticia vaya a la papelera o se purgue, sus `media` no se borran. (3) `media` no está en el registro de papelera: no se elimina de forma independiente.
 - **Por qué:** el Plan 01 no tiene entidades que referencien medios.
 - **Impacto:** Planes 02–04 (FKs a `media.id`) y Plan 07 (limpieza).
-- **Estado:** pendiente
+- **Estado:** resuelto en la revisión (ver "Dueños de las imágenes") · aplicado a planes siguientes
 
 ## [Plan 01 · Ajuste posterior] Nitidez en el editor y causa del "No se pudo preparar la subida"
 - **Qué:** (1) El error "No se pudo preparar la subida" venía de que la base de desarrollo no tenía aplicada la migración `0005` (tabla `media`); el `insert` fallaba y la action devolvía el mensaje genérico. Se aplicó con `pnpm db:migrate` y se verificó `createUpload` contra la base real. Ahora `actions.ts` deja la causa real en el log del servidor (`console.error`) además del mensaje genérico. (2) Se agregó el ajuste **Nitidez** (0–2, por defecto 0): vista previa con un filtro SVG (`feConvolveMatrix`) y, en el servidor, `sharpen()` de sharp aplicado después de achicar cada variante. Las ediciones guardadas antes no lo traen: el esquema Zod lo completa con 0 y `getMediaEdit` mezcla los valores por defecto. Los pies de las vistas previas indican la proporción de cada contexto.
@@ -220,3 +220,75 @@ Formato:
 - **Por qué:** en la primera versión el pie quedaba fuera de pantalla en PC (había que desplazarse para guardar), las vistas previas se apilaban desordenadas y todo era una columna larga.
 - **Impacto:** `src/features/media/components/*` (sin cambios de API: `ImageEditor`, `MediaField`, `MediaGalleryField` iguales). Nota: el diálogo usa `sm:max-w-6xl`; las clases arbitrarias con `min()` en `max-w` no se generaron bien con Turbopack.
 - **Estado:** aplicado
+
+---
+
+# Revisión del Plan 01 (Opus) — 2026-09-28
+
+## [Plan 01 · Revisión] Procesamiento de imágenes: memoria y fotos gigantes
+- **Qué:** `renderVariants` achica al ancho de la variante mayor **antes** de pasar a `raw` (antes decodificaba el recorte completo: una foto de 48 MP ocupaba ~190 MB, y un PNG "bomba" de 15 MB podía pedir más de 1 GB). Tope `MAX_INPUT_PIXELS` = 50 MP (`src/domain/media-specs.ts`): `finalizeUpload` descarta la subida con "La imagen tiene demasiados píxeles (máx. 50 megapíxeles)…" y sharp lo aplica también al decodificar. Las variantes guardan `height` además de `width`.
+- **Por qué:** una función serverless de 1 GB se caía con fotos grandes de celular; el mensaje genérico no explicaba nada.
+- **Impacto:** `process.ts`, `service.ts`, `media-specs.ts`, `StoredVariant.height` (opcional: las variantes previas no lo tienen).
+- **Estado:** aplicado
+
+## [Plan 01 · Revisión] Enlaces de subida de un solo uso
+- **Qué:** la URL firmada ya no puede reemplazar un original ya subido (y quizá ya validado o sanitizado): el driver local escribe con `putIfAbsent` (409 si existe) y exige `Content-Length` (411; antes leía el cuerpo entero sin límite si faltaba). El driver S3 firma `If-None-Match: *` (escritura condicional de S3/R2/MinIO) y lo devuelve en `headers`, que el navegador ya envía tal cual.
+- **Por qué:** durante los 15 min de validez se podía volver a subir, por ejemplo, un SVG con `<script>` después de sanitizado, o un archivo de 1 GB después del chequeo de tamaño.
+- **Impacto:** `src/lib/storage/{local,local-upload,s3}.ts`. **Plan 07:** el CORS del bucket debe permitir el encabezado `If-None-Match` y hay que verificar que el proveedor respete la escritura condicional.
+- **Estado:** aplicado · aplicado a planes siguientes (Plan 07, Task 6)
+
+## [Plan 01 · Revisión] Guardar dos ediciones a la vez no deja archivos sin dueño
+- **Qué:** `saveMediaEdit` lee las variantes a reemplazar dentro de una transacción con `SELECT … FOR UPDATE` y borra esas (antes borraba las que había leído al empezar: dos guardados simultáneos dejaban para siempre las variantes de uno de ellos).
+- **Por qué:** doble clic o dos pestañas.
+- **Impacto:** `service.ts`. Primer uso de `db.transaction` en el proyecto (funciona igual con postgres.js y PGlite).
+- **Estado:** aplicado
+
+## [Plan 01 · Revisión] Imágenes sin saltos de diseño y caché por imagen
+- **Qué:** `MediaImage` pone `width`/`height` de la variante mayor (el navegador reserva el espacio; el preflight de Tailwind deja `height: auto`). Nuevo `mediaCacheTag(id)` (`src/features/media/cache.ts`): `saveMediaEditAction` hace `revalidateTag("media:<id>", "max")`.
+- **Por qué:** CLAUDE.md pide CLS < 0,1 (las galerías de proporción libre no tenían cómo reservar espacio). Al reeditar una imagen se borran sus variantes viejas: una página pública cacheada que aún las usa mostraría imágenes rotas hasta que se guarde la entidad.
+- **Impacto:** Planes 02–06: toda lectura pública cacheada que devuelva `MediaDTO` agrega el tag `media:<id>` de cada imagen, además del de su entidad (anotado en `docs/convenciones.md` y en cada plan).
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 01 · Revisión] Logo del patrocinador: caja 2:1, sin recorte forzado
+- **Qué:** `sponsor_logo` pasa a `aspect: null` con `box: 2` (spec §5: "caja 2:1"). El editor ofrece proporción libre ("Original" por defecto), la vista previa muestra el logo entero (`object-contain`) dentro de una caja 2:1, la miniatura del campo también, y el mínimo se cumple llenando el ancho **o** el alto de la caja.
+- **Por qué:** se recortaba a 2:1: un logo cuadrado perdía los costados. Desviación del spec no registrada.
+- **Impacto:** `media-specs.ts` (`MediaSpec.box`), `preview-frames.tsx`, `media-field.tsx`. **Plan 06:** `SponsorStrip`/`SponsorGrid` muestran el logo con `object-contain` dentro de una caja `aspect-[2/1]`.
+- **Estado:** aplicado · aplicado a planes siguientes (Plan 06)
+
+## [Plan 01 · Revisión] Editor: arreglos de uso
+- **Qué:** (1) "Quitar fondo" entrega un PNG de 2400 px de lado mayor como máximo (a tamaño completo, una foto de 12 MP pasa de 15 MB y la subida se rechazaba justo después de esperar al modelo). (2) Al reabrir una foto de galería se recupera la proporción con que se recortó (antes volvía a "Original" y deformaba el recorte al guardar). (3) No se puede arrastrar en la galería mientras se suben fotos (el orden nuevo se perdía al terminar). (4) Al cerrar el editor, el foco vuelve al botón "Editar" de esa imagen (se perdía en `body` porque el botón se deshabilita mientras carga). (5) La X de diálogos y paneles mide 44 px en pantallas táctiles (`globals.css`: Radix le pone `data-slot="dialog-close"`). (6) En celular la fila de la galería oculta "Foto N" (quedaba cortado en "F"; los botones ya lo dicen al lector de pantalla). (7) `pnpm-workspace.yaml` tenía el texto de ejemplo "set this to true or false" en `allowBuilds`; ahora `onnxruntime-node: false` y `protobufjs: false` (quitar fondo usa la versión web).
+- **Por qué:** encontrados al revisar en 375 px y 1440 px y en la revisión de código.
+- **Impacto:** `bg-removal/worker.ts`, `crop-stage.tsx` (`aspectChoiceFor`), `image-editor.tsx`, `gallery-item.tsx`, `editor-dialog.tsx` (prop `returnFocusTo`), `media-field.tsx`, `gallery-editor.tsx`, `globals.css`, `pnpm-workspace.yaml`.
+- **Estado:** aplicado
+
+## [Plan 01 · Revisión] Subidas pendientes sin auditoría
+- **Qué:** `createUploadAction` y `finalizeUploadAction` escriben la fila `pending` sin `logAudit`; solo se audita "Guardó una imagen" (`saveMediaEditAction`) y la limpieza del cron.
+- **Por qué:** una subida pendiente todavía no es contenido (no la ve nadie y se purga sola a las 24 h). Auditarla triplicaría cada foto en el historial (una galería de 20 fotos = 60 entradas). Excepción explícita a la regla 4 de CLAUDE.md.
+- **Impacto:** ninguno.
+- **Estado:** aplicado
+
+## [Plan 01 · Revisión] Dueños de las imágenes: qué pasa al quitar, reemplazar, enviar a papelera o purgar
+- **Qué:** una imagen no tiene dueño explícito; **la usa quien la referencia**. Regla única:
+  1. Cada entidad referencia imágenes con FK `… references media(id) on delete restrict` (columna `*_media_id` o tabla de unión como `post_gallery`). Las imágenes dentro del cuerpo de una noticia se copian a la tabla `post_body_media(post_id, media_id)` al guardar. Una referencia dentro de JSON (solo `settings.share.ogMediaId`) se declara con una condición SQL.
+  2. Todas las referencias se registran en **un solo archivo**, `src/features/media/references.ts` (`MEDIA_REFERENCES`), como la papelera. Un test recorre el esquema con `getTableConfig` y falla si existe una FK a `media.id` que no esté registrada.
+  3. **Quitar o reemplazar** una imagen en un formulario solo cambia el id guardado; no se borra nada en ese momento (si el formulario no se guarda, la entidad sigue igual).
+  4. **Enviar a la papelera** una entidad no toca sus imágenes (siguen referenciadas: restaurar la deja igual que antes). **Purgar** la entidad borra la fila y sus imágenes quedan sin referencias.
+  5. El cron diario `purgeUnreferencedMedia` borra (archivos + fila) las imágenes `ready` creadas hace **más de 7 días** que ninguna referencia usa, en lotes de 200, y lo audita como "Sistema". Los 7 días protegen una subida hecha en un formulario que aún no se guarda. `on delete restrict` hace que un error del barrido falle en la base de datos en vez de dejar una ficha sin foto.
+  6. Las actions que guardan ids de imagen validan que existan, estén `ready` y sean del tipo esperado (`assertUsableMedia`); si no: "La imagen ya no está disponible. Súbela de nuevo."
+  7. `media` no entra al registro de la papelera ni se borra "a mano" desde el panel; `media.deleted_at` queda sin uso (las lecturas ya lo filtran).
+- **Por qué:** con dueños explícitos habría que mantener el dueño en cada action (crear, duplicar evento, reemplazar, galería, cuerpo de noticia) y cualquier olvido deja basura o borra fotos en uso. Con "referenciada = en uso" basta un registro y un test que obliga a cada plan a declararla.
+- **Impacto:** Plan 02 (nueva Task 4b: registro, barrido, `assertUsableMedia`, cron), Planes 03, 04 y 06 (registrar sus referencias), Plan 07 (el cron de purga ya lo corre).
+- **Estado:** decidido · aplicado a planes siguientes
+
+## [Plan 01 · Revisión] Modelo de "Quitar fondo" alojado en el bucket
+- **Qué:** en producción los archivos de `Xenova/modnet` se sirven desde el bucket (`models/Xenova/modnet/…`) y el worker usa `env.remoteHost` desde `NEXT_PUBLIC_MODEL_BASE_URL`; sin la variable (desarrollo) sigue bajando del Hub de Hugging Face.
+- **Por qué:** no depender de la disponibilidad ni de los límites del Hub en plena noche de pelea, no revelarle a un tercero la IP de cada admin y servirlo desde el mismo CDN (R2 no cobra salida). Son ~25 MB, una sola vez por navegador.
+- **Impacto:** Plan 07, Task 6 (subir los archivos, variable, CORS `GET`).
+- **Estado:** decidido · aplicado a planes siguientes
+
+## [Plan 01 · Revisión] SVG servidos desde el bucket
+- **Qué:** el driver local sirve los archivos con `Content-Security-Policy: …; sandbox` y `nosniff`; el bucket público no. Plan 07 agrega una regla de encabezados del dominio de medios (Cloudflare "Transform Rules") con los mismos encabezados.
+- **Por qué:** el SVG ya viene sanitizado, pero si alguien lo abre directo en el dominio de medios conviene que no pueda ejecutar nada (defensa en profundidad).
+- **Impacto:** Plan 07, Task 6.
+- **Estado:** decidido · aplicado a planes siguientes
+

@@ -16,7 +16,7 @@
 - Hereda Plan 00–06.
 - Plantilla de título: `"%s | Guerra Campal"`; home: `"Guerra Campal — MMA en Chile"`.
 - Descripción máx. 160 caracteres (se trunca en palabra completa con "…").
-- Imagen Open Graph: la de `settings.share.ogMediaId` (1200×630); fallback estático `public/og-default.jpg`.
+- Imagen Open Graph: la variante de 1200 px de `settings.share.ogMediaId` (`getMedia`, URL absoluta); fallback estático `public/og-default.jpg`.
 - `robots.txt`: `Disallow: /admin`, `Disallow: /api`; `Sitemap: <SITE_URL>/sitemap.xml`. Si `SITE_URL` termina en `.vercel.app` y `ALLOW_INDEXING` no es `true`, `Disallow: /` (evitar indexar el subdominio de prueba antes del lanzamiento).
 - `SITE_URL` desde variable de entorno; cambiar de dominio no requiere cambios de código.
 - Analítica: `ANALYTICS_PROVIDER=vercel|umami|none`; nunca cookies.
@@ -103,6 +103,12 @@
 - Modify: `package.json` (`"vercel-build": "pnpm db:migrate && next build"`)
 
 - [ ] **Step 1:** Ejecutar con el usuario siguiendo `docs/configuracion-externa.md` (Google y Resend ya están documentados ahí; completar el resto) (cada servicio lo crea el usuario con su cuenta): Postgres (Neon o Supabase, solo cadena de conexión), bucket R2 con dominio público, dominio de envío en Resend, credenciales OAuth de Google (redirect `https://<SITE_URL>/api/auth/callback/google`), `BETTER_AUTH_SECRET`, `CRON_SECRET`, `PREVIEW_SECRET`, `SITE_URL`, `ANALYTICS_PROVIDER=vercel`, `STORAGE_DRIVER=s3`, `MAIL_DRIVER=resend`, `RESEND_API_KEY`, `MAIL_FROM`. Con Google configurado, el botón aparece solo.
+- [ ] **Step 1b: Bucket de medios** (decisiones de la revisión del Plan 01 en `docs/decisions.md`):
+  - CORS del bucket: orígenes `SITE_URL` (y la URL de preview si se usa), métodos `PUT` (el navegador sube el original directo) y `GET` (reeditar una imagen, vista previa recortada en canvas, quitar fondo), encabezados permitidos `Content-Type` e `If-None-Match`, `MaxAgeSeconds` 3600.
+  - Verificar la escritura condicional: repetir el `PUT` a una URL firmada ya usada responde 412 (la URL es de un solo uso). Si el proveedor no la respeta, anotarlo en `docs/decisions.md`.
+  - Regla de encabezados del dominio de medios (Cloudflare → Rules → Transform Rules → Response headers): `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox` (igual que el driver local), para que un SVG abierto directo no ejecute nada.
+  - Modelo de "Quitar fondo": subir los archivos de `Xenova/modnet` (`config.json`, `preprocessor_config.json`, `onnx/model.onnx`) a `models/Xenova/modnet/` del bucket; en `src/features/media/bg-removal/worker.ts`, si existe `NEXT_PUBLIC_MODEL_BASE_URL`, usar `env.remoteHost = <esa URL>/` y `env.remotePathTemplate = "{model}/"`; sin la variable (desarrollo) sigue el Hub. Agregar la variable a `.env.example` y actualizar `bg-removal/README.md`.
+  - **Verificación:** subir una foto en producción, reeditarla (vista previa recortada visible) y quitar el fondo: en la pestaña Red, el modelo viene del dominio de medios.
 - [ ] **Step 2:** Primer deploy; `scripts/create-admin.ts` contra producción para el email de la promotora.
 - [ ] **Step 3: Verificación (smoke test en producción):** login admin, subir foto, crear peleador borrador, previsualizar, publicar, verlo en el sitio; enviar formulario y recibir email; `/sitemap.xml` y `/robots.txt` responden; cron de purga responde 401 sin secreto.
 - [ ] **Step 4: Commit** `docs: deployment guide`
@@ -111,7 +117,7 @@
 
 **Files:**
 - Create: `docs/guia-admin.md` (para la promotora: cómo crear evento, armar cartelera, noche de pelea, cargar resultados, rankings, noticias, formatos de imagen con la tabla del spec, papelera)
-- Create: `docs/vps-migration.md`, `deploy/docker-compose.prod.yml` (app Next standalone, postgres:17, minio, umami, caddy con HTTPS), `deploy/Dockerfile`, `deploy/cron` (purga diaria con `curl` + `CRON_SECRET`)
+- Create: `docs/vps-migration.md`, `deploy/docker-compose.prod.yml` (app Next standalone, postgres:17, minio, umami, caddy con HTTPS), `deploy/Dockerfile`, `deploy/cron` (purga diaria con `curl` + `CRON_SECRET`; incluye subidas abandonadas e imágenes sin uso), CORS de MinIO y encabezados del dominio de medios en Caddy iguales a los del Step 1b de la Task 6
 
 - [ ] **Step 1:** `next.config.ts` con `output: 'standalone'`; `docker compose -f deploy/docker-compose.prod.yml up` levanta el sitio localmente con MinIO y `STORAGE_DRIVER=s3` apuntando a MinIO. **Verificación:** home carga e imágenes se sirven desde MinIO.
 - [ ] **Step 2:** Documentar migración: `pg_dump`/`pg_restore`, `rclone sync` R2 → MinIO, cambio de DNS, variables a cambiar.

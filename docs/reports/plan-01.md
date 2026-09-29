@@ -61,3 +61,13 @@ Todo en `http://localhost:3000/admin/medios` (entrar como admin), en 1440 px y e
 2. **Logo del patrocinador:** subir un SVG o PNG; el SVG se guarda sin editor.
 3. **Galería:** subir varias fotos a la vez, reordenarlas arrastrando y con las flechas Subir/Bajar, editar y quitar.
 4. En celular: sin scroll horizontal, botones de 44 px, "Guardar imagen" fijo abajo del editor.
+
+## Revisión (Opus) — 2026-09-28
+
+Sin tareas "Plan 01-fix": todo lo encontrado se corrigió en la revisión (detalle en `docs/decisions.md` → "Revisión del Plan 01").
+
+- **Seguridad y robustez:** URLs de subida de un solo uso (local y S3), `Content-Length` obligatorio en el driver local, tope de 50 MP, procesamiento que achica antes de decodificar a memoria, transacción al guardar ediciones (sin variantes huérfanas).
+- **UI:** "Quitar fondo" ya no genera PNG de más de 15 MB; la galería conserva la proporción al reabrir y no deja arrastrar mientras sube; el foco vuelve a "Editar" al cerrar el editor; X del diálogo de 44 px en táctil; fila de galería limpia en 375 px; logos de patrocinador enteros en caja 2:1 (spec §5).
+- **Rendimiento:** `MediaImage` con `width`/`height` (sin CLS) y tag de caché por imagen.
+- **Planes siguientes:** regla de "dueños de las imágenes" (registro de referencias + barrido del cron, nueva Task 4b del Plan 02); planes 02–04 y 06 usan `MediaField`/`MediaGalleryField`/`getMediaByIds`/`MediaImage` con FKs registradas; Plan 07 con CORS del bucket, encabezados de SVG y modelo de quitar fondo en el bucket.
+
