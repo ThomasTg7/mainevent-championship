@@ -3,6 +3,7 @@ import type { Db } from "@/db";
 import { media } from "@/db/schema/media";
 import { getStorage, type StorageDriver } from "@/lib/storage";
 import { toMediaDTO, type MediaDTO } from "./dto";
+import type { MediaEdit } from "./schema";
 
 const visible = and(eq(media.status, "ready"), isNull(media.deletedAt));
 
@@ -21,4 +22,17 @@ export async function getMediaByIds(
   if (ids.length === 0) return new Map();
   const rows = await db.select().from(media).where(and(inArray(media.id, ids), visible));
   return new Map(rows.map((row) => [row.id, toMediaDTO(row, storage)]));
+}
+
+/** Parámetros guardados del editor (recorte, giro, enfoque, ajustes), para reabrir una imagen y seguir editándola. */
+export async function getMediaEdit(db: Db, id: string): Promise<MediaEdit | null> {
+  const [row] = await db.select().from(media).where(and(eq(media.id, id), visible)).limit(1);
+  if (!row) return null;
+  return {
+    crop: row.crop,
+    rotation: row.rotation as MediaEdit["rotation"],
+    focal: { x: row.focalX, y: row.focalY },
+    adjustments: row.adjustments,
+    alt: row.alt,
+  };
 }

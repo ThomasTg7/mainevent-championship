@@ -5,6 +5,7 @@ import { logAudit } from "@/features/audit/log";
 import { getStorage } from "@/lib/storage";
 import { requireAdmin } from "@/lib/require-admin";
 import type { MediaDTO } from "./dto";
+import { getMediaEdit } from "./queries";
 import { createUploadSchema, mediaEditSchema, mediaIdSchema } from "./schema";
 import { MediaError, createUpload, finalizeUpload, saveMediaEdit } from "./service";
 
@@ -34,6 +35,19 @@ export async function finalizeUploadAction(mediaId: unknown) {
   if (!parsed.success) return { error: "Datos inválidos" } as const;
 
   return run("No se pudo procesar la imagen", () => finalizeUpload(db, getStorage(), parsed.data));
+}
+
+export async function getMediaEditAction(mediaId: unknown) {
+  await requireAdmin();
+
+  const parsed = mediaIdSchema.safeParse(mediaId);
+  if (!parsed.success) return { error: "Datos inválidos" } as const;
+
+  return run("No se pudo abrir la imagen", async () => {
+    const edit = await getMediaEdit(db, parsed.data);
+    if (!edit) throw new MediaError("No se encontró la imagen");
+    return edit;
+  });
 }
 
 export async function saveMediaEditAction(mediaId: unknown, edit: unknown): Promise<MediaActionResult<MediaDTO>> {

@@ -1,3 +1,5 @@
+import os from "node:os";
+import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 // Next.js carga .env automáticamente para `next dev`, pero el proceso de
@@ -12,6 +14,11 @@ try {
 // desarrollo. `next dev` no pisa variables que ya vienen del entorno.
 process.env.DATABASE_URL =
   process.env.E2E_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/guerra_campal_e2e";
+
+// Las imágenes subidas en los e2e van a una carpeta temporal, no a .storage/ del proyecto.
+process.env.STORAGE_LOCAL_DIR = path.join(os.tmpdir(), "guerra-campal-e2e-storage");
+
+process.env.E2E_DIST_DIR = ".next-e2e";
 
 const PORT = 3100;
 

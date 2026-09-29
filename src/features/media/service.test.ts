@@ -9,7 +9,7 @@ import { media } from "@/db/schema/media";
 import type { MediaKind } from "@/domain/media-specs";
 import { LocalDriver } from "@/lib/storage/local";
 import { createTestDb } from "@/test/db";
-import { getMedia, getMediaByIds } from "./queries";
+import { getMedia, getMediaByIds, getMediaEdit } from "./queries";
 import type { MediaEdit } from "./schema";
 import { createUpload, finalizeUpload, purgeOrphanMedia, saveMediaEdit } from "./service";
 
@@ -236,6 +236,20 @@ describe("media service", () => {
         focal: { x: 0.5, y: 0.2 },
       });
       expect(dto?.variants[0].url).toMatch(/^\/media\/variants\/.+\/400\.webp$/);
+    });
+
+    it("returns the saved edit parameters so the editor can reopen them", async () => {
+      const mediaId = await readyMedia("fighter_body", 1200, 1800);
+      const edit: MediaEdit = {
+        crop: { x: 0, y: 0, width: 600, height: 900 },
+        rotation: 90,
+        focal: { x: 0.3, y: 0.4 },
+        adjustments: { brightness: 1.1, contrast: 0.9, saturation: 1 },
+        alt: "Peleador",
+      };
+      await saveMediaEdit(db, storage, mediaId, edit);
+
+      expect(await getMediaEdit(db, mediaId)).toEqual(edit);
     });
 
     it("loads several media in a single query", async () => {

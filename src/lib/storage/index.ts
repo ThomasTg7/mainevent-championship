@@ -25,7 +25,7 @@ function createStorage(): StorageDriver {
     });
   }
   return new LocalDriver({
-    rootDir: path.join(process.cwd(), ".storage"),
+    rootDir: process.env.STORAGE_LOCAL_DIR ?? path.join(process.cwd(), ".storage"),
     secret: requireEnv("BETTER_AUTH_SECRET"),
   });
 }

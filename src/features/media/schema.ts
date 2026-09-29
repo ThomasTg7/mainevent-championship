@@ -30,3 +30,12 @@ export const createUploadSchema = z.object({
 });
 
 export const mediaIdSchema = z.uuid();
+
+/** Edición neutra: sin recorte manual (el servidor centra según el tipo), sin ajustes. */
+export const DEFAULT_EDIT: MediaEdit = {
+  crop: null,
+  rotation: 0,
+  focal: { x: 0.5, y: 0.5 },
+  adjustments: DEFAULT_ADJUSTMENTS,
+  alt: "",
+};
