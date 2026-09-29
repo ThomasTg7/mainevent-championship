@@ -9,10 +9,17 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next-e2e/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    // Los drivers implementan una interfaz común; un argumento que no usan se nombra con `_`.
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+    },
+  },
 ]);
 
 export default eslintConfig;

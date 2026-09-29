@@ -19,6 +19,7 @@
 
 # next.js
 /.next/
+/.next-e2e/
 /out/
 
 # production
@@ -47,3 +48,6 @@ next-env.d.ts
 
 # superpowers workflow scratch (ledger, task briefs, review packages)
 /.superpowers/
+
+# local media storage
+/.storage/

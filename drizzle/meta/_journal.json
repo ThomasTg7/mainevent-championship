@@ -36,6 +36,13 @@
       "when": 1790640500076,
       "tag": "0004_chunky_dormammu",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790644262177,
+      "tag": "0005_sticky_nemesis",
+      "breakpoints": true
     }
   ]
 }

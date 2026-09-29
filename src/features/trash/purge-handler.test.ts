@@ -68,4 +68,14 @@ describe("GET /api/cron/purge", () => {
 
     expect(await db.select().from(auditLog)).toEqual([]);
   });
+
+  it("also purges orphan media and records it when a purger is provided", async () => {
+    const purgeOrphanMedia = async () => 3;
+
+    const response = await handlePurge(request("Bearer test-cron-secret"), { db, purgeExpired, purgeOrphanMedia });
+
+    await expect(response.json()).resolves.toEqual({ purged: 0, orphanMedia: 3 });
+    const logs = await db.select().from(auditLog).where(eq(auditLog.actorId, "system"));
+    expect(logs).toEqual([expect.objectContaining({ entityType: "media" })]);
+  });
 });

@@ -52,4 +52,17 @@ Patrones que ya existen en el código. Los planes 01–07 los heredan: **úsalos
 - `*.test.tsx` que necesitan DOM: primera línea `// @vitest-environment jsdom`.
 - Integración con BD: `createTestDb()` (clon de una plantilla PGlite ya migrada; rápido). Tablas de prueba temporales con `create temporary table`.
 - E2E: BD propia `guerra_campal_e2e` (se vacía en cada corrida, requiere Docker). Login con `signInAsAdmin(page)` de `e2e/fixtures/admin.ts`. Locators de alertas por texto (Next agrega su propio `role="alert"`).
+- E2E y build usan carpeta propia (`E2E_DIST_DIR=.next-e2e`, ya fijada por `playwright.config.ts`): corren aunque haya un `pnpm dev` abierto. Para construir sin tocar el `.next` del dev: `E2E_DIST_DIR=.next-e2e pnpm build`.
 - Verificación completa: `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e`, `pnpm build`.
+
+## Imágenes (Plan 01)
+
+- **Subir/editar en formularios:** `<MediaField kind name media? onChange? />` y `<MediaGalleryField name media? />` (`src/features/media/components`). Envían el id (uno por foto en galería) como `<input type="hidden" name>`; la action del formulario solo guarda el id. Pasar `media` (DTO ya guardado) para mostrar la miniatura al editar.
+- **Leer:** `getMedia(db, id)` / `getMediaByIds(db, ids)` (una consulta; solo imágenes `ready`). Patrón en listados y fichas: leer las entidades, juntar **todos** los ids de imagen de la página y hacer **una** `getMediaByIds`. Nunca una consulta por imagen.
+- **Mostrar:** siempre `<MediaImage media sizes priority? className />` (`src/components/media`): `srcset` de variantes WebP, `width`/`height` del resultado (reserva espacio, sin CLS) y `object-position` del punto de enfoque. `sizes` es obligatorio; `priority` solo para la imagen LCP. Los logos SVG no tienen variantes (usa `originalUrl`, ya sanitizado). Logos de patrocinador: enteros dentro de una caja `aspect-[2/1]` con `object-contain` (`MEDIA_SPECS.sponsor_logo.box`).
+- **Caché:** una lectura pública cacheada que devuelve imágenes agrega, además del tag de su entidad, `mediaCacheTag(id)` (`src/features/media/cache.ts`) de cada imagen: al reeditar una imagen se borran sus variantes viejas y `saveMediaEditAction` invalida ese tag.
+- **Referencias (quién usa una imagen):** FK `references media(id) on delete restrict` con índice, registrada en `src/features/media/references.ts` (`MEDIA_REFERENCES`; lo crea el Plan 02). Quitar/reemplazar una imagen solo cambia el id; la papelera no toca imágenes; el cron borra las `ready` sin referencias con más de 7 días. Las actions validan los ids con `assertUsableMedia`. Detalle en `docs/decisions.md` → "Dueños de las imágenes".
+- **Formatos por tipo:** `MEDIA_SPECS` en `src/domain/media-specs.ts` (aspecto o caja, mínimo, variantes). No repetir esas cifras en otro lado. Tope de 15 MB y 50 MP por archivo.
+- **Almacenamiento:** `getStorage()` (`STORAGE_DRIVER=local|s3`); claves de variantes las genera `saveMediaEdit`, no armarlas a mano. Las URLs de subida son de un solo uso (409 local, `If-None-Match: *` en S3).
+- **Diálogos del editor:** `EditorDialog` recibe `returnFocusTo` (el contenedor del campo) y los botones "Editar" llevan `mediaTriggerAttribute(id)` para devolverles el foco al cerrar.
+- **Página de pruebas** (solo desarrollo): `/admin/medios`.
