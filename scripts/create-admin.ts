@@ -1,24 +1,18 @@
 import { db } from "@/db";
-import { addAllowedEmail, normalizeEmail } from "@/features/admin-users/allowlist";
+import { createAdminWithPassword } from "@/features/admin-users/accounts";
 import { auth } from "@/lib/auth";
 
 async function main() {
-  const [, , emailArg, passwordArg] = process.argv;
+  const [, , email, password] = process.argv;
 
-  if (!emailArg || !passwordArg) {
-    console.error("Uso: pnpm tsx scripts/create-admin.ts <email> <password>");
+  if (!email || !password) {
+    console.error("Uso: pnpm tsx scripts/create-admin.ts <email> <contraseña>");
     process.exit(1);
   }
 
-  const email = normalizeEmail(emailArg);
+  await createAdminWithPassword(auth, db, email, password);
 
-  await addAllowedEmail(db, email, null);
-
-  await auth.api.signUpEmail({
-    body: { email, password: passwordArg, name: email },
-  });
-
-  console.info(`Administrador creado: ${email}`);
+  console.info(`Administrador listo: ${email.trim().toLowerCase()} (si ya existía, se cambió su contraseña)`);
   process.exit(0);
 }
 

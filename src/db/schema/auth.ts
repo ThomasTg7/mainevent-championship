@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { bigint, boolean, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const allowedEmails = pgTable("allowed_emails", {
   email: text("email").primaryKey(),
@@ -27,7 +27,7 @@ export const session = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-});
+}, (table) => [index("session_user_id_idx").on(table.userId)]);
 
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
@@ -45,7 +45,7 @@ export const account = pgTable("account", {
   password: text("password"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [index("account_user_id_idx").on(table.userId)]);
 
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
@@ -54,4 +54,11 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("verification_identifier_idx").on(table.identifier)]);
+
+export const rateLimit = pgTable("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
 });

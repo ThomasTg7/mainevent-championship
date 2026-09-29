@@ -1,4 +1,4 @@
-import { jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const auditAction = pgEnum("audit_action", [
   "create",
@@ -19,4 +19,7 @@ export const auditLog = pgTable("audit_log", {
   summary: text("summary").notNull(),
   diff: jsonb("diff"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("audit_log_created_at_idx").on(table.createdAt),
+  index("audit_log_entity_idx").on(table.entityType, table.entityId),
+]);
