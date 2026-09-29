@@ -1,0 +1,28 @@
+import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
+
+type TagTone = "yellow" | "dark" | "red";
+
+type TagProps = {
+  tone: TagTone;
+  children: ReactNode;
+};
+
+const toneClasses: Record<TagTone, string> = {
+  yellow: "bg-yellow text-black",
+  dark: "bg-black text-yellow",
+  red: "bg-red text-white",
+};
+
+export function Tag({ tone, children }: TagProps) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 px-2.5 py-1 font-cond font-extrabold uppercase tracking-[.1em] text-[11px]",
+        toneClasses[tone],
+      )}
+    >
+      {children}
+    </span>
+  );
+}

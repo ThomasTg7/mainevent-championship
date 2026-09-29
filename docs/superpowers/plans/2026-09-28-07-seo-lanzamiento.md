@@ -12,6 +12,7 @@
 
 ## Global Constraints
 
+- Seguir `docs/convenciones.md` (patrones ya construidos y probados en Plan 00: actions, auth, correo, papelera, paginación, fechas, tests). Manda sobre lo que diga este plan si hay conflicto.
 - Hereda Plan 00–06.
 - Plantilla de título: `"%s | Guerra Campal"`; home: `"Guerra Campal — MMA en Chile"`.
 - Descripción máx. 160 caracteres (se trunca en palabra completa con "…").
@@ -101,7 +102,7 @@
 - Create: `docs/deploy.md`, `.env.example` (completo y comentado)
 - Modify: `package.json` (`"vercel-build": "pnpm db:migrate && next build"`)
 
-- [ ] **Step 1:** Documentar y ejecutar con el usuario (cada servicio lo crea el usuario con su cuenta): Postgres (Neon o Supabase, solo cadena de conexión), bucket R2 con dominio público, dominio de envío en Resend, credenciales OAuth de Google (redirect `https://<SITE_URL>/api/auth/callback/google`), `BETTER_AUTH_SECRET`, `CRON_SECRET`, `PREVIEW_SECRET`, `SITE_URL`, `ANALYTICS_PROVIDER=vercel`, `STORAGE_DRIVER=s3`, `MAIL_DRIVER=resend`.
+- [ ] **Step 1:** Ejecutar con el usuario siguiendo `docs/configuracion-externa.md` (Google y Resend ya están documentados ahí; completar el resto) (cada servicio lo crea el usuario con su cuenta): Postgres (Neon o Supabase, solo cadena de conexión), bucket R2 con dominio público, dominio de envío en Resend, credenciales OAuth de Google (redirect `https://<SITE_URL>/api/auth/callback/google`), `BETTER_AUTH_SECRET`, `CRON_SECRET`, `PREVIEW_SECRET`, `SITE_URL`, `ANALYTICS_PROVIDER=vercel`, `STORAGE_DRIVER=s3`, `MAIL_DRIVER=resend`, `RESEND_API_KEY`, `MAIL_FROM`. Con Google configurado, el botón aparece solo.
 - [ ] **Step 2:** Primer deploy; `scripts/create-admin.ts` contra producción para el email de la promotora.
 - [ ] **Step 3: Verificación (smoke test en producción):** login admin, subir foto, crear peleador borrador, previsualizar, publicar, verlo en el sitio; enviar formulario y recibir email; `/sitemap.xml` y `/robots.txt` responden; cron de purga responde 401 sin secreto.
 - [ ] **Step 4: Commit** `docs: deployment guide`

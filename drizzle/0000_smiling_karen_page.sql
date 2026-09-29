@@ -1,0 +1,1 @@
+CREATE TYPE "public"."publication_status" AS ENUM('draft', 'scheduled', 'published');

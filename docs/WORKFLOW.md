@@ -97,7 +97,7 @@ Aprobado. Haz merge de plan-NN a main (sin fast-forward), borra la rama y confir
 
 | Plan | Ejecutado | Revisado | Aprobado | Merge |
 |---|---|---|---|---|
-| 00 Fundación | ☐ | ☐ | ☐ | ☐ |
+| 00 Fundación | ☑ | ☑ | ☑ | ☑ |
 | 01 Medios | ☐ | ☐ | ☐ | ☐ |
 | 02 Peleadores | ☐ | ☐ | ☐ | ☐ |
 | 03 Eventos | ☐ | ☐ | ☐ | ☐ |
