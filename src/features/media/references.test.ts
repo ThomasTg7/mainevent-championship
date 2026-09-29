@@ -14,7 +14,7 @@ function columnKey(column: AnyPgColumn): string {
 
 describe("MEDIA_REFERENCES", () => {
   it("registers every foreign key that points at media.id", () => {
-    const foreignKeys = Object.values(schema)
+    const foreignKeys = (Object.values(schema) as unknown[])
       .filter(isPgTable)
       .flatMap((table) => getTableConfig(table).foreignKeys)
       .map((foreignKey) => foreignKey.reference())
