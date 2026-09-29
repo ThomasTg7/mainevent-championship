@@ -3,11 +3,13 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
-type RecordCountersProps = {
-  wins: number;
-  losses: number;
-  draws: number;
+export type CountFigure = { label: string; value: number; accent?: boolean };
+
+type CountFiguresProps = {
+  items: CountFigure[];
   className?: string;
+  /** Tamaño de las cifras (la tarjeta usa las chicas; la ficha, las del hero). */
+  valueClassName?: string;
 };
 
 const DURATION_MS = 900;
@@ -15,10 +17,11 @@ const DURATION_MS = 900;
 const easeOut = (progress: number) => 1 - (1 - progress) ** 3;
 
 /**
- * V-D-E con contador. El HTML del servidor ya trae los valores finales (legibles sin JavaScript ni animación);
- * al entrar en pantalla cuenta desde 0 salvo que la persona pida menos movimiento.
+ * Cifras con contador (V-D-E de la tarjeta, cifras del hero de la ficha). El HTML del servidor ya trae los
+ * valores finales (legibles sin JavaScript ni animación); al entrar en pantalla cuenta desde 0 salvo que la
+ * persona pida menos movimiento.
  */
-export function RecordCounters({ wins, losses, draws, className }: RecordCountersProps) {
+export function CountFigures({ items, className, valueClassName = "text-[clamp(26px,5vw,36px)]" }: CountFiguresProps) {
   const rootRef = useRef<HTMLDListElement>(null);
   const reducedMotion = useReducedMotion();
 
@@ -49,22 +52,17 @@ export function RecordCounters({ wins, losses, draws, className }: RecordCounter
       // Si se cancela a mitad de camino, vuelven los valores reales.
       for (const element of numbers) element.textContent = element.dataset.count ?? "";
     };
-  }, [reducedMotion, wins, losses, draws]);
-
-  const items = [
-    { label: "Vict.", value: wins, accent: true },
-    { label: "Derr.", value: losses, accent: false },
-    { label: "Emp.", value: draws, accent: false },
-  ];
+  }, [reducedMotion, items]);
 
   return (
     <dl ref={rootRef} className={className}>
       {items.map((item) => (
-        <div key={item.label} className="border-border pt-3.5 text-center [&:not(:first-child)]:border-l">
-          <dd className={`font-display text-[clamp(26px,5vw,36px)] leading-none tabular-nums ${item.accent ? "text-yellow" : "text-white"}`}>
+        // El término va antes que el valor en el HTML (lectores de pantalla); `flex-col-reverse` pone la cifra arriba.
+        <div key={item.label} className="flex flex-col-reverse border-border pt-3.5 text-center [&:not(:first-child)]:border-l">
+          <dt className="mt-1 font-cond text-[11px] font-bold uppercase tracking-[.14em] text-muted-foreground">{item.label}</dt>
+          <dd className={`font-display leading-none tabular-nums ${valueClassName} ${item.accent ? "text-yellow" : "text-white"}`}>
             <span data-count={item.value}>{item.value}</span>
           </dd>
-          <dt className="mt-1 font-cond text-[11px] font-bold uppercase tracking-[.14em] text-muted-foreground">{item.label}</dt>
         </div>
       ))}
     </dl>

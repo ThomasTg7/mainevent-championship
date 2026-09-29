@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type TagTone = "yellow" | "dark" | "red";
+type TagTone = "yellow" | "dark" | "red" | "outline";
 
 type TagProps = {
   tone: TagTone;
@@ -12,6 +12,7 @@ const toneClasses: Record<TagTone, string> = {
   yellow: "bg-yellow text-black",
   dark: "bg-black text-yellow",
   red: "bg-red text-white",
+  outline: "border border-white/40 text-white",
 };
 
 export function Tag({ tone, children }: TagProps) {

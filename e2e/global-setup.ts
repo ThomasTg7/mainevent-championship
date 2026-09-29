@@ -5,7 +5,10 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { createAdminWithPassword } from "@/features/admin-users/accounts";
 import { seedDivisions } from "@/features/divisions/seed";
+import { createFighter, deleteFighter } from "@/features/fighters/service";
 import { seedFighters } from "@/features/fighters/seed";
+import { divisions } from "@/db/schema/divisions";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } from "./fixtures/admin";
 
@@ -42,5 +45,16 @@ export default async function globalSetup(): Promise<void> {
   await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions, fighters CASCADE`);
   await seedDivisions(db);
   await seedFighters(db);
+  await seedHiddenFighters();
   await createAdminWithPassword(auth, db, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
+}
+
+/** Un borrador y uno en la papelera: las pruebas del sitio público comprueban que nunca se ven. */
+async function seedHiddenFighters(): Promise<void> {
+  const [ligero] = await db.select({ id: divisions.id }).from(divisions).where(eq(divisions.slug, "peso-ligero"));
+  if (!ligero) throw new Error("Falta la división Ligero");
+  const base = { gender: "male", nationality: "CL", divisionId: ligero.id } as const;
+  await createFighter(db, { ...base, firstName: "Borrador", lastName: "Oculto" }, "e2e");
+  const trashed = await createFighter(db, { ...base, firstName: "Papelera", lastName: "Oculta", status: "published" }, "e2e");
+  await deleteFighter(db, trashed.id, "e2e");
 }

@@ -3,8 +3,9 @@ import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
 import { formatWeight } from "@/domain/units";
 import type { FighterCardDTO } from "../dto";
+import { divisionTitle } from "../labels";
 import { FighterSilhouette } from "./fighter-silhouette";
-import { RecordCounters } from "./record-counters";
+import { CountFigures } from "./count-figures";
 
 export const FIGHTER_CARD_SIZES = "(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw";
 
@@ -16,8 +17,16 @@ type FighterCardProps = {
   badge?: string;
 };
 
+function recordFigures({ record }: FighterCardDTO) {
+  return [
+    { label: "Vict.", value: record.wins, accent: true },
+    { label: "Derr.", value: record.losses },
+    { label: "Emp.", value: record.draws },
+  ];
+}
+
 function divisionLabel(division: FighterCardDTO["division"]): string {
-  return `Peso ${division.name}${division.gender === "female" ? " fem." : ""} · ${formatWeight(division.limitKg)}`;
+  return `${divisionTitle(division)} · ${formatWeight(division.limitKg)}`;
 }
 
 /** Tarjeta del listado (estilo `.fcard` de la maqueta). Toda la tarjeta es un solo enlace a la ficha. */
@@ -59,7 +68,7 @@ export function FighterCard({ fighter, priority = false, badge }: FighterCardPro
           <span>{divisionLabel(fighter.division)}</span>
         </p>
         <div className="mt-auto pt-4">
-          <RecordCounters wins={fighter.record.wins} losses={fighter.record.losses} draws={fighter.record.draws} className="grid grid-cols-3 border-t border-border" />
+          <CountFigures items={recordFigures(fighter)} className="grid grid-cols-3 border-t border-border" />
         </div>
       </div>
     </article>

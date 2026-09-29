@@ -5,9 +5,8 @@ import { countryName } from "@/domain/units";
 import { PublicationBadge } from "@/features/publication/components/publication-badge";
 import { formatDate } from "@/lib/format-date";
 import type { AdminFighterRow } from "../dto";
+import { CAREER_STATUS_LABELS } from "../labels";
 import { FighterRowActions } from "./fighter-row-actions";
-
-const CAREER_LABEL = { active: "Activo", inactive: "Inactivo", retired: "Retirado" } as const;
 
 function displayName(fighter: AdminFighterRow): string {
   return `${fighter.firstName} ${fighter.lastName}`;
@@ -72,7 +71,7 @@ export function FightersAdminList({ fighters, hasFilters }: { fighters: AdminFig
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
                   <PublicationBadge status={fighter.status} publishAt={fighter.publishAt} />
-                  {fighter.careerStatus === "active" ? null : <span className="text-xs text-muted-foreground">{CAREER_LABEL[fighter.careerStatus]}</span>}
+                  {fighter.careerStatus === "active" ? null : <span className="text-xs text-muted-foreground">{CAREER_STATUS_LABELS[fighter.careerStatus]}</span>}
                 </div>
               </TableCell>
               <TableCell>{formatDate(fighter.updatedAt)}</TableCell>
@@ -99,7 +98,7 @@ export function FightersAdminList({ fighters, hasFilters }: { fighters: AdminFig
               </span>
               <span>{fighter.divisionName}</span>
               <PublicationBadge status={fighter.status} publishAt={fighter.publishAt} />
-              {fighter.careerStatus === "active" ? null : <span>{CAREER_LABEL[fighter.careerStatus]}</span>}
+              {fighter.careerStatus === "active" ? null : <span>{CAREER_STATUS_LABELS[fighter.careerStatus]}</span>}
             </div>
             <FighterRowActions id={fighter.id} name={displayName(fighter)} status={fighter.status} />
           </li>
