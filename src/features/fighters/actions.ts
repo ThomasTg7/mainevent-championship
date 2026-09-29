@@ -7,6 +7,9 @@ import { formValues, zodFieldErrors, type FormActionState } from "@/lib/form-err
 import { requireAdmin } from "@/lib/require-admin";
 import { UserFacingError } from "@/lib/user-facing-error";
 import { publicationInputSchema } from "@/features/publication/schema";
+import { and, eq, isNull } from "drizzle-orm";
+import { fighters } from "@/db/schema/fighters";
+import { createPreviewToken } from "@/features/publication/preview";
 import { revalidateFighter } from "./cache";
 import { fighterInputSchema } from "./schema";
 import { createFighter, deleteFighter, setFighterPublication, updateFighter } from "./service";
@@ -82,4 +85,15 @@ export async function deleteFighterAction(id: string): Promise<FormActionState> 
     revalidatePath("/admin/papelera");
     return { success: "Enviado a la papelera" };
   });
+}
+
+/** Enlace de vista previa del peleador (borrador incluido), válido 1 hora. Se pide al hacer clic para que no caduque. */
+export async function createFighterPreviewLinkAction(id: string): Promise<string | null> {
+  await requireAdmin();
+  const [fighter] = await db
+    .select({ slug: fighters.slug })
+    .from(fighters)
+    .where(and(eq(fighters.id, id), isNull(fighters.deletedAt)))
+    .limit(1);
+  return fighter ? `/peleadores/${fighter.slug}?preview=${createPreviewToken("fighter", id)}` : null;
 }

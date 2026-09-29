@@ -84,7 +84,7 @@ export function PublicationControls({ status: initialStatus, publishAt: initialP
                 checked={status === option.value}
                 onChange={() => update({ status: option.value })}
                 aria-describedby={`${groupId}-${option.value}-hint`}
-                className="accent-primary"
+                className="relative z-10 accent-primary"
               />
               {option.label}
             </label>
