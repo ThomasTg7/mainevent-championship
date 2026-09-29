@@ -1,90 +1,121 @@
-import { and, eq, isNotNull, lte } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, lte, type SQL } from "drizzle-orm";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { Db } from "@/db";
 import { logAudit } from "@/features/audit/log";
+import { TRASHABLE_ENTITIES } from "./registry";
 
-type TrashableTable = PgTable & {
-  id: AnyPgColumn;
-  deletedAt: AnyPgColumn;
+export type TrashableEntity = {
+  /** Identificador estable, se guarda en audit_log.entity_type. */
+  type: string;
+  /** Nombre para personas, en singular: "Peleador". */
+  label: string;
+  table: PgTable & { id: AnyPgColumn; deletedAt: AnyPgColumn };
+  /** Columna o expresión que describe el elemento en la papelera ("Tomás Vera"). */
+  title: AnyPgColumn | SQL<string>;
 };
 
 export type TrashItem = {
   entityType: string;
+  entityLabel: string;
   id: string;
+  title: string;
   deletedAt: Date;
 };
 
-const registry = new Map<string, TrashableTable>();
+export type TrashPage = { items: TrashItem[]; hasMore: boolean };
 
-export function registerTrashable(entityType: string, table: TrashableTable): void {
-  registry.set(entityType, table);
-}
+const DEFAULT_PAGE_SIZE = 50;
 
-function getTable(entityType: string): TrashableTable {
-  const table = registry.get(entityType);
+export function createTrash(entities: TrashableEntity[]) {
+  const byType = new Map(entities.map((entity) => [entity.type, entity]));
 
-  if (!table) {
-    throw new Error(`No hay una tabla registrada como papelera para "${entityType}"`);
-  }
-
-  return table;
-}
-
-export async function softDelete(db: Db, entityType: string, id: string, actorId: string): Promise<void> {
-  const table = getTable(entityType);
-
-  await db.update(table).set({ deletedAt: new Date() }).where(eq(table.id, id));
-  await logAudit(db, {
-    actorId,
-    action: "delete",
-    entityType,
-    entityId: id,
-    summary: `Se envió a la papelera ${entityType} ${id}`,
-  });
-}
-
-export async function restore(db: Db, entityType: string, id: string, actorId: string): Promise<void> {
-  const table = getTable(entityType);
-
-  await db.update(table).set({ deletedAt: null }).where(eq(table.id, id));
-  await logAudit(db, {
-    actorId,
-    action: "restore",
-    entityType,
-    entityId: id,
-    summary: `Se restauró ${entityType} ${id}`,
-  });
-}
-
-export async function listTrash(db: Db): Promise<TrashItem[]> {
-  const items: TrashItem[] = [];
-
-  for (const [entityType, table] of registry.entries()) {
-    const rows = await db
-      .select({ id: table.id, deletedAt: table.deletedAt })
-      .from(table)
-      .where(isNotNull(table.deletedAt));
-
-    for (const row of rows) {
-      items.push({ entityType, id: String(row.id), deletedAt: row.deletedAt as Date });
+  function getEntity(type: string): TrashableEntity {
+    const entity = byType.get(type);
+    if (!entity) {
+      throw new Error(`No hay papelera registrada para "${type}"`);
     }
+    return entity;
   }
 
-  return items;
-}
-
-export async function purgeExpired(db: Db, now: Date, days = 30): Promise<number> {
-  const threshold = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-  let purged = 0;
-
-  for (const table of registry.values()) {
-    const deleted = await db
-      .delete(table)
-      .where(and(isNotNull(table.deletedAt), lte(table.deletedAt, threshold)))
-      .returning({ id: table.id });
-
-    purged += deleted.length;
+  async function softDelete(db: Db, type: string, id: string, actorId: string): Promise<void> {
+    const entity = getEntity(type);
+    const [row] = await db
+      .update(entity.table)
+      .set({ deletedAt: new Date() })
+      .where(and(eq(entity.table.id, id), isNull(entity.table.deletedAt)))
+      .returning({ title: entity.title });
+    if (!row) {
+      throw new Error("No se encontró el elemento o ya estaba en la papelera");
+    }
+    await logAudit(db, {
+      actorId,
+      action: "delete",
+      entityType: type,
+      entityId: id,
+      summary: `Envió a la papelera ${entity.label} «${row.title}»`,
+    });
   }
 
-  return purged;
+  async function restore(db: Db, type: string, id: string, actorId: string): Promise<void> {
+    const entity = getEntity(type);
+    const [row] = await db
+      .update(entity.table)
+      .set({ deletedAt: null })
+      .where(and(eq(entity.table.id, id), isNotNull(entity.table.deletedAt)))
+      .returning({ title: entity.title });
+    if (!row) {
+      throw new Error("No se encontró el elemento en la papelera");
+    }
+    await logAudit(db, {
+      actorId,
+      action: "restore",
+      entityType: type,
+      entityId: id,
+      summary: `Restauró ${entity.label} «${row.title}»`,
+    });
+  }
+
+  // Una consulta por tipo (pocos tipos, en paralelo) y mezcla en memoria: la
+  // papelera se purga a los 30 días, así que nunca crece mucho.
+  async function listTrash(db: Db, { page = 1, pageSize = DEFAULT_PAGE_SIZE } = {}): Promise<TrashPage> {
+    const take = page * pageSize + 1;
+    const perEntity = await Promise.all(
+      entities.map(async (entity) => {
+        const rows = await db
+          .select({ id: entity.table.id, title: entity.title, deletedAt: entity.table.deletedAt })
+          .from(entity.table)
+          .where(isNotNull(entity.table.deletedAt))
+          .orderBy(desc(entity.table.deletedAt))
+          .limit(take);
+        return rows.map((row) => ({
+          entityType: entity.type,
+          entityLabel: entity.label,
+          id: String(row.id),
+          title: String(row.title),
+          deletedAt: row.deletedAt as Date,
+        }));
+      }),
+    );
+
+    const all = perEntity.flat().sort((a, b) => b.deletedAt.getTime() - a.deletedAt.getTime());
+    const start = (page - 1) * pageSize;
+    return { items: all.slice(start, start + pageSize), hasMore: all.length > start + pageSize };
+  }
+
+  async function purgeExpired(db: Db, now: Date, days = 30): Promise<number> {
+    const threshold = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const deleted = await Promise.all(
+      entities.map((entity) =>
+        db
+          .delete(entity.table)
+          .where(and(isNotNull(entity.table.deletedAt), lte(entity.table.deletedAt, threshold)))
+          .returning({ id: entity.table.id }),
+      ),
+    );
+    return deleted.reduce((total, rows) => total + rows.length, 0);
+  }
+
+  return { softDelete, restore, listTrash, purgeExpired };
 }
+
+export const { softDelete, restore, listTrash, purgeExpired } = createTrash(TRASHABLE_ENTITIES);
