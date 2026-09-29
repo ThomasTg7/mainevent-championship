@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt } from "drizzle-orm";
 import sharp, { type Metadata } from "sharp";
 import type { Db } from "@/db";
 import { media, type MediaRow, type StoredVariant } from "@/db/schema/media";
@@ -46,6 +46,25 @@ export async function createUpload(
   await db.insert(media).values({ id: mediaId, kind: input.kind, originalKey, mime: input.contentType });
 
   return { mediaId, uploadUrl: url, headers };
+}
+
+/**
+ * Las actions que guardan ids de imagen los validan aquí: cada uno debe existir, estar terminado (`ready`) y ser
+ * del tipo que el campo espera. Una sola consulta para todos; los `null` (campo vacío) se ignoran.
+ */
+export async function assertUsableMedia(db: Db, refs: { id: string | null; kind: MediaKind }[]): Promise<void> {
+  const wanted = refs.filter((ref): ref is { id: string; kind: MediaKind } => ref.id !== null);
+  if (wanted.length === 0) return;
+
+  const rows = await db
+    .select({ id: media.id, kind: media.kind })
+    .from(media)
+    .where(and(inArray(media.id, wanted.map((ref) => ref.id)), eq(media.status, "ready"), isNull(media.deletedAt)));
+  const kindById = new Map(rows.map((row) => [row.id, row.kind]));
+
+  if (wanted.some((ref) => kindById.get(ref.id) !== ref.kind)) {
+    throw new MediaError("La imagen ya no está disponible. Súbela de nuevo.");
+  }
 }
 
 async function discardUpload(db: Db, storage: StorageDriver, row: MediaRow): Promise<void> {

@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { createAdminWithPassword } from "@/features/admin-users/accounts";
 import { seedDivisions } from "@/features/divisions/seed";
+import { seedFighters } from "@/features/fighters/seed";
 import { auth } from "@/lib/auth";
 import { SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } from "./fixtures/admin";
 
@@ -38,7 +39,8 @@ export default async function globalSetup(): Promise<void> {
   ensureE2eDatabase();
   execSync("pnpm db:migrate", { stdio: "inherit" });
 
-  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions CASCADE`);
+  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions, fighters CASCADE`);
   await seedDivisions(db);
+  await seedFighters(db);
   await createAdminWithPassword(auth, db, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
 }

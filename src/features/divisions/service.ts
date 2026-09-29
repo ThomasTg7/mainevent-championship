@@ -1,6 +1,7 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Db } from "@/db";
 import { divisions, type Division } from "@/db/schema/divisions";
+import { fighters } from "@/db/schema/fighters";
 import { uniqueSlug } from "@/domain/slug";
 import { logAudit } from "@/features/audit/log";
 import { UserFacingError } from "@/lib/user-facing-error";
@@ -66,6 +67,15 @@ export async function saveDivision(db: Db, input: DivisionInput, actorId: string
 }
 
 export async function toggleDivision(db: Db, id: string, active: boolean, actorId: string): Promise<void> {
+  if (!active) {
+    const [inUse] = await db
+      .select({ id: fighters.id })
+      .from(fighters)
+      .where(and(eq(fighters.divisionId, id), eq(fighters.careerStatus, "active"), isNull(fighters.deletedAt)))
+      .limit(1);
+    if (inUse) throw new UserFacingError("La división tiene peleadores activos");
+  }
+
   const [updated] = await db.update(divisions).set({ active }).where(eq(divisions.id, id)).returning();
   if (!updated) {
     throw new UserFacingError("No se encontró la división");

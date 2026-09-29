@@ -12,7 +12,7 @@ import { LocalDriver } from "@/lib/storage/local";
 import { createTestDb } from "@/test/db";
 import { getMedia, getMediaByIds, getMediaEdit } from "./queries";
 import type { MediaEdit } from "./schema";
-import { createUpload, finalizeUpload, purgeOrphanMedia, saveMediaEdit } from "./service";
+import { MediaError, assertUsableMedia, createUpload, finalizeUpload, purgeOrphanMedia, saveMediaEdit } from "./service";
 
 const NEUTRAL_EDIT: MediaEdit = {
   crop: null,
@@ -350,6 +350,32 @@ describe("media service", () => {
       const remaining = (await db.select({ id: media.id }).from(media)).map((row) => row.id);
       expect(remaining.sort()).toEqual([fresh, readyOld].sort());
       await expect(storage.get(staleRow.originalKey)).rejects.toThrow();
+    });
+  });
+  describe("assertUsableMedia", () => {
+    const UNAVAILABLE = "La imagen ya no está disponible. Súbela de nuevo.";
+
+    it("accepts ready images of the expected kind and ignores null ids", async () => {
+      const body = await readyMedia("fighter_body", 800, 1200);
+      await saveMediaEdit(db, storage, body, NEUTRAL_EDIT);
+      await expect(assertUsableMedia(db, [{ id: body, kind: "fighter_body" }, { id: null, kind: "fighter_headshot" }])).resolves.toBeUndefined();
+    });
+
+    it("rejects an id that does not exist", async () => {
+      await expect(assertUsableMedia(db, [{ id: "00000000-0000-4000-8000-000000000000", kind: "fighter_body" }])).rejects.toThrow(UNAVAILABLE);
+    });
+
+    it("rejects a gallery image requested as a fighter photo", async () => {
+      const gallery = await readyMedia("gallery", 1300, 900);
+      await saveMediaEdit(db, storage, gallery, NEUTRAL_EDIT);
+      const error = await assertUsableMedia(db, [{ id: gallery, kind: "fighter_body" }]).catch((caught: unknown) => caught);
+      expect(error).toBeInstanceOf(MediaError);
+      expect((error as MediaError).message).toBe(UNAVAILABLE);
+    });
+
+    it("rejects an upload that never finished", async () => {
+      const pending = await upload("fighter_body", "image/jpeg", await jpeg(50, 50));
+      await expect(assertUsableMedia(db, [{ id: pending, kind: "fighter_body" }])).rejects.toThrow(UNAVAILABLE);
     });
   });
 });
