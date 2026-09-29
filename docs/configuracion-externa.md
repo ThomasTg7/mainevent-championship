@@ -51,6 +51,6 @@ Las mismas variables se cargan en Vercel → Project → Settings → Environmen
 
 ## Cómo entra un administrador
 
-- **El primero:** `pnpm tsx scripts/create-admin.ts correo@dominio.cl "una-clave-segura"` (también sirve para cambiarle la clave si la olvida y no hay correo configurado).
+- **El primero:** `pnpm create-admin correo@dominio.cl "una-clave-segura"` (también sirve para cambiarle la clave si la olvida y no hay correo configurado).
 - **Los demás:** desde el panel, **Usuarios → Dar acceso**. Le llega un correo para crear su contraseña (el enlace vence en 24 horas). Si Google está activado, también puede entrar directo con Google.
 - Nadie puede registrarse por su cuenta: solo entran los correos de la lista de **Usuarios**.

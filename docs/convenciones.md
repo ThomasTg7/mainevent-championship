@@ -12,7 +12,7 @@ Patrones que ya existen en el código. Los planes 01–07 los heredan: **úsalos
 ## Auth (Better Auth)
 
 - Instancia: `auth` en `src/lib/auth.ts`, construida con `createAuth({ db, mailer, google? })` (`src/lib/create-auth.ts`). Para tests de integración: `createTestAuth(db, mailer)` y `createRecordingMailer()` de `@/test/auth`.
-- **No hay registro público** (`disableSignUp`). Admins entran por invitación (`inviteAdmin`), Google o `pnpm tsx scripts/create-admin.ts <email> <clave>`.
+- **No hay registro público** (`disableSignUp`). Admins entran por invitación (`inviteAdmin`), Google o `pnpm create-admin <email> <clave>`.
 - Errores de auth → texto en español con `authErrorMessage()` (`src/features/admin-users/auth-errors.ts`). El rechazo por lista blanca viaja como código `EMAIL_NOT_ALLOWED`.
 - Google aparece solo si `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` existen (`googleSignInEnabled`).
 

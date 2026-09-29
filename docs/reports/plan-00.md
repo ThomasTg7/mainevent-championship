@@ -57,7 +57,7 @@ Resultado final: 66 tests unitarios, 13 e2e, lint, typecheck y build en verde.
 ```bash
 docker compose up -d
 pnpm db:migrate
-pnpm tsx scripts/create-admin.ts tu@correo.cl "una-clave-segura"
+pnpm create-admin tu@correo.cl "una-clave-segura"
 pnpm dev
 ```
 

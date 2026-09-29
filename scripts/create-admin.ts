@@ -6,7 +6,7 @@ async function main() {
   const [, , email, password] = process.argv;
 
   if (!email || !password) {
-    console.error("Uso: pnpm tsx scripts/create-admin.ts <email> <contraseña>");
+    console.error('Uso: pnpm create-admin <email> "<contraseña>"');
     process.exit(1);
   }
 
