@@ -15,7 +15,10 @@ async function run<T>(fallbackError: string, task: () => Promise<T>): Promise<Me
   try {
     return { data: await task() };
   } catch (error) {
-    return { error: error instanceof MediaError ? error.message : fallbackError };
+    if (error instanceof MediaError) return { error: error.message };
+    // El mensaje para la persona es genérico; la causa real queda en el log del servidor.
+    console.error(fallbackError, error);
+    return { error: fallbackError };
   }
 }
 

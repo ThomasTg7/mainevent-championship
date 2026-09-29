@@ -208,3 +208,9 @@ Formato:
 - **Por qué:** el Plan 01 no tiene entidades que referencien medios.
 - **Impacto:** Planes 02–04 (FKs a `media.id`) y Plan 07 (limpieza).
 - **Estado:** pendiente
+
+## [Plan 01 · Ajuste posterior] Nitidez en el editor y causa del "No se pudo preparar la subida"
+- **Qué:** (1) El error "No se pudo preparar la subida" venía de que la base de desarrollo no tenía aplicada la migración `0005` (tabla `media`); el `insert` fallaba y la action devolvía el mensaje genérico. Se aplicó con `pnpm db:migrate` y se verificó `createUpload` contra la base real. Ahora `actions.ts` deja la causa real en el log del servidor (`console.error`) además del mensaje genérico. (2) Se agregó el ajuste **Nitidez** (0–2, por defecto 0): vista previa con un filtro SVG (`feConvolveMatrix`) y, en el servidor, `sharpen()` de sharp aplicado después de achicar cada variante. Las ediciones guardadas antes no lo traen: el esquema Zod lo completa con 0 y `getMediaEdit` mezcla los valores por defecto. Los pies de las vistas previas indican la proporción de cada contexto.
+- **Por qué:** pedido del usuario (editor con vista previa por proporción, quitar fondo y ajustes básicos: brillo, nitidez, etc.). Se mantiene el editor propio sobre `react-easy-crop` en vez de adoptar uno OSS completo (p. ej. Filerobot/TUI Image Editor) porque necesitamos proporciones fijas por tipo, punto de enfoque, vistas previas en los contextos reales y que el servidor genere las variantes; un editor genérico traería 1 MB+ de JS y no cubriría eso.
+- **Impacto:** `src/features/media/{schema,process,queries,actions}.ts`, `components/adjustments.tsx`, `preview-frames.tsx`. Ninguno en planes siguientes.
+- **Estado:** aplicado

@@ -17,7 +17,7 @@ const NEUTRAL_EDIT: MediaEdit = {
   crop: null,
   rotation: 0,
   focal: { x: 0.5, y: 0.5 },
-  adjustments: { brightness: 1, contrast: 1, saturation: 1 },
+  adjustments: { brightness: 1, contrast: 1, saturation: 1, sharpness: 0 },
   alt: "Peleador",
 };
 
@@ -263,7 +263,7 @@ describe("media service", () => {
         crop: { x: 0, y: 0, width: 600, height: 900 },
         rotation: 90,
         focal: { x: 0.3, y: 0.4 },
-        adjustments: { brightness: 1.1, contrast: 0.9, saturation: 1 },
+        adjustments: { brightness: 1.1, contrast: 0.9, saturation: 1, sharpness: 0.5 },
         alt: "Peleador",
       };
       await saveMediaEdit(db, storage, mediaId, edit);

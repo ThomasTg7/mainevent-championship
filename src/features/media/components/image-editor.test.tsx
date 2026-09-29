@@ -92,13 +92,14 @@ describe("ImageEditor", () => {
     cropperProps.current.onCropComplete?.({}, { x: 10, y: 20, width: 800, height: 1200 });
     fireEvent.change(screen.getByLabelText("Texto alternativo"), { target: { value: "Peleador con guantes" } });
     fireEvent.change(screen.getByLabelText(/Brillo/), { target: { value: "1.2" } });
+    fireEvent.change(screen.getByLabelText(/Nitidez/), { target: { value: "0.5" } });
     fireEvent.click(screen.getByRole("button", { name: "Guardar imagen" }));
 
     expect(onSave).toHaveBeenCalledWith({
       crop: { x: 10, y: 20, width: 800, height: 1200 },
       rotation: 0,
       focal: { x: 0.5, y: 0.5 },
-      adjustments: { brightness: 1.2, contrast: 1, saturation: 1 },
+      adjustments: { brightness: 1.2, contrast: 1, saturation: 1, sharpness: 0.5 },
       alt: "Peleador con guantes",
     });
   });

@@ -5,7 +5,8 @@ export const mediaKind = pgEnum("media_kind", MEDIA_KINDS);
 export const mediaStatus = pgEnum("media_status", ["pending", "ready"]);
 
 export type StoredCrop = { x: number; y: number; width: number; height: number };
-export type StoredAdjustments = { brightness: number; contrast: number; saturation: number };
+/** `sharpness` no existe en ediciones guardadas antes de agregarlo: leer con valor por defecto 0. */
+export type StoredAdjustments = { brightness: number; contrast: number; saturation: number; sharpness?: number };
 export type StoredVariant = { width: number; key: string };
 
 export const media = pgTable(

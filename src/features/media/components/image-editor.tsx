@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { MEDIA_SPECS, checkResolution, describeSpec, type Crop, type MediaKind } from "@/domain/media-specs";
 import type { MediaEdit } from "../schema";
 import { DEFAULT_ADJUSTMENTS } from "../schema";
-import { AdjustmentsPanel, adjustmentsFilter } from "./adjustments";
+import { AdjustmentsPanel, SharpenFilter, adjustmentsFilter } from "./adjustments";
 import { CropStage } from "./crop-stage";
 import { FocalPicker } from "./focal-picker";
 import { PreviewFrames } from "./preview-frames";
@@ -56,6 +56,7 @@ export function ImageEditor({ kind, src, natural, initial, onSave, onCancel, onB
 
   return (
     <div className="flex flex-col gap-4">
+      <SharpenFilter sharpness={adjustments.sharpness} />
       <div className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground">{describeSpec(kind)}</p>
         {resolution.warning ? (

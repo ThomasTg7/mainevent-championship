@@ -3,7 +3,7 @@ import type { Db } from "@/db";
 import { media } from "@/db/schema/media";
 import { getStorage, type StorageDriver } from "@/lib/storage";
 import { toMediaDTO, type MediaDTO } from "./dto";
-import type { MediaEdit } from "./schema";
+import { DEFAULT_ADJUSTMENTS, type MediaEdit } from "./schema";
 
 const visible = and(eq(media.status, "ready"), isNull(media.deletedAt));
 
@@ -32,7 +32,7 @@ export async function getMediaEdit(db: Db, id: string): Promise<MediaEdit | null
     crop: row.crop,
     rotation: row.rotation as MediaEdit["rotation"],
     focal: { x: row.focalX, y: row.focalY },
-    adjustments: row.adjustments,
+    adjustments: { ...DEFAULT_ADJUSTMENTS, ...row.adjustments },
     alt: row.alt,
   };
 }

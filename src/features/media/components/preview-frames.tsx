@@ -7,19 +7,19 @@ function framesFor(kind: MediaKind): Frame[] {
   switch (kind) {
     case "fighter_body":
       return [
-        { label: "Tarjeta de listado", aspect: 4 / 5, className: "w-28" },
-        { label: "Ficha (escritorio)", aspect: 3 / 4, className: "w-40" },
-        { label: "Móvil", aspect: 9 / 16, className: "w-24" },
+        { label: "Tarjeta de listado · 4:5", aspect: 4 / 5, className: "w-28" },
+        { label: "Ficha (escritorio) · 3:4", aspect: 3 / 4, className: "w-40" },
+        { label: "Móvil · 9:16", aspect: 9 / 16, className: "w-24" },
       ];
     case "event_hero":
-      return [{ label: "Portada (escritorio)", aspect: 16 / 9, className: "w-full max-w-sm" }];
+      return [{ label: "Portada (escritorio) · 16:9", aspect: 16 / 9, className: "w-full max-w-sm" }];
     case "news_cover":
       return [
-        { label: "Tarjeta de noticia", aspect: 4 / 3, className: "w-40" },
-        { label: "Cabecera de la noticia", aspect: 21 / 9, className: "w-full max-w-sm" },
+        { label: "Tarjeta de noticia · 4:3", aspect: 4 / 3, className: "w-40" },
+        { label: "Cabecera de la noticia · 21:9", aspect: 21 / 9, className: "w-full max-w-sm" },
       ];
     default:
-      return [{ label: "Así se verá", aspect: MEDIA_SPECS[kind].aspect ?? 1, className: "w-40" }];
+      return [{ label: `Así se verá · ${MEDIA_SPECS[kind].aspectLabel}`, aspect: MEDIA_SPECS[kind].aspect ?? 1, className: "w-40" }];
   }
 }
 

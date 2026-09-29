@@ -11,7 +11,7 @@ const NEUTRAL_EDIT: MediaEdit = {
   crop: null,
   rotation: 0,
   focal: { x: 0.5, y: 0.5 },
-  adjustments: { brightness: 1, contrast: 1, saturation: 1 },
+  adjustments: { brightness: 1, contrast: 1, saturation: 1, sharpness: 0 },
   alt: "",
 };
 
@@ -51,11 +51,29 @@ describe("renderVariants", () => {
   it("keeps transparency when contrast and brightness are adjusted", async () => {
     const [variant] = await renderVariants(fixture("fighter-transparent.png"), "fighter_body", {
       ...NEUTRAL_EDIT,
-      adjustments: { brightness: 1.3, contrast: 1.4, saturation: 0.8 },
+      adjustments: { brightness: 1.3, contrast: 1.4, saturation: 0.8, sharpness: 0 },
     });
 
     const { data } = await sharp(variant.buffer).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     expect(data[3]).toBe(0);
+  });
+
+  it("sharpens the edges when sharpness is raised", async () => {
+    const checker = await sharp({ create: { width: 800, height: 800, channels: 3, background: "#777" } })
+      .composite([{ input: { create: { width: 400, height: 800, channels: 3, background: "#888" } }, left: 400, top: 0 }])
+      .png()
+      .toBuffer();
+    // Rango de brillo alrededor del borde central: el realce crea un "halo" y lo ensancha.
+    async function edgeContrast(sharpness: number) {
+      const [variant] = await renderVariants(checker, "gallery", { ...NEUTRAL_EDIT, adjustments: { ...NEUTRAL_EDIT.adjustments, sharpness } });
+      const { data, info } = await sharp(variant.buffer).greyscale().raw().toBuffer({ resolveWithObject: true });
+      const row = Math.floor(info.height / 2) * info.width;
+      const middle = Math.floor(info.width / 2);
+      const window = Array.from(data.subarray(row + middle - 8, row + middle + 8));
+      return Math.max(...window) - Math.min(...window);
+    }
+
+    expect(await edgeContrast(2)).toBeGreaterThan(await edgeContrast(0));
   });
 
   it("omits variants wider than the cropped area", async () => {

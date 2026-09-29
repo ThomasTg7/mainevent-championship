@@ -1,5 +1,5 @@
 import DOMPurify from "isomorphic-dompurify";
-import sharp, { type Metadata } from "sharp";
+import sharp, { type Metadata, type Sharp } from "sharp";
 import { MEDIA_SPECS, clampCrop, variantWidthsFor, type Crop, type MediaKind, type Size } from "@/domain/media-specs";
 import type { MediaEdit } from "./schema";
 
@@ -28,6 +28,11 @@ function defaultCrop(size: Size, aspect: number | null, focal: MediaEdit["focal"
   };
 }
 
+/** La nitidez se aplica después de achicar: así realza el detalle que de verdad queda en cada variante. */
+function sharpen(pipeline: Sharp, amount: number): Sharp {
+  return amount > 0 ? pipeline.sharpen({ sigma: 0.6 + amount * 0.8, m1: 1, m2: 1 + amount * 2 }) : pipeline;
+}
+
 export async function renderVariants(
   original: Buffer,
   kind: MediaKind,
@@ -35,7 +40,7 @@ export async function renderVariants(
 ): Promise<{ width: number; buffer: Buffer }[]> {
   const size = visibleSize(await sharp(original).metadata(), edit.rotation);
   const crop = clampCrop(edit.crop ?? defaultCrop(size, MEDIA_SPECS[kind].aspect, edit.focal), size);
-  const { brightness, contrast, saturation } = edit.adjustments;
+  const { brightness, contrast, saturation, sharpness } = edit.adjustments;
 
   // Se aplica el recorte y los ajustes una sola vez y cada variante sale de ese resultado.
   let pipeline = sharp(original).autoOrient();
@@ -49,7 +54,9 @@ export async function renderVariants(
   return Promise.all(
     variantWidthsFor(kind, crop.width).map(async (width) => ({
       width,
-      buffer: await sharp(data, { raw: info }).resize({ width, withoutEnlargement: true }).webp(WEBP_OPTIONS).toBuffer(),
+      buffer: await sharpen(sharp(data, { raw: info }).resize({ width, withoutEnlargement: true }), sharpness)
+        .webp(WEBP_OPTIONS)
+        .toBuffer(),
     })),
   );
 }

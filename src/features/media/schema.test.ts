@@ -19,6 +19,12 @@ describe("mediaEditSchema", () => {
     expect(mediaEditSchema.safeParse({ ...valid, adjustments: { ...valid.adjustments, contrast: 0.4 } }).success).toBe(false);
   });
 
+  it("defaults sharpness to 0 for edits saved before it existed and rejects values above 2", () => {
+    expect(mediaEditSchema.parse(valid).adjustments.sharpness).toBe(0);
+    expect(mediaEditSchema.safeParse({ ...valid, adjustments: { ...valid.adjustments, sharpness: 2.5 } }).success).toBe(false);
+    expect(mediaEditSchema.safeParse({ ...valid, adjustments: { ...valid.adjustments, sharpness: -1 } }).success).toBe(false);
+  });
+
   it("rejects rotations that are not multiples of 90", () => {
     expect(mediaEditSchema.safeParse({ ...valid, rotation: 45 }).success).toBe(false);
   });

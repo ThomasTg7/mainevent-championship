@@ -29,6 +29,10 @@ test("subir una foto de cuerpo completo, recortarla y guardarla", async ({ page 
   await expect(dialog.getByText("Recomendado: 1200×1800 · Mínimo: 800×1200 · Proporción 2:3")).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Quitar fondo" })).toBeVisible();
   await expect(dialog.getByText(/más chica que el mínimo/)).toHaveCount(0);
+  for (const adjustment of ["Brillo", "Contraste", "Saturación", "Nitidez"]) {
+    await expect(dialog.getByLabel(adjustment)).toBeVisible();
+  }
+  await dialog.getByLabel("Nitidez").fill("1");
   await dialog.getByLabel("Texto alternativo").fill("Peleador de prueba");
   await dialog.getByRole("button", { name: "Guardar imagen" }).click();
 

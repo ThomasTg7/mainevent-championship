@@ -2,6 +2,8 @@ import { z } from "zod";
 import { MEDIA_KINDS } from "@/domain/media-specs";
 
 const adjustment = z.number().min(0.5).max(1.5);
+// 0 = sin realce. `default` para ediciones guardadas antes de que existiera la nitidez.
+const sharpness = z.number().min(0).max(2).default(0);
 const unit = z.number().min(0).max(1);
 
 export const mediaEditSchema = z.object({
@@ -15,13 +17,13 @@ export const mediaEditSchema = z.object({
     .nullable(),
   rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]),
   focal: z.object({ x: unit, y: unit }),
-  adjustments: z.object({ brightness: adjustment, contrast: adjustment, saturation: adjustment }),
+  adjustments: z.object({ brightness: adjustment, contrast: adjustment, saturation: adjustment, sharpness }),
   alt: z.string().trim().max(300),
 });
 
 export type MediaEdit = z.infer<typeof mediaEditSchema>;
 
-export const DEFAULT_ADJUSTMENTS: MediaEdit["adjustments"] = { brightness: 1, contrast: 1, saturation: 1 };
+export const DEFAULT_ADJUSTMENTS: MediaEdit["adjustments"] = { brightness: 1, contrast: 1, saturation: 1, sharpness: 0 };
 
 export const createUploadSchema = z.object({
   kind: z.enum(MEDIA_KINDS),
