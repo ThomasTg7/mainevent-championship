@@ -2,6 +2,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import type { Executor } from "@/db/types";
 import { bouts, cardSegments } from "@/db/schema/events";
+import type { BoutStatus } from "@/domain/bout-enums";
 
 /**
  * Orden en que se pelea una noche: los bloques de atrás hacia adelante (preliminares primero, cartelera estelar al
@@ -19,4 +20,22 @@ export async function getNextPendingBoutId(db: Executor | Db, eventId: string): 
     .orderBy(...nightOrderBy)
     .limit(1);
   return row?.id ?? null;
+}
+
+export type NightSegment<T> = { name: string; bouts: T[] };
+export type NightBout<T> = T & { segmentName: string };
+
+/**
+ * La noche vista desde la cartelera (bloques y peleas en orden de importancia): las pendientes en el orden en que se
+ * pelean (la estelar cierra), las terminadas con la más reciente primero y las canceladas aparte.
+ */
+export function splitNightBouts<T extends { status: BoutStatus }>(
+  segments: NightSegment<T>[],
+): { pending: NightBout<T>[]; finished: NightBout<T>[]; cancelled: NightBout<T>[] } {
+  const inNightOrder = [...segments].reverse().flatMap((segment) => [...segment.bouts].reverse().map((bout) => ({ ...bout, segmentName: segment.name })));
+  return {
+    pending: inNightOrder.filter((bout) => bout.status === "scheduled"),
+    finished: inNightOrder.filter((bout) => bout.status === "completed").reverse(),
+    cancelled: inNightOrder.filter((bout) => bout.status === "cancelled"),
+  };
 }

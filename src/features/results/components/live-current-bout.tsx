@@ -1,0 +1,207 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import {
+  DECISION_TYPE_LABELS,
+  DECISION_TYPES,
+  KO_TKO_TYPE_LABELS,
+  KO_TKO_TYPES,
+  METHOD_LABELS,
+  NC_REASON_LABELS,
+  NC_REASONS,
+  SUBMISSION_TYPE_LABELS,
+  SUBMISSION_TYPES,
+  BOUT_LEVEL_LABELS,
+  type Method,
+  type Outcome,
+} from "@/domain/bout-enums";
+import { formatClock } from "@/domain/clock";
+import type { AdminBout } from "@/features/events/admin-card-queries";
+import { recordBoutResultAction, type RecordResultState } from "../actions";
+import { EMPTY_DRAFT, draftToInput, methodsForOutcome, setOutcome, type ResultDraft } from "../result-draft";
+import { digitsToClock } from "../time-keypad";
+import { ChoiceButtons } from "./choice-buttons";
+import { LiveTimePad } from "./live-time-pad";
+
+export type LiveBout = AdminBout & { segmentName: string };
+
+type LiveCurrentBoutProps = {
+  bout: LiveBout;
+  techniques: { id: string; name: string }[];
+  /** Cuántas peleas quedan contando esta (la última cierra la noche). */
+  remaining: number;
+  onSaved: (boutId: string, state: RecordResultState) => void;
+};
+
+const WIN_METHOD_ORDER: Method[] = ["ko_tko", "submission", "decision", "technical_decision", "disqualification"];
+
+function measure(bout: LiveBout): string {
+  const weight = bout.catchweightKg !== null ? `Peso pactado ${bout.catchweightKg} kg` : bout.divisionName ? `Peso ${bout.divisionName}${bout.divisionGender === "female" ? " fem." : ""}` : "";
+  return [weight, `${bout.scheduledRounds} × ${formatClock(bout.roundSeconds)} min`, bout.level === "amateur" ? BOUT_LEVEL_LABELS.amateur : ""].filter(Boolean).join(" · ");
+}
+
+/** La pelea de ahora: botones grandes para el resultado, el método, el round y el tiempo, y «Guardar y siguiente». */
+export function LiveCurrentBout({ bout, techniques, remaining, onSaved }: LiveCurrentBoutProps) {
+  const [draft, setDraft] = useState<ResultDraft>(EMPTY_DRAFT);
+  const [digits, setDigits] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [isSaving, startTransition] = useTransition();
+  const ctx = { scheduledRounds: bout.scheduledRounds === 5 ? (5 as const) : (3 as const), roundSeconds: bout.roundSeconds };
+  const { method } = draft;
+  const isDecision = method === "decision" || method === "technical_decision";
+  const asksRoundAndTime = method !== "" && method !== "decision";
+
+  function change(patch: Partial<ResultDraft>) {
+    setDraft((current) => ({ ...current, ...patch }));
+    setErrors({});
+    setGeneralError(null);
+  }
+
+  function chooseOutcome(outcome: Outcome) {
+    setDraft((current) => setOutcome(current, outcome));
+    setErrors({});
+    setGeneralError(null);
+  }
+
+  function chooseMethod(next: Method) {
+    // Una sumisión por golpeteo es lo más común: queda elegida y se cambia solo si fue otra.
+    change({ method: next, ...(next === "submission" && !draft.submissionType ? { submissionType: "tap" as const } : {}) });
+  }
+
+  function changeTime(next: string) {
+    setDigits(next);
+    change({ endTime: digitsToClock(next) });
+  }
+
+  function save() {
+    const result = draftToInput(draft, ctx);
+    if (!result.ok) {
+      setErrors(result.errors);
+      return;
+    }
+    startTransition(async () => {
+      const state = await recordBoutResultAction(bout.id, result.input);
+      const fieldErrors = state.fieldErrors ?? {};
+      setErrors(fieldErrors);
+      setGeneralError(state.error ?? null);
+      if (!state.error && Object.keys(fieldErrors).length === 0) onSaved(bout.id, state);
+    });
+  }
+
+  const outcomeOptions = [
+    { value: "red_win" as const, label: `ROJA · ${bout.red.lastName}`, tone: "red" as const },
+    { value: "blue_win" as const, label: `AZUL · ${bout.blue.lastName}`, tone: "blue" as const },
+    { value: "draw" as const, label: "EMPATE" },
+    { value: "no_contest" as const, label: "SIN RESULTADO" },
+  ];
+  const allowed = methodsForOutcome(draft.outcome);
+  const methodOptions = WIN_METHOD_ORDER.map((value) => ({ value, label: METHOD_LABELS[value], disabled: !allowed.includes(value) }));
+
+  return (
+    <section aria-label="Pelea actual" className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1 border border-border bg-card p-4">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          {bout.segmentName}
+          {bout.isTitleFight ? " · ★ Pelea por el título" : ""}
+        </span>
+        <p className="font-display text-3xl leading-none uppercase">
+          <span className="text-[#ff5468]">{bout.red.lastName}</span> <span className="text-base text-muted-foreground">vs</span> <span className="text-[#5b9dff]">{bout.blue.lastName}</span>
+        </p>
+        <span className="text-sm text-muted-foreground">
+          {bout.red.firstName} {bout.red.lastName} (roja) contra {bout.blue.firstName} {bout.blue.lastName} (azul)
+        </span>
+        <span className="text-sm text-muted-foreground">{measure(bout)}</span>
+      </div>
+
+      <ChoiceButtons legend="¿Quién ganó?" options={outcomeOptions} value={draft.outcome} onChange={chooseOutcome} error={errors.outcome} />
+
+      {draft.outcome && draft.outcome !== "no_contest" ? <ChoiceButtons legend="Método" options={methodOptions} value={draft.method} onChange={chooseMethod} error={errors.method} /> : null}
+
+      {method === "ko_tko" ? (
+        <ChoiceButtons legend="Tipo de KO/TKO" options={KO_TKO_TYPES.map((value) => ({ value, label: KO_TKO_TYPE_LABELS[value] }))} value={draft.koTkoType} onChange={(koTkoType) => change({ koTkoType })} error={errors.koTkoType} />
+      ) : null}
+
+      {method === "submission" ? (
+        <>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="live-technique" className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Técnica
+            </label>
+            <NativeSelect id="live-technique" value={draft.submissionTechniqueId} onChange={(event) => change({ submissionTechniqueId: event.target.value })} aria-invalid={errors.submissionTechniqueId ? true : undefined} className="h-12 text-base">
+              <option value="">Elige la técnica</option>
+              {techniques.map((technique) => (
+                <option key={technique.id} value={technique.id}>
+                  {technique.name}
+                </option>
+              ))}
+            </NativeSelect>
+            {errors.submissionTechniqueId ? (
+              <p role="alert" className="text-sm text-destructive">
+                {errors.submissionTechniqueId}
+              </p>
+            ) : null}
+          </div>
+          <ChoiceButtons legend="Cómo terminó" columns={3} options={SUBMISSION_TYPES.map((value) => ({ value, label: SUBMISSION_TYPE_LABELS[value] }))} value={draft.submissionType} onChange={(submissionType) => change({ submissionType })} />
+        </>
+      ) : null}
+
+      {isDecision ? (
+        <ChoiceButtons legend="Tipo de decisión" columns={3} options={DECISION_TYPES.map((value) => ({ value, label: DECISION_TYPE_LABELS[value] }))} value={draft.decisionType} onChange={(decisionType) => change({ decisionType })} error={errors.decisionType} />
+      ) : null}
+
+      {method === "disqualification" ? (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="live-dq" className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Motivo de la descalificación
+          </label>
+          <Input id="live-dq" value={draft.dqReason} maxLength={200} onChange={(event) => change({ dqReason: event.target.value })} placeholder="Ej.: golpe bajo reiterado" autoComplete="off" className="h-12 text-base" aria-invalid={errors.dqReason ? true : undefined} />
+          {errors.dqReason ? (
+            <p role="alert" className="text-sm text-destructive">
+              {errors.dqReason}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {method === "no_contest" ? (
+        <ChoiceButtons legend="Motivo" columns={3} options={NC_REASONS.map((value) => ({ value, label: NC_REASON_LABELS[value] }))} value={draft.ncReason} onChange={(ncReason) => change({ ncReason })} error={errors.ncReason} />
+      ) : null}
+
+      {asksRoundAndTime ? (
+        <>
+          <ChoiceButtons
+            legend={method === "technical_decision" ? "Round (si no eliges, el último)" : "Round"}
+            columns={ctx.scheduledRounds === 5 ? 5 : 3}
+            options={Array.from({ length: ctx.scheduledRounds }, (_, index) => ({ value: String(index + 1), label: String(index + 1), ariaLabel: `Round ${index + 1}` }))}
+            value={draft.endRound}
+            onChange={(endRound) => change({ endRound })}
+            error={errors.endRound}
+          />
+          <LiveTimePad digits={digits} maxLabel={formatClock(bout.roundSeconds)} error={errors.endTimeSeconds} onChange={changeTime} />
+        </>
+      ) : null}
+
+      {errors.scorecards || errors.videoUrl || errors.bonuses ? (
+        <p role="alert" className="text-sm text-destructive">
+          {errors.scorecards ?? errors.videoUrl ?? errors.bonuses}
+        </p>
+      ) : null}
+      {generalError ? (
+        <p role="alert" className="text-sm text-destructive">
+          {generalError}
+        </p>
+      ) : null}
+
+      {/* Fijo abajo: el pulgar lo alcanza sin buscar. */}
+      <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-background p-3">
+        <Button type="button" size="lg" className="h-14 w-full text-lg" disabled={isSaving} onClick={save}>
+          {isSaving ? "Guardando…" : remaining <= 1 ? "Guardar y terminar la noche" : "Guardar y siguiente"}
+        </Button>
+      </div>
+    </section>
+  );
+}
