@@ -42,6 +42,8 @@ test("crea, edita y desactiva una división", async ({ page }) => {
   await expect(row.getByText(/8 puestos en el ranking/)).toBeVisible();
 
   await row.getByRole("switch").click();
+  // El cambio se ve al instante; se espera el aviso de guardado antes de recargar.
+  await expect(page.getByText("División desactivada")).toBeVisible();
   await expect(row.getByText("Inactiva")).toBeVisible();
   await page.reload();
   await expect(page.getByRole("listitem").filter({ hasText: "Peso Máximo" }).getByText("Inactiva")).toBeVisible();
@@ -51,6 +53,7 @@ test("cambia el orden con los botones subir y bajar", async ({ page }) => {
   const males = page.locator("section").filter({ has: page.getByRole("heading", { name: "Masculinas" }) });
   await expect(males.getByRole("listitem").first()).toContainText("Mosca");
   await males.getByRole("button", { name: "Bajar Mosca" }).click();
+  await expect(page.getByText("Orden guardado")).toBeVisible();
   await expect(males.getByRole("listitem").first()).toContainText("Gallo");
   await page.reload();
   await expect(males.getByRole("listitem").first()).toContainText("Gallo");

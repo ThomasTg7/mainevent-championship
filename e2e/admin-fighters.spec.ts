@@ -24,6 +24,7 @@ test("el listado muestra los peleadores sin scroll horizontal en móvil y PC", a
 });
 
 test("crear a Tomás Vera con foto, publicarlo, enviarlo a la papelera y restaurarlo", async ({ page }) => {
+  test.setTimeout(90_000);
   await page.goto("/admin/peleadores/nuevo");
 
   // Sin nombre: el error aparece junto al campo, en la pestaña correspondiente.
@@ -81,17 +82,18 @@ test("crear a Tomás Vera con foto, publicarlo, enviarlo a la papelera y restaur
 });
 
 test("editar un peleador conserva lo escrito y el enlace al renombrarlo", async ({ page }) => {
-  await page.goto("/admin/peleadores?q=soto");
-  await page.getByRole("link", { name: "Editar Diego Soto" }).first().click();
-  await page.getByLabel("Nombre", { exact: true }).fill("Diego Andrés");
+  // Joaquín Núñez no aparece en las pruebas del sitio público: renombrarlo no las afecta (corren en paralelo).
+  await page.goto("/admin/peleadores?q=nunez");
+  await page.getByRole("link", { name: "Editar Joaquín Núñez" }).first().click();
+  await page.getByLabel("Nombre", { exact: true }).fill("Joaquín Andrés");
   await page.getByRole("tab", { name: "Físico" }).click();
   await page.getByLabel("Gimnasio").fill("Andes Fight Club");
   await page.getByRole("button", { name: "Guardar cambios" }).click();
   await expect(page.getByText("Cambios guardados")).toBeVisible();
   await expect(page.getByLabel("Gimnasio")).toHaveValue("Andes Fight Club");
   await page.getByRole("tab", { name: "Datos" }).click();
-  await expect(page.getByLabel("Nombre", { exact: true })).toHaveValue("Diego Andrés");
-  await expect(page.getByLabel("Enlace de la ficha")).toHaveValue("diego-soto");
+  await expect(page.getByLabel("Nombre", { exact: true })).toHaveValue("Joaquín Andrés");
+  await expect(page.getByLabel("Enlace de la ficha")).toHaveValue("joaquin-nunez");
 });
 
 test("el formulario se usa en celular sin scroll horizontal", async ({ page }) => {

@@ -292,3 +292,68 @@ Formato:
 - **Impacto:** Plan 07, Task 6.
 - **Estado:** decidido · aplicado a planes siguientes
 
+
+---
+
+# Ejecución del Plan 02 (Sonnet) — 2026-09-29
+
+## [Plan 02 · Orden] Slugs antes que divisiones; guarda de divisiones y `assertUsableMedia` en la Task 4 — 2026-09-29
+- **Qué:** se hizo la Task 3 (slugs) antes de la 2 (los slugs de división usan `slugify`). La regla «no desactivar una división con peleadores activos» y su test viven en la Task 4 (la tabla `fighters` no existe en la Task 2). `assertUsableMedia` y sus tests se entregaron en la Task 4 (la necesita `createFighter`); la Task 4b conserva el resto (referencias, barrido, cron).
+- **Por qué:** dependencias entre tareas que el plan no anticipó.
+- **Impacto:** ninguno en planes siguientes.
+- **Estado:** aplicado
+
+## [Plan 02 · Task 2/4] Lógica en `service.ts` con auditoría dentro; componentes en `features/` — 2026-09-29
+- **Qué:** `features/divisions` y `features/fighters` tienen `service.ts` (`(db, input, actorId)`, testeado con PGlite, audita) y `actions.ts` delgado, como pide `docs/convenciones.md`; el plan nombraba `actions.test.ts`. La UI de divisiones vive en `src/features/divisions/components` (no en `src/app/...`). Errores para la persona: `UserFacingError` (`src/lib/user-facing-error.ts`); estado de formularios: `FormActionState`/`zodFieldErrors` (`src/lib/form-errors.ts`). Slug de división: `peso-<nombre>` y `peso-<nombre>-femenino` (Mosca, Gallo y Pluma existen en ambos géneros).
+- **Por qué:** poder testear las escrituras y su auditoría sin `headers()`.
+- **Impacto:** Planes 03–06 pueden reutilizar `UserFacingError`, `FormActionState` y `PublicationControls`/`publicationShape` (`src/features/publication`).
+- **Estado:** aplicado · aplicado a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 02 · Task 4] Publicación en el formulario, división válida y `listPublicFighters` paginado — 2026-09-29
+- **Qué:** (1) `createFighter`/`updateFighter` aceptan `status` y `publishAt` (Zod compartido en `src/features/publication/schema.ts`: `status` opcional; al editar solo se toca la publicación si viene `status`); `setFighterPublication` sirve a los listados. (2) Se valida que la división exista, coincida con el género y esté activa (una inactiva solo si el peleador ya la tenía). (3) `listPublicFighters(db, filters, { page, pageSize })` devuelve `{ items, hasMore }` (24 por página), no un arreglo. (4) `src/test/setup.ts` fija un `BETTER_AUTH_SECRET` de relleno (las lecturas de imágenes usan `getStorage()`).
+- **Por qué:** un solo «Guardar» en el formulario; el listado público necesita saber si hay otra página.
+- **Impacto:** Planes 03–04 reutilizan `publicationShape`/`requireScheduleDate`/`normalizePublishAt`.
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 02 · Task 4b] Barrido de imágenes sin uso en una sola sentencia — 2026-09-29
+- **Qué:** `purgeUnreferencedMedia` borra con `delete … where id in (select … limit 200) returning`, con la condición «nadie la referencia» dentro de la misma sentencia; después borra los archivos devueltos. `MEDIA_REFERENCES` acepta columnas y condiciones SQL; `references.test.ts` falla si existe una FK a `media.id` sin registrar. El cron responde `{ purged, orphanMedia, unreferencedMedia }`.
+- **Por qué:** una imagen que un formulario acaba de usar no puede perderse entre el `select` y el `delete`.
+- **Impacto:** Planes 03, 04 y 06 registran sus FK en `src/features/media/references.ts`.
+- **Estado:** aplicado
+
+## [Plan 02 · Task 5] Vista previa: token ligado a la entidad y enlace pedido al hacer clic — 2026-09-29
+- **Qué:** `verifyPreviewToken(token, expected?, now?)` acepta `{ entity, id }` para que un token de un peleador no abra otra ficha (firma HMAC con `BETTER_AUTH_SECRET`, 1 h). `PublicationControls` recibe `previewHref` como texto o como función (la action `createFighterPreviewLinkAction` genera el token al hacer clic: un formulario puede quedar abierto más de 1 hora). «Guardar» vive en el formulario padre: el componente muestra «Elige fecha y hora» y `isPublicationValid` deshabilita el botón. Nuevo `src/lib/santiago-time.ts` (fecha y hora escritas en Santiago ↔ instante real, con horario de verano).
+- **Por qué:** seguridad y usabilidad del enlace de vista previa.
+- **Impacto:** Planes 03–04: reutilizar `PublicationControls` y el mismo patrón (`?preview=<token>` en la ficha pública).
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 02 · Task 6] Formulario de peleador y NativeSelect — 2026-09-29
+- **Qué:** el formulario usa `onSubmit` + `startTransition` (no `<form action>`) porque React 19 vacía los campos tras cada action y la persona perdería lo escrito; las pestañas quedan montadas (ocultas) para enviar todos los campos, y se abre la primera con error. Los nombres de país se calculan en el servidor y se pasan por props (`Intl.DisplayNames` da textos distintos en Node y en Chrome: error de hidratación). Nuevo `NativeSelect` (`src/components/ui/native-select.tsx`, 44 px en pantallas táctiles) para listas largas y selectores del sistema en celular. `Pagination` acepta `params` para conservar filtros. El e2e de la Task 6 cubre el panel; las comprobaciones sobre `/peleadores` pasaron a los e2e de las Tasks 8 y 9 (esa ruta no existía aún).
+- **Impacto:** Planes 03–04: cualquier `Intl` que produzca texto debe correr en el servidor.
+- **Estado:** aplicado · aplicado a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 02 · Task 7] Tiempo promedio de pelea — 2026-09-29
+- **Qué:** `avgFightSeconds` promedia todas las peleas del nivel, también las sin resultado (duraron igual).
+- **Impacto:** Plan 03: si se prefiere excluirlas, es un filtro en `computeRecord`.
+- **Estado:** aplicado
+
+## [Plan 02 · Task 8] Caché del sitio público con etiquetas y `updateTag` — 2026-09-29
+- **Qué:** sin `cacheComponents`, las lecturas públicas usan `unstable_cache` (`src/features/fighters/cached-queries.ts`): listado con etiquetas `fighters`, `divisions` y `media` (ids de imagen desconocidos de antemano); ficha con `fighter:<id>`, `divisions` y `media:<id>`, tras una lectura mínima sin caché (`getPublicFighterRef`) que decide si es público *ahora* (un borrador, uno en la papelera o uno programado nunca sale de la caché). Tope de 5 min para las publicaciones programadas. Las actions usan `updateTag` (inmediato), no `revalidateTag(…, "max")` (sirve contenido viejo una vez: dejaba visible a un peleador recién enviado a la papelera). Lo mismo se aplicó a `saveMediaEditAction` (con la nueva `MEDIA_ANY_TAG`). Las entradas de `TRASHABLE_ENTITIES` tienen `revalidate(id)`, que `restoreAction` llama al restaurar (el e2e mostró que restaurar dejaba el listado desactualizado). Filtros en la URL: `genero=male|female`, `estado=active|inactive|retired|all` (por defecto `active`); solo se ofrecen divisiones y países que tienen peleadores publicados.
+- **Por qué:** cumplir «páginas públicas cacheadas con tags e invalidadas en la action que escribe» sin activar Cache Components (que exige Suspense en todo el panel).
+- **Impacto:** Planes 03–06: mismo patrón (`unstable_cache` + `updateTag` en la action + `revalidate` en el registro de la papelera). Toda lectura con imágenes agrega `media:<id>` o `MEDIA_ANY_TAG`. Plan 07: valorar un cron que refresque lo programado si 5 min es mucho.
+- **Estado:** aplicado · aplicado a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 02 · Task 9] Cifras del hero y vista previa en la URL pública — 2026-09-29
+- **Qué:** las tres cifras del hero son Victorias/Derrotas/Empates del récord profesional manual: los conteos por KO/TKO y sumisión solo existen con el récord calculado (Plan 03), que pasará `figures` con KO/TKO, Sumisión y Victorias. `RecordSummary` acepta `computed` (ya renderiza métodos, racha y % de finalizaciones). Huecos con `data-slot`: `fighter-tags` (etiquetas de ranking, Plan 05), `fighter-history` (Plan 03), `fighter-news` (Plan 04). La vista previa usa `?preview=<token>` en la ficha pública (la página es dinámica por `searchParams`; los datos siguen cacheados) con `noindex`. `CountFigures` (cliente) reemplazó a `RecordCounters` al servir a tarjeta y hero.
+- **Impacto:** Plan 03 (pasar `computed` y cambiar `figures`, llenar `fighter-history`), Plan 05 (etiquetas), Plan 07 (sitemap de peleadores con `publicScope`).
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 02 · e2e] Pruebas en paralelo sobre una BD compartida — 2026-09-29
+- **Qué:** cada spec usa datos propios; los e2e del sitio público dependen de peleadores del seed (Matías, Diego, Camila, Ignacio, Nicolás) que ninguna prueba del panel modifica (la de edición usa a Joaquín Núñez). `global-setup` siembra divisiones, 12 peleadores, un borrador y uno en la papelera. Cambios optimistas en el panel (reordenar, activar) esperan el aviso «guardado» antes de recargar.
+- **Impacto:** Planes siguientes: mismo criterio (datos propios por spec y esperar la confirmación antes de recargar).
+- **Estado:** aplicado
+
+## [Plan 02 · Pendientes]
+- La búsqueda pública/panel usa `LIKE` sobre `search_text` (recorrido secuencial): suficiente hasta ~500 peleadores; con más, índice `pg_trgm`.
+- `MEDIA_REFERENCES` solo tiene las fotos de peleadores; Planes 03, 04 y 06 agregan las suyas.
+- Revisión de código final (fresca, sin subagente) queda para la sesión de Opus (`docs/WORKFLOW.md`, Fase 2).
