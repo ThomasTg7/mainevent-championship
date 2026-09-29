@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { db } from "@/db";
+import { computeRecord } from "@/domain/record";
 import { getCachedPublicFighter } from "@/features/fighters/cached-queries";
 import { FighterHero } from "@/features/fighters/components/fighter-hero";
 import { FighterInfo } from "@/features/fighters/components/fighter-info";
@@ -59,7 +60,11 @@ export default async function FighterPage({ params, searchParams }: PageProps<"/
           { label: "Empates", value: proRecord.draws },
         ]}
       />
-      <RecordSummary manual={{ pro: proRecord, amateur: fighter.amateurRecord }} />
+      {/* Sin peleas cargadas todavía (Plan 03) el récord en Guerra Campal es 0-0-0: el Plan 03 pasa las peleas reales. */}
+      <RecordSummary
+        manual={{ pro: proRecord, amateur: fighter.amateurRecord }}
+        computed={{ pro: computeRecord([], fighter.id, "pro"), amateur: computeRecord([], fighter.id, "amateur") }}
+      />
       {/* Huecos para lo que suman los planes siguientes: historial de peleas (03) y noticias relacionadas (04). */}
       <div data-slot="fighter-history" />
       <FighterInfo fighter={fighter} />

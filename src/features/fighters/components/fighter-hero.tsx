@@ -32,7 +32,7 @@ export function FighterHero({ fighter, figures }: FighterHeroProps) {
           {fighter.nickname ? (
             <p className="font-cond text-[clamp(16px,2.4vw,24px)] font-bold tracking-[.12em] text-yellow">“{fighter.nickname}”</p>
           ) : null}
-          <h1 id="fighter-name" className="my-2 font-display text-[clamp(48px,11vw,150px)] uppercase leading-[.95] text-white">
+          <h1 id="fighter-name" className="my-2 font-display text-[clamp(38px,7.5vw,104px)] uppercase leading-[.95] text-white">
             {name}
           </h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-cond text-[15px] font-semibold uppercase tracking-[.08em] text-muted-foreground sm:text-base">
@@ -42,7 +42,12 @@ export function FighterHero({ fighter, figures }: FighterHeroProps) {
             </span>
             {fighter.weightKg ? <span>{formatWeight(fighter.weightKg)}</span> : null}
           </p>
-          <CountFigures items={figures} className="mt-8 grid max-w-xl grid-cols-3 border-t border-border" valueClassName="text-[clamp(44px,8vw,84px)]" />
+          {fighter.bio ? (
+            <p data-slot="fighter-bio" className="mt-5 line-clamp-5 max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-base">
+              {fighter.bio}
+            </p>
+          ) : null}
+          <CountFigures items={figures} className="mt-7 grid max-w-xl grid-cols-3 border-t border-border" valueClassName="text-[clamp(40px,6.5vw,72px)]" />
         </div>
 
         <div className="relative order-1 mx-auto -mb-2 aspect-[3/4] w-full max-w-[520px] lg:order-2 lg:max-w-none">

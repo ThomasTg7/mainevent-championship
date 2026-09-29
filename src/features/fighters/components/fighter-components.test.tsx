@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { computeRecord } from "@/domain/record";
 import type { MediaDTO } from "@/features/media/dto";
 import type { FighterCardDTO, FighterProfileDTO } from "../dto";
 import { FIGHTER_CARD_SIZES, FighterCard } from "./fighter-card";
@@ -26,6 +27,8 @@ beforeAll(() => {
 });
 
 afterEach(cleanup);
+
+const emptyComputed = computeRecord([], "f1", "pro");
 
 const photo: MediaDTO = {
   id: "media-1",
@@ -110,6 +113,16 @@ describe("FighterHero", () => {
     expect(image).toHaveAttribute("sizes", FIGHTER_HERO_SIZES);
   });
 
+  it("shows the short bio inside the card, under the name", () => {
+    render(<FighterHero fighter={{ ...profile, bio: "Campeón peso ligero." }} figures={figures} />);
+    expect(screen.getByText("Campeón peso ligero.")).toBeInTheDocument();
+  });
+
+  it("omits the bio paragraph when there is none", () => {
+    const { container } = render(<FighterHero fighter={profile} figures={figures} />);
+    expect(container.querySelector('[data-slot="fighter-bio"]')).toBeNull();
+  });
+
   it("shows one h1 with the name, the nickname and the three figures with their final values", () => {
     render(<FighterHero fighter={profile} figures={figures} />);
     expect(screen.getByRole("heading", { level: 1, name: "Matías Pérez" })).toBeInTheDocument();
@@ -123,11 +136,20 @@ describe("FighterHero", () => {
 describe("RecordSummary", () => {
   it("formats records and shows pro and amateur apart", () => {
     expect(formatRecord({ wins: 12, losses: 2, draws: 0, noContests: 0 })).toBe("12-2-0");
-    expect(formatRecord({ wins: 3, losses: 1, draws: 0, noContests: 2 })).toBe("3-1-0 · 2 NC");
+    expect(formatRecord({ wins: 3, losses: 1, draws: 0, noContests: 2 })).toBe("3-1-0");
 
-    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: profile.amateurRecord }} />);
+    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: profile.amateurRecord }} computed={{ pro: emptyComputed, amateur: emptyComputed }} />);
     expect(container.querySelector('[data-level="pro"]')).toHaveTextContent("12-2-0");
     expect(container.querySelector('[data-level="amateur"]')).toHaveTextContent("Sin datos cargados.");
-    expect(screen.queryByText("En Guerra Campal")).not.toBeInTheDocument();
+  });
+
+  it("always shows the Guerra Campal record next to the total, with GC as the short label", () => {
+    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: profile.amateurRecord }} computed={{ pro: { ...emptyComputed, wins: 3, losses: 1 }, amateur: emptyComputed }} />);
+    const pro = container.querySelector('[data-level="pro"]')!;
+    expect(pro.querySelector('[data-record="gc"]')).toHaveTextContent("3-1-0");
+    expect(pro.querySelector('[data-record="total"]')).toHaveTextContent("12-2-0");
+    expect(pro).toHaveTextContent("GC");
+    expect(pro).toHaveTextContent("Guerra Campal");
+    expect(container.querySelector('[data-level="amateur"] [data-record="gc"]')).toHaveTextContent("Sin peleas aún");
   });
 });

@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { publicationShape, requireScheduleDate } from "@/features/publication/schema";
 
+/** La bio es breve: se muestra dentro de la tarjeta de la ficha, junto al nombre. */
+export const BIO_MAX_LENGTH = 300;
+
 const IMAGE_UNAVAILABLE = "La imagen ya no está disponible. Súbela de nuevo.";
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const BIRTH_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -95,7 +98,7 @@ export const fighterInputSchema = z
     gym: optionalText(80, "El gimnasio"),
     coach: optionalText(80, "El entrenador"),
     baseDiscipline: optionalText(60, "La disciplina base"),
-    bio: optionalText(5000, "La biografía"),
+    bio: optionalText(BIO_MAX_LENGTH, "La biografía"),
     careerStatus: z.enum(["active", "inactive", "retired"], { error: "Elige el estado" }).default("active"),
     instagram: optionalText(200, "Instagram"),
     tiktok: optionalText(200, "TikTok"),

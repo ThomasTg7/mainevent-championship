@@ -29,7 +29,7 @@ export default defineConfig({
   reporter: "list",
   // `next dev` compila cada ruta la primera vez que se visita; con varios
   // workers a la vez eso puede pasar de los 5 s por defecto.
-  expect: { timeout: 15_000 },
+  expect: { timeout: 30_000 },
   use: {
     baseURL: `http://localhost:${PORT}`,
   },

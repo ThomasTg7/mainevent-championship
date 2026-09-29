@@ -66,6 +66,15 @@ describe("createFighter", () => {
     await expect(createFighter(db, validFighterInput(ligero, { status: "scheduled" }), "admin-1")).rejects.toThrow("Elige fecha y hora");
   });
 
+  it("limits the bio to 300 characters, since it shows inside the profile card", async () => {
+    await expect(createFighter(db, validFighterInput(ligero, { firstName: "Bio", lastName: "Larga", bio: "x".repeat(301) }), "admin-1")).rejects.toThrow(
+      "máx. 300 caracteres",
+    );
+    const { id } = await createFighter(db, validFighterInput(ligero, { firstName: "Bio", lastName: "Justa", bio: "x".repeat(300) }), "admin-1");
+    const [row] = await db.select().from(fighters).where(eq(fighters.id, id));
+    expect(row?.bio).toHaveLength(300);
+  });
+
   it("keeps the manual record counters, defaulting to zero", async () => {
     const { id } = await createFighter(
       db,

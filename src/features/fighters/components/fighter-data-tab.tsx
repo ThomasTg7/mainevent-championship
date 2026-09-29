@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Division } from "@/db/schema/divisions";
 import type { Country } from "@/domain/countries";
+import { BIO_MAX_LENGTH } from "../schema";
 import { SelectField, TextAreaField, TextField } from "./fighter-fields";
 
 type FighterDataTabProps = {
@@ -60,7 +61,7 @@ export function FighterDataTab({ divisions, countries, defaults, showSlug }: Fig
         />
       ) : null}
       <div className="md:col-span-2">
-        <TextAreaField name="bio" label="Biografía" rows={6} hint="Aparece en la ficha pública, pestaña Bio." />
+        <TextAreaField name="bio" label="Bio breve" rows={4} maxLength={BIO_MAX_LENGTH} hint="Aparece dentro de la tarjeta de la ficha pública, bajo el nombre." />
       </div>
     </div>
   );

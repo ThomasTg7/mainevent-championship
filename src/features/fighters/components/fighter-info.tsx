@@ -9,19 +9,6 @@ import { FighterInfoTabs } from "./fighter-info-tabs";
 const SOCIAL_LABELS: Record<SocialNetwork, string> = { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", x: "X" };
 const SOCIAL_ORDER: SocialNetwork[] = ["instagram", "tiktok", "youtube", "x"];
 
-function Bio({ bio }: { bio: string | null }) {
-  if (!bio) return <p className="text-muted-foreground">Pronto sumaremos su historia.</p>;
-  return (
-    <div className="grid max-w-3xl gap-4 text-[17px] leading-relaxed text-white/90">
-      {bio.split(/\n{2,}/).map((paragraph, index) => (
-        <p key={index} className="whitespace-pre-line">
-          {paragraph}
-        </p>
-      ))}
-    </div>
-  );
-}
-
 function Details({ fighter }: { fighter: FighterProfileDTO }) {
   // El día se fija a mediodía UTC: a medianoche, en Santiago cae el día anterior.
   const birth = fighter.birthDate ? new Date(`${fighter.birthDate}T12:00:00Z`) : null;
@@ -90,7 +77,7 @@ function Socials({ socials }: { socials: FighterProfileDTO["socials"] }) {
 export function FighterInfo({ fighter }: { fighter: FighterProfileDTO }) {
   return (
     <section aria-label="Información del peleador" className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] py-12 lg:py-16">
-      <FighterInfoTabs bio={<Bio bio={fighter.bio} />} details={<Details fighter={fighter} />} socials={<Socials socials={fighter.socials} />} />
+      <FighterInfoTabs details={<Details fighter={fighter} />} socials={<Socials socials={fighter.socials} />} />
     </section>
   );
 }

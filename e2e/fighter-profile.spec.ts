@@ -25,11 +25,13 @@ test("sin foto muestra la silueta de la marca en el hero", async ({ page }) => {
   await expect(page.locator('section [data-slot="fighter-silhouette"]').first()).toBeVisible();
 });
 
-test("las pestañas Bio, Datos y Redes muestran la información del peleador", async ({ page }) => {
+test("la bio breve va en la tarjeta y las pestañas son Datos y Redes", async ({ page }) => {
   await page.goto("/peleadores/matias-perez");
   await expect(page.getByText("Campeón peso ligero.")).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Bio" })).toHaveCount(0);
 
-  await page.getByRole("tab", { name: "Datos" }).click();
+  // Datos se ve de entrada, sin pulsar nada.
+  await expect(page.getByRole("tab", { name: "Datos" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByText("Rancagua")).toBeVisible();
   await expect(page.getByText("180 cm / 5'11\"")).toBeVisible();
   await expect(page.getByText(/años \(nació el/)).toBeVisible();
@@ -37,6 +39,23 @@ test("las pestañas Bio, Datos y Redes muestran la información del peleador", a
 
   await page.getByRole("tab", { name: "Redes" }).click();
   await expect(page.getByText("Este peleador aún no comparte sus redes.")).toBeVisible();
+  await expect(page.getByText("Rancagua")).toHaveCount(0);
+  await page.getByRole("tab", { name: "Datos" }).click();
+  await expect(page.getByText("Rancagua")).toBeVisible();
+});
+
+test("el récord muestra el total y el de Guerra Campal, con GC como abreviatura en el celular", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto("/peleadores/matias-perez");
+  const pro = page.locator('[data-level="pro"]');
+  await expect(pro.locator('[data-record="total"]')).toContainText("12-2-0");
+  await expect(pro.locator('[data-record="gc"]')).toBeVisible();
+  await expect(pro.getByText("GC", { exact: true })).toBeVisible();
+  // En celular la etiqueta cabe en una línea (el nombre completo queda solo para lectores de pantalla).
+  expect((await pro.locator('[data-record="gc"] p').first().boundingBox())?.height).toBeLessThan(24);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(pro.getByText("Guerra Campal")).toBeVisible();
+  await expect(pro.getByText("GC", { exact: true })).toBeHidden();
 });
 
 test("las cifras del hero traen su valor final aunque se pida reducir el movimiento", async ({ browser }) => {

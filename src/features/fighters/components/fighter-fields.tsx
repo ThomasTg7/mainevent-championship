@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, type ComponentProps } from "react";
+import { createContext, useContext, useState, type ComponentProps } from "react";
 import { FormField, formFieldErrorId } from "@/components/admin/form-field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -36,11 +36,28 @@ export function TextField({ name, label, hint, ...inputProps }: BaseProps & Omit
   );
 }
 
-export function TextAreaField({ name, label, hint, ...props }: BaseProps & Omit<ComponentProps<typeof Textarea>, "name" | "id" | "defaultValue">) {
+export function TextAreaField({ name, label, hint, maxLength, onChange, ...props }: BaseProps & Omit<ComponentProps<typeof Textarea>, "name" | "id" | "defaultValue">) {
   const { id, error, defaultValue, aria } = useField(name);
+  const [length, setLength] = useState(defaultValue.length);
   return (
     <FormField id={id} label={label} error={error} hint={hint}>
-      <Textarea id={id} name={name} defaultValue={defaultValue} {...aria} {...props} />
+      <Textarea
+        id={id}
+        name={name}
+        defaultValue={defaultValue}
+        maxLength={maxLength}
+        onChange={(event) => {
+          setLength(event.target.value.length);
+          onChange?.(event);
+        }}
+        {...aria}
+        {...props}
+      />
+      {maxLength ? (
+        <p aria-live="polite" className={`text-right text-xs ${length >= maxLength ? "text-destructive" : "text-muted-foreground"}`}>
+          {length}/{maxLength} caracteres
+        </p>
+      ) : null}
     </FormField>
   );
 }

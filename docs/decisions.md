@@ -357,3 +357,8 @@ Formato:
 - La búsqueda pública/panel usa `LIKE` sobre `search_text` (recorrido secuencial): suficiente hasta ~500 peleadores; con más, índice `pg_trgm`.
 - `MEDIA_REFERENCES` solo tiene las fotos de peleadores; Planes 03, 04 y 06 agregan las suyas.
 - Revisión de código final (fresca, sin subagente) queda para la sesión de Opus (`docs/WORKFLOW.md`, Fase 2).
+
+## [Plan 02 · Ajuste posterior] Ficha: bio en la tarjeta, récord en Guerra Campal y pestañas Datos/Redes — 2026-09-29
+- **Qué:** (1) La bio pasa a ser breve (máx. 300 caracteres, `BIO_MAX_LENGTH`, con contador en el formulario) y se muestra dentro de la tarjeta del hero, bajo el nombre (que se achicó). (2) `RecordSummary` muestra siempre, por nivel, «Récord total» (manual) y «Guerra Campal» (calculado; «GC» en celular para caber en una línea; 0 peleas = «Sin peleas aún»); `computed` ahora es obligatorio y la página pasa `computeRecord([], …)` hasta que el Plan 03 entregue las peleas. `formatRecord` devuelve solo `V-D-E`; los sin resultado van aparte. (3) Pestañas solo Datos (por defecto) y Redes, con barra amarilla deslizante y panel que entra desde el lado (`transform`/`opacity`, sin movimiento con `prefers-reduced-motion`). Afecta a todos los peleadores: es la plantilla de la ficha.
+- **Impacto:** Plan 03 pasa las peleas reales a `computeRecord`. Bios existentes de más de 300 caracteres se muestran (recortadas a 5 líneas) pero al editarlas hay que acortarlas para guardar.
+- **Estado:** aplicado
