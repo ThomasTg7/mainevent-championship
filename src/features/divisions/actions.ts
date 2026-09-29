@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { db } from "@/db";
 import { formValues, zodFieldErrors, type FormActionState } from "@/lib/form-errors";
-import { FIGHTERS_LIST_TAG } from "@/features/fighters/cache";
+import { DIVISIONS_CACHE_TAG } from "./cache";
 import { requireAdmin } from "@/lib/require-admin";
 import { UserFacingError } from "@/lib/user-facing-error";
 import { divisionInputSchema, reorderDivisionsSchema, toggleDivisionSchema } from "./schema";
@@ -15,8 +15,8 @@ async function run(task: () => Promise<string>): Promise<FormActionState> {
   try {
     const success = await task();
     revalidatePath(ADMIN_PATH);
-    // Las tarjetas y fichas de peleadores muestran el nombre y el peso de su división.
-    revalidateTag(FIGHTERS_LIST_TAG, "max");
+    // Tarjetas, fichas y filtros públicos muestran el nombre y el peso de la división.
+    updateTag(DIVISIONS_CACHE_TAG);
     return { success };
   } catch (error) {
     if (error instanceof UserFacingError) return { error: error.message };

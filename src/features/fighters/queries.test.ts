@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Db } from "@/db";
 import * as mediaQueries from "@/features/media/queries";
 import { createTestDb } from "@/test/db";
-import { getFighterForEdit, getPublicFighterBySlug, listAdminFighters, listPublicFighters } from "./queries";
+import { getFighterForEdit, getPublicFighterBySlug, listAdminFighters, getPublicFighterRef, listPublicFighters, listPublicFilterOptions } from "./queries";
 import type { FighterFilters } from "./schema";
 import { createFighter, deleteFighter, setFighterPublication } from "./service";
 import { divisionIdBySlug, insertMedia, validFighterInput } from "./test-helpers";
@@ -165,5 +165,23 @@ describe("getFighterForEdit", () => {
     expect(edit?.bodyMedia?.id).toBe(bodyMediaId);
     expect(await getFighterForEdit(db, ids.draft)).not.toBeNull();
     expect(await getFighterForEdit(db, "00000000-0000-4000-8000-000000000000")).toBeNull();
+  });
+});
+
+describe("listPublicFilterOptions", () => {
+  it("offers only the divisions and countries that have published fighters", async () => {
+    const options = await listPublicFilterOptions(db);
+    expect(options.divisions.map((division) => division.slug)).toEqual(["peso-ligero", "peso-paja-femenino"]);
+    expect(options.nationalities).toEqual(["AR", "CL"]);
+  });
+});
+
+describe("getPublicFighterRef", () => {
+  it("returns the id and image ids of a published fighter, and null for hidden ones", async () => {
+    const ref = await getPublicFighterRef(db, "matias-perez");
+    expect(ref).toMatchObject({ id: ids.matias, bodyMediaId });
+    expect(ref?.headshotMediaId).not.toBeNull();
+    expect(await getPublicFighterRef(db, "borrador-oculto")).toBeNull();
+    expect(await getPublicFighterRef(db, "papelera-oculta")).toBeNull();
   });
 });

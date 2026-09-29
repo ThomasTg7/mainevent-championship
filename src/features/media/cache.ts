@@ -6,3 +6,9 @@
 export function mediaCacheTag(mediaId: string): string {
   return `media:${mediaId}`;
 }
+
+/**
+ * Etiqueta general de imágenes: los listados cacheados (muchas imágenes, ids desconocidos de antemano) la llevan
+ * y `saveMediaEditAction` la invalida junto con la de la imagen editada.
+ */
+export const MEDIA_ANY_TAG = "media";

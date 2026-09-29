@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { requireAdmin } from "@/lib/require-admin";
+import { TRASHABLE_ENTITIES } from "./registry";
 import { restore } from "./trash";
 
 const restoreSchema = z.object({
@@ -25,6 +26,7 @@ export async function restoreAction(entityType: string, id: string): Promise<{ e
     return { error: error instanceof Error ? error.message : "No se pudo restaurar" };
   }
 
+  TRASHABLE_ENTITIES.find((entity) => entity.type === parsed.data.entityType)?.revalidate?.(parsed.data.id);
   revalidatePath("/admin/papelera");
   return {};
 }

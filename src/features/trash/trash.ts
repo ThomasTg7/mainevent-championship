@@ -12,6 +12,11 @@ export type TrashableEntity = {
   table: PgTable & { id: AnyPgColumn; deletedAt: AnyPgColumn };
   /** Columna o expresión que describe el elemento en la papelera ("Tomás Vera"). */
   title: AnyPgColumn | SQL<string>;
+  /**
+   * Invalida las cachés públicas de la entidad. La papelera lo llama tras restaurar (enviar a la papelera lo hace la
+   * action de cada entidad); solo puede usar funciones de caché válidas en server actions (`updateTag`).
+   */
+  revalidate?: (id: string) => void;
 };
 
 export type TrashItem = {

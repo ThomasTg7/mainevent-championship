@@ -221,3 +221,39 @@ export async function getFighterForEdit(
     headshotMedia: fighter.headshotMediaId ? (mediaById.get(fighter.headshotMediaId) ?? null) : null,
   };
 }
+
+export type PublicFilterOptions = {
+  divisions: { slug: string; name: string; gender: "male" | "female"; limitKg: number }[];
+  /** Códigos ISO de los países que tienen peleadores publicados. */
+  nationalities: string[];
+};
+
+/** Opciones de los filtros públicos: solo lo que tiene resultados, para no ofrecer filtros que dan una lista vacía. */
+export async function listPublicFilterOptions(db: Db): Promise<PublicFilterOptions> {
+  const [divisionRows, nationalityRows] = await Promise.all([
+    db
+      .selectDistinct({ slug: divisions.slug, name: divisions.name, gender: divisions.gender, limitKg: divisions.limitKg, sortOrder: divisions.sortOrder })
+      .from(fighters)
+      .innerJoin(divisions, eq(fighters.divisionId, divisions.id))
+      .where(publicScope(fighters))
+      .orderBy(asc(divisions.gender), asc(divisions.sortOrder)),
+    db.selectDistinct({ nationality: fighters.nationality }).from(fighters).where(publicScope(fighters)).orderBy(asc(fighters.nationality)),
+  ]);
+  return {
+    divisions: divisionRows.map(({ sortOrder: _sortOrder, ...division }) => division),
+    nationalities: nationalityRows.map((row) => row.nationality),
+  };
+}
+
+/** Lectura mínima (una fila por índice único) para saber si la ficha es pública y qué etiquetas de caché lleva. */
+export async function getPublicFighterRef(
+  db: Db,
+  slug: string,
+): Promise<{ id: string; bodyMediaId: string | null; headshotMediaId: string | null } | null> {
+  const [row] = await db
+    .select({ id: fighters.id, bodyMediaId: fighters.bodyMediaId, headshotMediaId: fighters.headshotMediaId })
+    .from(fighters)
+    .where(and(eq(fighters.slug, slug), publicScope(fighters)))
+    .limit(1);
+  return row ?? null;
+}

@@ -56,6 +56,11 @@ test("crear a Tomás Vera con foto, publicarlo, enviarlo a la papelera y restaur
   await expect(page.getByRole("heading", { name: "Tomás Vera", level: 1 })).toBeVisible();
   await expect(page.getByLabel("Enlace de la ficha")).toHaveValue("tomas-vera");
 
+  // Publicado: el listado público lo muestra, con su foto.
+  await page.goto("/peleadores?q=vera");
+  await expect(page.getByRole("heading", { name: "Tomás Vera", level: 2 })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Tomás Vera de frente" })).toBeVisible();
+
   await page.goto("/admin/peleadores?q=vera");
   const row = page.getByRole("row").filter({ hasText: "Tomás Vera" });
   await expect(row.getByText("Publicado")).toBeVisible();
@@ -63,10 +68,16 @@ test("crear a Tomás Vera con foto, publicarlo, enviarlo a la papelera y restaur
   await page.getByRole("dialog").getByRole("button", { name: "Enviar a la papelera" }).click();
   await expect(page.getByText("Ningún peleador coincide con esos filtros")).toBeVisible();
 
+  // En la papelera: ya no aparece en el sitio (la caché se invalida al enviarlo).
+  await page.goto("/peleadores?q=vera");
+  await expect(page.getByText("Sin resultados")).toBeVisible();
+
   await page.goto("/admin/papelera");
   await page.getByRole("listitem").or(page.getByRole("row")).filter({ hasText: "Tomás Vera" }).getByRole("button", { name: "Restaurar" }).click();
   await page.goto("/admin/peleadores?q=vera");
   await expect(page.getByRole("row").filter({ hasText: "Tomás Vera" })).toBeVisible();
+  await page.goto("/peleadores?q=vera");
+  await expect(page.getByRole("heading", { name: "Tomás Vera", level: 2 })).toBeVisible();
 });
 
 test("editar un peleador conserva lo escrito y el enlace al renombrarlo", async ({ page }) => {
