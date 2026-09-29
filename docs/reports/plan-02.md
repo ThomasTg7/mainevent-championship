@@ -68,5 +68,5 @@ Sitio público:
 
 ## Revisión (Opus, 2026-09-29)
 
-- Verificación completa en verde: `pnpm test` (289), `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e` (53) y `E2E_DIST_DIR=.next-e2e pnpm build`.
+- Verificación completa en verde: `pnpm test` (289), `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e` (52) y `E2E_DIST_DIR=.next-e2e pnpm build`.
 - Correcciones (código y UI en 375 px) y ajustes a los planes 03–07: `docs/decisions.md` → «Revisión del Plan 02».
