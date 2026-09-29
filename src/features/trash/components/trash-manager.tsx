@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/format-date";
 import { restoreAction } from "../actions";
 import type { TrashItem } from "../trash";
 
@@ -15,33 +16,36 @@ export function TrashManager({ items }: { items: TrashItem[] }) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Elemento restaurado");
+        toast.success(`Restauraste ${item.entityLabel.toLowerCase()} «${item.title}»`);
       }
     });
   }
 
   if (items.length === 0) {
-    return <p className="text-muted-foreground">La papelera está vacía.</p>;
+    return (
+      <p className="text-muted-foreground">
+        La papelera está vacía. Lo que envíes a la papelera queda aquí 30 días antes de borrarse para siempre.
+      </p>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <ul className="flex flex-col gap-3">
       {items.map((item) => (
-        <div
+        <li
           key={`${item.entityType}:${item.id}`}
           className="border border-border bg-card p-4 flex flex-wrap items-center justify-between gap-3"
         >
-          <div>
-            <p className="font-medium">{item.entityType}</p>
-            <p className="text-sm text-muted-foreground">
-              Eliminado el {new Intl.DateTimeFormat("es-CL", { dateStyle: "medium" }).format(item.deletedAt)}
-            </p>
+          <div className="min-w-0">
+            <p className="text-sm text-muted-foreground">{item.entityLabel}</p>
+            <p className="font-medium break-words">{item.title}</p>
+            <p className="text-sm text-muted-foreground">Enviado a la papelera el {formatDate(item.deletedAt)}</p>
           </div>
-          <Button type="button" size="sm" disabled={isRestoring} onClick={() => handleRestore(item)}>
+          <Button type="button" disabled={isRestoring} onClick={() => handleRestore(item)}>
             Restaurar
           </Button>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

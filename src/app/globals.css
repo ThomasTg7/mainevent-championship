@@ -124,3 +124,34 @@ body {
     @apply border-border outline-ring/50;
   }
 }
+
+/*
+ * Objetivos táctiles ≥ 44×44 px (CLAUDE.md) en pantallas táctiles. Se aplica
+ * por `data-slot` para que valga también en componentes que shadcn regenere.
+ */
+@media (pointer: coarse) {
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="select-trigger"],
+  [data-slot="tabs-trigger"],
+  [data-slot="sidebar-menu-button"],
+  [data-slot="sidebar-trigger"] {
+    min-height: 2.75rem;
+  }
+
+  [data-slot="sidebar-trigger"],
+  [data-slot="button"][data-size^="icon"] {
+    min-width: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
