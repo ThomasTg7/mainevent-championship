@@ -1,13 +1,16 @@
-export type MediaKind =
-  | "fighter_body"
-  | "fighter_headshot"
-  | "event_hero"
-  | "event_hero_mobile"
-  | "event_poster"
-  | "news_cover"
-  | "gallery"
-  | "sponsor_logo"
-  | "og_image";
+export const MEDIA_KINDS = [
+  "fighter_body",
+  "fighter_headshot",
+  "event_hero",
+  "event_hero_mobile",
+  "event_poster",
+  "news_cover",
+  "gallery",
+  "sponsor_logo",
+  "og_image",
+] as const;
+
+export type MediaKind = (typeof MEDIA_KINDS)[number];
 
 export type Size = { w: number; h: number };
 export type Crop = { x: number; y: number; width: number; height: number };
@@ -39,7 +42,7 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 
 export function isMediaKind(value: string): value is MediaKind {
-  return Object.hasOwn(MEDIA_SPECS, value);
+  return (MEDIA_KINDS as readonly string[]).includes(value);
 }
 
 export function checkResolution(kind: MediaKind, w: number, h: number): { ok: boolean; warning?: string } {
