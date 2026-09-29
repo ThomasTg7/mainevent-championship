@@ -12,6 +12,7 @@ import { AdjustmentsPanel, adjustmentsFilter } from "./adjustments";
 import { CropStage } from "./crop-stage";
 import { FocalPicker } from "./focal-picker";
 import { PreviewFrames } from "./preview-frames";
+import { RemoveBackgroundButton } from "./remove-background-button";
 import { useCropPreview } from "./use-crop-preview";
 
 type ImageEditorProps = {
@@ -22,12 +23,14 @@ type ImageEditorProps = {
   initial?: MediaEdit;
   onSave: (edit: MediaEdit) => void;
   onCancel: () => void;
+  /** Si se entrega y el tipo es `fighter_body`, aparece "Quitar fondo"; el padre sube el PNG resultante como nuevo original. */
+  onBackgroundRemoved?: (cutout: Blob) => void;
 };
 
 type Mode = "crop" | "focus";
 type Rotation = MediaEdit["rotation"];
 
-export function ImageEditor({ kind, src, natural, initial, onSave, onCancel }: ImageEditorProps) {
+export function ImageEditor({ kind, src, natural, initial, onSave, onCancel, onBackgroundRemoved }: ImageEditorProps) {
   const spec = MEDIA_SPECS[kind];
   const [mode, setMode] = useState<Mode>("crop");
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -72,6 +75,10 @@ export function ImageEditor({ kind, src, natural, initial, onSave, onCancel }: I
               <Crosshair aria-hidden /> Punto de enfoque
             </Button>
           </div>
+
+          {kind === "fighter_body" && onBackgroundRemoved ? (
+            <RemoveBackgroundButton src={src} onDone={onBackgroundRemoved} />
+          ) : null}
 
           {mode === "crop" ? (
             <CropStage

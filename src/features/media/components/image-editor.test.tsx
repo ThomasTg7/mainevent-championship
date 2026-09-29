@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MediaEdit } from "../schema";
@@ -18,6 +18,11 @@ vi.mock("react-easy-crop", () => ({
     cropperProps.current = props;
     return <div data-testid="cropper" />;
   },
+}));
+
+const removeBackground = vi.fn<(file: Blob, onProgress?: (value: number) => void) => Promise<Blob>>();
+vi.mock("../bg-removal/remove-background", () => ({
+  removeBackground: (file: Blob, onProgress?: (value: number) => void) => removeBackground(file, onProgress),
 }));
 
 import { ImageEditor } from "./image-editor";
@@ -142,5 +147,59 @@ describe("ImageEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
 
     expect(onCancel).toHaveBeenCalled();
+  });
+
+  describe("remove background", () => {
+    const original = new Blob(["foto"], { type: "image/jpeg" });
+
+    beforeEach(() => {
+      removeBackground.mockReset();
+      vi.stubGlobal("fetch", vi.fn(async () => new Response(original)));
+    });
+
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("is only offered for fighter body photos", () => {
+      renderEditor({ kind: "fighter_headshot", onBackgroundRemoved: vi.fn() });
+
+      expect(screen.queryByRole("button", { name: "Quitar fondo" })).not.toBeInTheDocument();
+    });
+
+    it("hands the transparent PNG to the parent", async () => {
+      const cutout = new Blob(["sin fondo"], { type: "image/png" });
+      removeBackground.mockResolvedValue(cutout);
+      const onBackgroundRemoved = vi.fn();
+      renderEditor({ onBackgroundRemoved });
+
+      fireEvent.click(screen.getByRole("button", { name: "Quitar fondo" }));
+
+      await waitFor(() => expect(onBackgroundRemoved).toHaveBeenCalledWith(cutout));
+      expect(removeBackground.mock.calls[0][0]).toBeInstanceOf(Blob);
+    });
+
+    it("shows the model download progress and then the processing state", async () => {
+      let report: (value: number) => void = () => {};
+      removeBackground.mockImplementation((_file, onProgress) => {
+        report = onProgress ?? report;
+        return new Promise(() => {});
+      });
+      renderEditor({ onBackgroundRemoved: vi.fn() });
+
+      fireEvent.click(screen.getByRole("button", { name: "Quitar fondo" }));
+      await screen.findByText("Descargando modelo (~25 MB)…");
+      report(0.5);
+      expect(await screen.findByText("Descargando modelo (~25 MB)… 50%")).toBeInTheDocument();
+      report(1);
+      expect(await screen.findByText("Quitando fondo…")).toBeInTheDocument();
+    });
+
+    it("shows an error message when it fails", async () => {
+      removeBackground.mockRejectedValue(new Error("No se pudo quitar el fondo"));
+      renderEditor({ onBackgroundRemoved: vi.fn() });
+
+      fireEvent.click(screen.getByRole("button", { name: "Quitar fondo" }));
+
+      expect(await screen.findByText("No se pudo quitar el fondo")).toBeInTheDocument();
+    });
   });
 });
