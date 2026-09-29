@@ -193,13 +193,19 @@ export function suggestDecisionType(
   return { outcome: "draw", decisionType: draws === 2 ? "majority" : "split" };
 }
 
-export type ResultLineInput = NormalizedResult & { redName: string; blueName: string; techniqueName?: string | null };
+export type ResultLineInput = Pick<
+  NormalizedResult,
+  "outcome" | "method" | "koTkoType" | "decisionType" | "dqReason" | "ncReason" | "ncNote" | "endRound" | "endTimeSeconds"
+> & { redName: string; blueName: string; techniqueName?: string | null };
 
 function decisionText(base: string, type: DecisionType | null): string {
   return type ? `${base} ${DECISION_TYPE_LABELS[type].toLowerCase()}` : base;
 }
 
-function methodText(result: ResultLineInput): string {
+export type MethodTextInput = Pick<NormalizedResult, "method" | "koTkoType" | "decisionType" | "dqReason"> & { techniqueName?: string | null };
+
+/** "KO" · "TKO (golpes)" · "Sumisión (Mataleón)" · "Decisión unánime" · "Descalificación (Golpe bajo)". */
+export function formatMethod(result: MethodTextInput): string {
   switch (result.method) {
     case "ko_tko":
       return result.koTkoType ? KO_TKO_TYPE_LABELS[result.koTkoType] : "KO/TKO";
@@ -224,8 +230,8 @@ export function formatResultLine(result: ResultLineInput): string {
     const reason = result.ncReason === "other" ? (result.ncNote ?? "otro") : result.ncReason ? NC_REASON_LABELS[result.ncReason].toLowerCase() : null;
     return `${redName} vs ${blueName} · Sin resultado${reason ? ` (${reason})` : ""}`;
   }
-  if (result.outcome === "draw") return `${redName} y ${blueName} empatan · ${methodText(result)}`;
+  if (result.outcome === "draw") return `${redName} y ${blueName} empatan · ${formatMethod(result)}`;
 
   const [winner, loser] = result.outcome === "red_win" ? [redName, blueName] : [blueName, redName];
-  return `${winner} vence a ${loser} · ${methodText(result)} · R${result.endRound} ${formatClock(result.endTimeSeconds)}`;
+  return `${winner} vence a ${loser} · ${formatMethod(result)} · R${result.endRound} ${formatClock(result.endTimeSeconds)}`;
 }

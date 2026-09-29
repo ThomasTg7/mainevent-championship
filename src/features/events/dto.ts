@@ -1,0 +1,132 @@
+import type { TicketTier } from "@/db/schema/events";
+import type { BoutLevel, BoutStatus, Bonus, EventStatus, Method, Outcome } from "@/domain/bout-enums";
+import type { ManualRecord } from "@/features/fighters/dto";
+import type { MediaDTO } from "@/features/media/dto";
+
+// Todo lo que pasa por `unstable_cache` se serializa en JSON: las fechas viajan como texto ISO, nunca como `Date`.
+
+export type BoutFighterDTO = {
+  id: string;
+  slug: string;
+  firstName: string;
+  lastName: string;
+  nickname: string | null;
+  nationality: string;
+  /** Solo el peleador público tiene ficha: los demás salen sin enlace. */
+  isPublic: boolean;
+  /** Récord cargado a mano del nivel de la pelea (profesional o amateur). */
+  record: ManualRecord;
+  headshotMedia: MediaDTO | null;
+  /** Solo en la pelea estelar (careo del hero). */
+  bodyMedia: MediaDTO | null;
+};
+
+export type BoutResultDTO = {
+  outcome: Outcome;
+  method: Method;
+  endRound: number;
+  endTimeSeconds: number;
+  /** "Pérez vence a Soto · Sumisión (Mataleón) · R2 3:42" (con apellidos). */
+  line: string;
+  /** "Sumisión (Mataleón)": el método sin ganador ni tiempo. */
+  methodText: string;
+  techniqueName: string | null;
+  referee: string | null;
+  bonuses: Bonus[];
+  videoUrl: string | null;
+};
+
+export type BoutDTO = {
+  id: string;
+  level: BoutLevel;
+  scheduledRounds: number;
+  roundSeconds: number;
+  isTitleFight: boolean;
+  status: BoutStatus;
+  cancelReason: string | null;
+  division: { name: string; slug: string; gender: "male" | "female" } | null;
+  /** Peso pactado: si existe, se muestra en lugar de la división. */
+  catchweightKg: number | null;
+  red: BoutFighterDTO;
+  blue: BoutFighterDTO;
+  result: BoutResultDTO | null;
+};
+
+export type SegmentDTO = { id: string; name: string; startsAt: string | null; bouts: BoutDTO[] };
+
+export type EventVenueDTO = { name: string; address: string; city: string; lat: number | null; lng: number | null };
+
+/** Lo que necesitan los listados, la home y la página de entradas. */
+export type EventCardDTO = {
+  id: string;
+  slug: string;
+  name: string;
+  number: number | null;
+  startsAt: string;
+  venueName: string;
+  venueCity: string;
+  eventStatus: EventStatus;
+  ticketUrl: string | null;
+  ticketTiers: TicketTier[];
+  ticketPoints: string | null;
+  heroMedia: MediaDTO | null;
+  heroMobileMedia: MediaDTO | null;
+  posterMedia: MediaDTO | null;
+  /** La pelea estelar (primera del primer bloque); `null` si la cartelera aún no tiene peleas. */
+  mainBout: BoutDTO | null;
+};
+
+export type EventPageDTO = Omit<EventCardDTO, "mainBout" | "venueName" | "venueCity"> & {
+  doorsAt: string | null;
+  endsEstimatedAt: string | null;
+  venue: EventVenueDTO;
+  ticketProvider: string | null;
+  streamUrl: string | null;
+  gallery: MediaDTO[];
+  segments: SegmentDTO[];
+};
+
+export type AdminEventRow = {
+  id: string;
+  slug: string;
+  name: string;
+  number: number | null;
+  startsAt: Date;
+  venueCity: string;
+  eventStatus: EventStatus;
+  status: "draft" | "scheduled" | "published";
+  publishAt: Date | null;
+  updatedAt: Date;
+  boutCount: number;
+  posterMedia: MediaDTO | null;
+};
+
+// Lado del peleador (ficha): historial y próxima pelea.
+
+export type OpponentDTO = { id: string; slug: string; firstName: string; lastName: string; nationality: string; isPublic: boolean; headshotMedia: MediaDTO | null };
+
+export type FightHistoryRow = {
+  boutId: string;
+  level: BoutLevel;
+  fighterResult: "win" | "loss" | "draw" | "no_contest";
+  methodText: string;
+  endRound: number;
+  endTimeSeconds: number;
+  date: string;
+  eventId: string;
+  eventSlug: string;
+  eventName: string;
+  opponent: OpponentDTO;
+};
+
+export type NextBoutDTO = {
+  boutId: string;
+  isTitleFight: boolean;
+  scheduledRounds: number;
+  roundSeconds: number;
+  divisionName: string | null;
+  divisionGender: "male" | "female" | null;
+  catchweightKg: number | null;
+  event: { id: string; slug: string; name: string; startsAt: string; venueCity: string };
+  opponent: OpponentDTO;
+};

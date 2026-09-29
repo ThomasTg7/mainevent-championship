@@ -1,5 +1,8 @@
 // Valores de las enumeraciones de peleas: los usa el esquema de la base, la validación y la interfaz.
 
+export const EVENT_STATUSES = ["scheduled", "live", "completed", "cancelled"] as const;
+export type EventStatus = (typeof EVENT_STATUSES)[number];
+
 export const BOUT_LEVELS = ["pro", "amateur"] as const;
 export type BoutLevel = (typeof BOUT_LEVELS)[number];
 
@@ -35,6 +38,8 @@ export const MIN_ROUND_SECONDS = 60;
 export const MAX_ROUND_SECONDS = 600;
 
 // Textos para la persona (es-CL). Empiezan con mayúscula: dentro de una frase se pasan a minúscula.
+
+export const EVENT_STATUS_LABELS: Record<EventStatus, string> = { scheduled: "Programado", live: "En vivo", completed: "Finalizado", cancelled: "Cancelado" };
 
 export const BOUT_LEVEL_LABELS: Record<BoutLevel, string> = { pro: "Profesional", amateur: "Amateur" };
 

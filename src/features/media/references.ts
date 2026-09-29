@@ -1,5 +1,6 @@
 import type { SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
+import { eventGallery, events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 
 /**
@@ -16,4 +17,8 @@ export type MediaReference = { label: string; column: AnyPgColumn } | { label: s
 export const MEDIA_REFERENCES: MediaReference[] = [
   { label: "Foto de cuerpo del peleador", column: fighters.bodyMediaId },
   { label: "Foto de rostro del peleador", column: fighters.headshotMediaId },
+  { label: "Portada del evento", column: events.heroMediaId },
+  { label: "Portada móvil del evento", column: events.heroMobileMediaId },
+  { label: "Afiche del evento", column: events.posterMediaId },
+  { label: "Galería del evento", column: eventGallery.mediaId },
 ];

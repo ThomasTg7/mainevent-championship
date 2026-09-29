@@ -4,3 +4,4 @@ export * from "./audit";
 export * from "./media";
 export * from "./divisions";
 export * from "./fighters";
+export * from "./events";

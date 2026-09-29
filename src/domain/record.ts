@@ -28,7 +28,7 @@ export type ComputedRecord = {
   avgFightSeconds: number | null;
 };
 
-type Result = "win" | "loss" | "draw" | "no_contest";
+export type FighterResult = "win" | "loss" | "draw" | "no_contest";
 
 const emptyMethods = (): MethodCounts => ({ koTko: 0, submission: 0, decision: 0, dq: 0 });
 
@@ -37,7 +37,8 @@ export function fightSeconds(bout: Pick<BoutOutcomeForRecord, "endRound" | "endT
   return (bout.endRound - 1) * bout.roundSeconds + bout.endTimeSeconds;
 }
 
-function resultFor(bout: BoutOutcomeForRecord, fighterId: string): Result {
+/** Cómo terminó la pelea para ese peleador (gana la esquina roja o la azul → victoria o derrota). */
+export function resultFor(bout: Pick<BoutOutcomeForRecord, "outcome" | "redFighterId">, fighterId: string): FighterResult {
   if (bout.outcome === "draw") return "draw";
   if (bout.outcome === "no_contest") return "no_contest";
   const fighterIsRed = bout.redFighterId === fighterId;
@@ -61,7 +62,7 @@ function methodKey(method: BoutOutcomeForRecord["method"]): keyof MethodCounts |
   }
 }
 
-function currentStreak(results: Result[]): ComputedRecord["streak"] {
+function currentStreak(results: FighterResult[]): ComputedRecord["streak"] {
   const decided = results.filter((result): result is "win" | "loss" | "draw" => result !== "no_contest");
   const last = decided.at(-1);
   if (!last) return null;
@@ -77,7 +78,7 @@ export function computeRecord(bouts: BoutOutcomeForRecord[], fighterId: string, 
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
   const record = { wins: 0, losses: 0, draws: 0, noContests: 0, winsBy: emptyMethods(), lossesBy: emptyMethods() };
-  const results: Result[] = [];
+  const results: FighterResult[] = [];
 
   for (const bout of fights) {
     const result = resultFor(bout, fighterId);
