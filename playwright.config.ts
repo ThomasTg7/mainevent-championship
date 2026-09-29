@@ -22,6 +22,11 @@ process.env.E2E_DIST_DIR = ".next-e2e";
 
 const PORT = 3100;
 
+// El sitio en localhost y el panel en admin.localhost (mismo servidor; el proxy decide por dominio).
+// `next dev` no pisa variables que ya vienen del entorno, así que ganan sobre las de .env.
+process.env.SITE_URL = `http://localhost:${PORT}`;
+process.env.ADMIN_URL = `http://admin.localhost:${PORT}`;
+
 export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./e2e/global-setup.ts",
@@ -29,7 +34,7 @@ export default defineConfig({
   reporter: "list",
   // `next dev` compila cada ruta la primera vez que se visita; con varios
   // workers a la vez eso puede pasar de los 5 s por defecto.
-  expect: { timeout: 15_000 },
+  expect: { timeout: 30_000 },
   use: {
     baseURL: `http://localhost:${PORT}`,
   },

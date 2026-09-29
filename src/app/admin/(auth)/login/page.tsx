@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/site-urls";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthCard } from "@/components/admin/auth-card";
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: "Ingresar" };
 
 export default async function AdminLoginPage({ searchParams }: PageProps<"/admin/login">) {
   if (await getAdmin()) {
-    redirect("/admin");
+    redirect(adminPath("/"));
   }
 
   const { error } = await searchParams;

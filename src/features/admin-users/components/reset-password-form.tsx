@@ -1,5 +1,6 @@
 "use client";
 
+import { adminPath } from "@/lib/site-urls";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { FormField, formFieldErrorId } from "@/components/admin/form-field";
@@ -40,7 +41,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       <div className="flex flex-col gap-4 text-center">
         <p role="status">Listo. Tu contraseña quedó guardada.</p>
         <Button asChild>
-          <Link href="/admin/login">Ingresar al panel</Link>
+          <Link href={adminPath("/login")}>Ingresar al panel</Link>
         </Button>
       </div>
     );

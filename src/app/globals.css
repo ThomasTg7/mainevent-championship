@@ -132,6 +132,7 @@ body {
 @media (pointer: coarse) {
   [data-slot="button"],
   [data-slot="input"],
+  [data-slot="native-select"],
   [data-slot="select-trigger"],
   [data-slot="tabs-trigger"],
   [data-slot="sidebar-menu-button"],

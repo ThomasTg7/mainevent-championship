@@ -1,7 +1,10 @@
 import { db, type Db } from "@/db";
+import { seedDivisions } from "@/features/divisions/seed";
+import { seedFighters } from "@/features/fighters/seed";
 
 export async function seed(db: Db): Promise<void> {
-  void db;
+  await seedDivisions(db);
+  await seedFighters(db);
   // Cada plan agrega aquí su propio seedX(db).
 }
 

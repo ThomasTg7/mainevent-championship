@@ -17,17 +17,19 @@
 - Plantilla de título: `"%s | Guerra Campal"`; home: `"Guerra Campal — MMA en Chile"`.
 - Descripción máx. 160 caracteres (se trunca en palabra completa con "…").
 - Imagen Open Graph: la variante de 1200 px de `settings.share.ogMediaId` (`getMedia`, URL absoluta); fallback estático `public/og-default.jpg`.
-- `robots.txt`: `Disallow: /admin`, `Disallow: /api`; `Sitemap: <SITE_URL>/sitemap.xml`. Si `SITE_URL` termina en `.vercel.app` y `ALLOW_INDEXING` no es `true`, `Disallow: /` (evitar indexar el subdominio de prueba antes del lanzamiento).
+- **Dos dominios (decisión posterior al Plan 02):** sitio en `SITE_URL` (`guerracampal.cl`) y panel en `ADMIN_URL` (`admin.guerracampal.cl`), servidos por la misma app; `src/proxy.ts` + `src/lib/admin-routing.ts` deciden por dominio. `robots.txt` (`src/app/robots.ts`) responde según el host: en el panel `Disallow: /` siempre; en el sitio lo de abajo. `sitemap.xml` solo en el sitio. Canonical y Open Graph siempre con `SITE_URL`.
+- `robots.txt` del sitio: `Disallow: /admin`, `Disallow: /api`; `Sitemap: <SITE_URL>/sitemap.xml`. Si `SITE_URL` termina en `.vercel.app` y `ALLOW_INDEXING` no es `true`, `Disallow: /` (evitar indexar el subdominio de prueba antes del lanzamiento).
 - `SITE_URL` desde variable de entorno; cambiar de dominio no requiere cambios de código.
 - Analítica: `ANALYTICS_PROVIDER=vercel|umami|none`; nunca cookies.
 - Presupuestos (móvil, Lighthouse): LCP < 2.5 s, CLS < 0.1, TBT < 300 ms, Accesibilidad ≥ 95, SEO = 100 en home, ficha de peleador y página de evento.
+- Heredado del Plan 02: la ficha de peleador (y la de evento y noticia) es dinámica por `?preview=` pero sus datos vienen de `unstable_cache`; `generateMetadata` ya reutiliza la misma lectura (`cache()` de React) y marca `noindex` en la vista previa. Las fichas usan `FighterProfileDTO` (sin `Date`); el JSON-LD se arma desde ese DTO. Contenido programado aparece en listados con hasta 5 min de retraso (tope de caché).
 
 ## Review Focus
 
 - Nombre con comillas o tildes en título/descripción (`Matías "El Toro" Pérez`) debe escaparse bien en meta tags y JSON-LD.
 - Evento cancelado: JSON-LD con `eventStatus: EventCancelled`; evento pasado sigue indexable.
 - Contenido en borrador nunca aparece en el sitemap ni tiene JSON-LD accesible por URL directa.
-- Canonical sin parámetros de filtro (`/peleadores?division=…` → canonical `/peleadores`).
+- Canonical sin parámetros de filtro (`/peleadores?division=…` → canonical `/peleadores`); `/peleadores?q=…` (búsqueda) con `noindex`.
 - Previsualización de admin (`?preview=`) devuelve `noindex`.
 
 ---
@@ -67,7 +69,8 @@
 - Create: `src/app/sitemap.ts`, `src/app/robots.ts`, `src/features/seo/sitemap-entries.ts`, `sitemap-entries.test.ts`
 
 **Interfaces:**
-- Produces: `getSitemapEntries(db, siteUrl): Promise<MetadataRoute.Sitemap>` — rutas fijas + peleadores, eventos y noticias públicos con `lastModified = updated_at`.
+- Produces: `getSitemapEntries(db, siteUrl): Promise<MetadataRoute.Sitemap>` — rutas fijas + peleadores, eventos y noticias públicos (`publicScope` de `src/db/public-scope.ts`) con `lastModified = updated_at`; una consulta por entidad (solo `slug` y `updated_at`), nunca las fichas completas.
+- Decidir (y anotar en `docs/decisions.md`) si 5 min de retraso para lo programado basta; si no, el cron diario no alcanza: agregar un cron cada 5 min que expire los tags de los listados (en un route handler no existe `updateTag`: usar `revalidateTag` con expiración inmediata, verificando en la documentación de Next 16 que no sirva contenido viejo) cuando hay `publish_at` vencido desde la última corrida.
 
 - [ ] **Step 1: Tests que fallan:** entradas incluyen `/peleadores/matias-perez`, excluyen borradores, programados futuros y papelera; `robots` con `SITE_URL=https://gc.vercel.app` y sin `ALLOW_INDEXING` → `disallow: '/'`; con `ALLOW_INDEXING=true` → solo `/admin` y `/api`.
 - [ ] **Step 2:** FAIL → implementar → PASS.
@@ -80,9 +83,9 @@
 - Modify: `src/app/(site)/layout.tsx`
 
 **Interfaces:**
-- Produces: `<Analytics />` según `ANALYTICS_PROVIDER` (`vercel` → `@vercel/analytics/react`; `umami` → script `UMAMI_SRC` con `data-website-id`; `none` → nada). No se incluye en `/admin`.
+- Produces: `<Analytics />` según `ANALYTICS_PROVIDER` (`vercel` → `@vercel/analytics/react`; `umami` → script `UMAMI_SRC` con `data-website-id`; `none` → nada). No se incluye en el panel (subdominio de `ADMIN_URL`).
 
-- [ ] **Step 1:** Implementar. **Verificación:** con `ANALYTICS_PROVIDER=none` el HTML no contiene scripts de analítica; con `vercel` aparece; en `/admin` nunca. Ninguna cookie nueva en `document.cookie` tras navegar.
+- [ ] **Step 1:** Implementar. **Verificación:** con `ANALYTICS_PROVIDER=none` el HTML no contiene scripts de analítica; con `vercel` aparece; en el panel nunca. Ninguna cookie nueva en `document.cookie` tras navegar.
 - [ ] **Step 2: Commit** `feat: cookieless analytics`
 
 ### Task 5: Rendimiento y accesibilidad
@@ -91,7 +94,7 @@
 - Create: `lighthouserc.json`, `e2e/a11y.spec.ts`
 - Modify: componentes según hallazgos
 
-- [ ] **Step 1: Test que falla:** `e2e/a11y.spec.ts` corre axe en home, `/peleadores`, ficha, `/eventos/<slug>`, `/rankings`, `/noticias/<slug>`, `/quiero-pelear`, `/admin/login`: 0 violaciones `serious`/`critical`.
+- [ ] **Step 1: Test que falla:** `e2e/a11y.spec.ts` corre axe en home, `/peleadores`, ficha, `/eventos/<slug>`, `/rankings`, `/noticias/<slug>`, `/quiero-pelear` y el login del panel (`adminUrl("/login")` de `e2e/fixtures/admin.ts`): 0 violaciones `serious`/`critical`.
 - [ ] **Step 2:** Corregir hasta PASS (contraste amarillo sobre blanco solo en textos grandes, foco visible, `aria-label` en controles de ícono, orden de encabezados).
 - [ ] **Step 3:** `pnpm build && pnpm start` + `lhci autorun` con los presupuestos de Global Constraints en perfil móvil. Corregir (imagen del hero con `priority` y `fetchPriority`, GSAP/Lenis cargados en cliente de forma diferida, fuentes con `display: swap`) hasta cumplir.
 - [ ] **Step 4: Commit** `perf/a11y: meet lighthouse budgets and axe checks`
@@ -102,22 +105,23 @@
 - Create: `docs/deploy.md`, `.env.example` (completo y comentado)
 - Modify: `package.json` (`"vercel-build": "pnpm db:migrate && next build"`)
 
-- [ ] **Step 1:** Ejecutar con el usuario siguiendo `docs/configuracion-externa.md` (Google y Resend ya están documentados ahí; completar el resto) (cada servicio lo crea el usuario con su cuenta): Postgres (Neon o Supabase, solo cadena de conexión), bucket R2 con dominio público, dominio de envío en Resend, credenciales OAuth de Google (redirect `https://<SITE_URL>/api/auth/callback/google`), `BETTER_AUTH_SECRET`, `CRON_SECRET`, `PREVIEW_SECRET`, `SITE_URL`, `ANALYTICS_PROVIDER=vercel`, `STORAGE_DRIVER=s3`, `MAIL_DRIVER=resend`, `RESEND_API_KEY`, `MAIL_FROM`. Con Google configurado, el botón aparece solo.
+- [ ] **Step 1:** Ejecutar con el usuario siguiendo `docs/configuracion-externa.md` (Google y Resend ya están documentados ahí; completar el resto) (cada servicio lo crea el usuario con su cuenta): Postgres (Neon o Supabase, solo cadena de conexión), bucket R2 con dominio público, dominio de envío en Resend, credenciales OAuth de Google (redirect `https://<SITE_URL>/api/auth/callback/google`), `BETTER_AUTH_SECRET` (también firma los enlaces de vista previa: no hay `PREVIEW_SECRET`), `CRON_SECRET`, `SITE_URL`, `ANALYTICS_PROVIDER=vercel`, `STORAGE_DRIVER=s3`, `MAIL_DRIVER=resend`, `RESEND_API_KEY`, `MAIL_FROM`. Con Google configurado, el botón aparece solo.
 - [ ] **Step 1b: Bucket de medios** (decisiones de la revisión del Plan 01 en `docs/decisions.md`):
   - CORS del bucket: orígenes `SITE_URL` (y la URL de preview si se usa), métodos `PUT` (el navegador sube el original directo) y `GET` (reeditar una imagen, vista previa recortada en canvas, quitar fondo), encabezados permitidos `Content-Type` e `If-None-Match`, `MaxAgeSeconds` 3600.
   - Verificar la escritura condicional: repetir el `PUT` a una URL firmada ya usada responde 412 (la URL es de un solo uso). Si el proveedor no la respeta, anotarlo en `docs/decisions.md`.
   - Regla de encabezados del dominio de medios (Cloudflare → Rules → Transform Rules → Response headers): `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox` (igual que el driver local), para que un SVG abierto directo no ejecute nada.
   - Modelo de "Quitar fondo": subir los archivos de `Xenova/modnet` (`config.json`, `preprocessor_config.json`, `onnx/model.onnx`) a `models/Xenova/modnet/` del bucket; en `src/features/media/bg-removal/worker.ts`, si existe `NEXT_PUBLIC_MODEL_BASE_URL`, usar `env.remoteHost = <esa URL>/` y `env.remotePathTemplate = "{model}/"`; sin la variable (desarrollo) sigue el Hub. Agregar la variable a `.env.example` y actualizar `bg-removal/README.md`.
   - **Verificación:** subir una foto en producción, reeditarla (vista previa recortada visible) y quitar el fondo: en la pestaña Red, el modelo viene del dominio de medios.
+- [ ] **Step 1c: Dominios:** en el proyecto de Vercel agregar `guerracampal.cl` (y `www` con redirección) y `admin.guerracampal.cl` al **mismo** proyecto; DNS: `A`/`CNAME` que indique Vercel para ambos. Variables: `SITE_URL=https://guerracampal.cl`, `ADMIN_URL=https://admin.guerracampal.cl` (obligatorias en producción: sin ellas la app no arranca; ya no se usa `BETTER_AUTH_URL`). Antes del dominio propio: dos alias `*.vercel.app` (p. ej. `guerracampal.vercel.app` y `guerracampal-admin.vercel.app`) y esas URL en las variables. Google OAuth y los enlaces de los correos apuntan al panel (`docs/configuracion-externa.md`). Los *preview deployments* de Vercel tienen una sola URL: el panel no se puede probar ahí salvo asignando un alias de panel a la rama (ver pendiente de Plan 00 en `docs/decisions.md`).
 - [ ] **Step 2:** Primer deploy; `scripts/create-admin.ts` contra producción para el email de la promotora.
-- [ ] **Step 3: Verificación (smoke test en producción):** login admin, subir foto, crear peleador borrador, previsualizar, publicar, verlo en el sitio; enviar formulario y recibir email; `/sitemap.xml` y `/robots.txt` responden; cron de purga responde 401 sin secreto.
+- [ ] **Step 3: Verificación (smoke test en producción):** `guerracampal.cl/admin` redirige a `admin.guerracampal.cl`; login admin, subir foto, crear peleador borrador, previsualizar, publicar, verlo en el sitio; enviar formulario y recibir email; `/sitemap.xml` y `/robots.txt` responden; cron de purga responde 401 sin secreto.
 - [ ] **Step 4: Commit** `docs: deployment guide`
 
 ### Task 7: Guías de operación y migración a VPS
 
 **Files:**
 - Create: `docs/guia-admin.md` (para la promotora: cómo crear evento, armar cartelera, noche de pelea, cargar resultados, rankings, noticias, formatos de imagen con la tabla del spec, papelera)
-- Create: `docs/vps-migration.md`, `deploy/docker-compose.prod.yml` (app Next standalone, postgres:17, minio, umami, caddy con HTTPS), `deploy/Dockerfile`, `deploy/cron` (purga diaria con `curl` + `CRON_SECRET`; incluye subidas abandonadas e imágenes sin uso), CORS de MinIO y encabezados del dominio de medios en Caddy iguales a los del Step 1b de la Task 6
+- Create: `docs/vps-migration.md`, `deploy/docker-compose.prod.yml` (app Next standalone, postgres:17, minio, umami, caddy con HTTPS para `guerracampal.cl` **y** `admin.guerracampal.cl` hacia la misma app, conservando el `Host`), `deploy/Dockerfile`, `deploy/cron` (purga diaria con `curl` + `CRON_SECRET`; incluye subidas abandonadas e imágenes sin uso), CORS de MinIO y encabezados del dominio de medios en Caddy iguales a los del Step 1b de la Task 6
 
 - [ ] **Step 1:** `next.config.ts` con `output: 'standalone'`; `docker compose -f deploy/docker-compose.prod.yml up` levanta el sitio localmente con MinIO y `STORAGE_DRIVER=s3` apuntando a MinIO. **Verificación:** home carga e imágenes se sirven desde MinIO.
 - [ ] **Step 2:** Documentar migración: `pg_dump`/`pg_restore`, `rclone sync` R2 → MinIO, cambio de DNS, variables a cambiar.

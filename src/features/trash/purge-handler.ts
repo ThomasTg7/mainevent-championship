@@ -7,6 +7,8 @@ type PurgeDependencies = {
   purgeExpired: (db: Db, now: Date) => Promise<number>;
   /** Tareas de limpieza de otros dominios (subidas de imágenes abandonadas). */
   purgeOrphanMedia?: (db: Db, now: Date) => Promise<number>;
+  /** Imágenes que ninguna entidad usa desde hace más de 7 días. */
+  purgeUnreferencedMedia?: (db: Db, now: Date) => Promise<number>;
 };
 
 function isAuthorized(request: Request): boolean {
@@ -18,7 +20,7 @@ function isAuthorized(request: Request): boolean {
 
 export async function handlePurge(
   request: Request,
-  { db, purgeExpired, purgeOrphanMedia }: PurgeDependencies,
+  { db, purgeExpired, purgeOrphanMedia, purgeUnreferencedMedia }: PurgeDependencies,
 ): Promise<Response> {
   if (!isAuthorized(request)) {
     return Response.json({ error: "No autorizado" }, { status: 401 });
@@ -36,20 +38,33 @@ export async function handlePurge(
     });
   }
 
-  if (!purgeOrphanMedia) {
-    return Response.json({ purged });
+  const result: { purged: number; orphanMedia?: number; unreferencedMedia?: number } = { purged };
+
+  if (purgeOrphanMedia) {
+    result.orphanMedia = await purgeOrphanMedia(db, new Date());
+    if (result.orphanMedia > 0) {
+      await logAudit(db, {
+        actorId: "system",
+        action: "delete",
+        entityType: "media",
+        entityId: "purge",
+        summary: `Se eliminaron ${result.orphanMedia} subidas de imágenes que nunca se terminaron`,
+      });
+    }
   }
 
-  const orphanMedia = await purgeOrphanMedia(db, new Date());
-  if (orphanMedia > 0) {
-    await logAudit(db, {
-      actorId: "system",
-      action: "delete",
-      entityType: "media",
-      entityId: "purge",
-      summary: `Se eliminaron ${orphanMedia} subidas de imágenes que nunca se terminaron`,
-    });
+  if (purgeUnreferencedMedia) {
+    result.unreferencedMedia = await purgeUnreferencedMedia(db, new Date());
+    if (result.unreferencedMedia > 0) {
+      await logAudit(db, {
+        actorId: "system",
+        action: "delete",
+        entityType: "media",
+        entityId: "purge-unreferenced",
+        summary: `Se eliminaron ${result.unreferencedMedia} imágenes que ya no se usaban`,
+      });
+    }
   }
 
-  return Response.json({ purged, orphanMedia });
+  return Response.json(result);
 }

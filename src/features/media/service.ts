@@ -1,16 +1,21 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { and, eq, exists, inArray, isNull, lt, not, sql } from "drizzle-orm";
+import type { PgTable } from "drizzle-orm/pg-core";
 import sharp, { type Metadata } from "sharp";
 import type { Db } from "@/db";
 import { media, type MediaRow, type StoredVariant } from "@/db/schema/media";
 import { MAX_INPUT_PIXELS, MAX_UPLOAD_BYTES, MEDIA_SPECS, checkResolution, isMediaKind, type MediaKind } from "@/domain/media-specs";
 import type { StorageDriver } from "@/lib/storage";
+import { UserFacingError } from "@/lib/user-facing-error";
 import { toMediaDTO, type MediaDTO } from "./dto";
 import { renderVariants, sanitizeSvg, visibleSize } from "./process";
+import { MEDIA_REFERENCES, type MediaReference } from "./references";
 import type { MediaEdit } from "./schema";
 
 const ORPHAN_AFTER_MS = 24 * 60 * 60 * 1000;
 const ORPHAN_BATCH = 200;
+/** Una imagen sin dueño se conserva este tiempo: puede estar subida en un formulario que aún no se guarda. */
+const UNREFERENCED_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 
 const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -27,7 +32,8 @@ const FORMAT_MIME: Record<string, string> = {
 };
 
 /** Error con un mensaje pensado para mostrarse tal cual a la persona. */
-export class MediaError extends Error {}
+/** Error de imágenes con mensaje para la persona (la action lo muestra tal cual). */
+export class MediaError extends UserFacingError {}
 
 export type UploadInput = { kind: MediaKind; contentType: string; size: number };
 
@@ -46,6 +52,25 @@ export async function createUpload(
   await db.insert(media).values({ id: mediaId, kind: input.kind, originalKey, mime: input.contentType });
 
   return { mediaId, uploadUrl: url, headers };
+}
+
+/**
+ * Las actions que guardan ids de imagen los validan aquí: cada uno debe existir, estar terminado (`ready`) y ser
+ * del tipo que el campo espera. Una sola consulta para todos; los `null` (campo vacío) se ignoran.
+ */
+export async function assertUsableMedia(db: Db, refs: { id: string | null; kind: MediaKind }[]): Promise<void> {
+  const wanted = refs.filter((ref): ref is { id: string; kind: MediaKind } => ref.id !== null);
+  if (wanted.length === 0) return;
+
+  const rows = await db
+    .select({ id: media.id, kind: media.kind })
+    .from(media)
+    .where(and(inArray(media.id, wanted.map((ref) => ref.id)), eq(media.status, "ready"), isNull(media.deletedAt)));
+  const kindById = new Map(rows.map((row) => [row.id, row.kind]));
+
+  if (wanted.some((ref) => kindById.get(ref.id) !== ref.kind)) {
+    throw new MediaError("La imagen ya no está disponible. Súbela de nuevo.");
+  }
 }
 
 async function discardUpload(db: Db, storage: StorageDriver, row: MediaRow): Promise<void> {
@@ -174,4 +199,35 @@ export async function purgeOrphanMedia(db: Db, storage: StorageDriver, now: Date
   await Promise.allSettled(orphans.map((orphan) => storage.delete(orphan.originalKey)));
   await db.delete(media).where(inArray(media.id, orphans.map((orphan) => orphan.id)));
   return orphans.length;
+}
+
+function isReferenced(reference: MediaReference) {
+  if ("isReferenced" in reference) return reference.isReferenced(sql`${media.id}`);
+  return exists(
+    sql`(select 1 from ${reference.column.table as PgTable} where ${reference.column} = ${media.id})`,
+  );
+}
+
+/**
+ * Imágenes terminadas, de más de 7 días, que ninguna fila referencia (ver `MEDIA_REFERENCES`): archivos y fila.
+ * Se borra en una sola sentencia con la condición incluida, así una imagen que un formulario acaba de usar no se pierde
+ * (y `on delete restrict` impide borrar una en uso aunque algo falle).
+ */
+export async function purgeUnreferencedMedia(
+  db: Db,
+  storage: StorageDriver,
+  now: Date,
+  references: MediaReference[] = MEDIA_REFERENCES,
+): Promise<number> {
+  const cutoff = new Date(now.getTime() - UNREFERENCED_AFTER_MS);
+  const unused = and(eq(media.status, "ready"), lt(media.createdAt, cutoff), ...references.map((reference) => not(isReferenced(reference))));
+
+  const deleted = await db
+    .delete(media)
+    .where(inArray(media.id, db.select({ id: media.id }).from(media).where(unused).limit(ORPHAN_BATCH)))
+    .returning({ originalKey: media.originalKey, variants: media.variants });
+
+  const keys = deleted.flatMap((row) => [row.originalKey, ...row.variants.map((variant) => variant.key)]);
+  await Promise.allSettled(keys.map((key) => storage.delete(key)));
+  return deleted.length;
 }

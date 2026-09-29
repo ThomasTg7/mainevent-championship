@@ -292,3 +292,120 @@ Formato:
 - **Impacto:** Plan 07, Task 6.
 - **Estado:** decidido · aplicado a planes siguientes
 
+
+---
+
+# Ejecución del Plan 02 (Sonnet) — 2026-09-29
+
+## [Plan 02 · Orden] Slugs antes que divisiones; guarda de divisiones y `assertUsableMedia` en la Task 4 — 2026-09-29
+- **Qué:** se hizo la Task 3 (slugs) antes de la 2 (los slugs de división usan `slugify`). La regla «no desactivar una división con peleadores activos» y su test viven en la Task 4 (la tabla `fighters` no existe en la Task 2). `assertUsableMedia` y sus tests se entregaron en la Task 4 (la necesita `createFighter`); la Task 4b conserva el resto (referencias, barrido, cron).
+- **Por qué:** dependencias entre tareas que el plan no anticipó.
+- **Impacto:** ninguno en planes siguientes.
+- **Estado:** aplicado
+
+## [Plan 02 · Task 2/4] Lógica en `service.ts` con auditoría dentro; componentes en `features/` — 2026-09-29
+- **Qué:** `features/divisions` y `features/fighters` tienen `service.ts` (`(db, input, actorId)`, testeado con PGlite, audita) y `actions.ts` delgado, como pide `docs/convenciones.md`; el plan nombraba `actions.test.ts`. La UI de divisiones vive en `src/features/divisions/components` (no en `src/app/...`). Errores para la persona: `UserFacingError` (`src/lib/user-facing-error.ts`); estado de formularios: `FormActionState`/`zodFieldErrors` (`src/lib/form-errors.ts`). Slug de división: `peso-<nombre>` y `peso-<nombre>-femenino` (Mosca, Gallo y Pluma existen en ambos géneros).
+- **Por qué:** poder testear las escrituras y su auditoría sin `headers()`.
+- **Impacto:** Planes 03–06 pueden reutilizar `UserFacingError`, `FormActionState` y `PublicationControls`/`publicationShape` (`src/features/publication`).
+- **Estado:** aplicado · aplicado a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 02 · Task 4] Publicación en el formulario, división válida y `listPublicFighters` paginado — 2026-09-29
+- **Qué:** (1) `createFighter`/`updateFighter` aceptan `status` y `publishAt` (Zod compartido en `src/features/publication/schema.ts`: `status` opcional; al editar solo se toca la publicación si viene `status`); `setFighterPublication` sirve a los listados. (2) Se valida que la división exista, coincida con el género y esté activa (una inactiva solo si el peleador ya la tenía). (3) `listPublicFighters(db, filters, { page, pageSize })` devuelve `{ items, hasMore }` (24 por página), no un arreglo. (4) `src/test/setup.ts` fija un `BETTER_AUTH_SECRET` de relleno (las lecturas de imágenes usan `getStorage()`).
+- **Por qué:** un solo «Guardar» en el formulario; el listado público necesita saber si hay otra página.
+- **Impacto:** Planes 03–04 reutilizan `publicationShape`/`requireScheduleDate`/`normalizePublishAt`.
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 02 · Task 4b] Barrido de imágenes sin uso en una sola sentencia — 2026-09-29
+- **Qué:** `purgeUnreferencedMedia` borra con `delete … where id in (select … limit 200) returning`, con la condición «nadie la referencia» dentro de la misma sentencia; después borra los archivos devueltos. `MEDIA_REFERENCES` acepta columnas y condiciones SQL; `references.test.ts` falla si existe una FK a `media.id` sin registrar. El cron responde `{ purged, orphanMedia, unreferencedMedia }`.
+- **Por qué:** una imagen que un formulario acaba de usar no puede perderse entre el `select` y el `delete`.
+- **Impacto:** Planes 03, 04 y 06 registran sus FK en `src/features/media/references.ts`.
+- **Estado:** aplicado · aplicado a planes siguientes (Plan 03: imágenes y galería del evento, galería del peleador; Plan 04: portada, galería y cuerpo; Plan 06: logo y `share.ogMediaId`)
+
+## [Plan 02 · Task 5] Vista previa: token ligado a la entidad y enlace pedido al hacer clic — 2026-09-29
+- **Qué:** `verifyPreviewToken(token, expected?, now?)` acepta `{ entity, id }` para que un token de un peleador no abra otra ficha (firma HMAC con `BETTER_AUTH_SECRET`, 1 h). `PublicationControls` recibe `previewHref` como texto o como función (la action `createFighterPreviewLinkAction` genera el token al hacer clic: un formulario puede quedar abierto más de 1 hora). «Guardar» vive en el formulario padre: el componente muestra «Elige fecha y hora» y `isPublicationValid` deshabilita el botón. Nuevo `src/lib/santiago-time.ts` (fecha y hora escritas en Santiago ↔ instante real, con horario de verano).
+- **Por qué:** seguridad y usabilidad del enlace de vista previa.
+- **Impacto:** Planes 03–04: reutilizar `PublicationControls` y el mismo patrón (`?preview=<token>` en la ficha pública).
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 02 · Task 6] Formulario de peleador y NativeSelect — 2026-09-29
+- **Qué:** el formulario usa `onSubmit` + `startTransition` (no `<form action>`) porque React 19 vacía los campos tras cada action y la persona perdería lo escrito; las pestañas quedan montadas (ocultas) para enviar todos los campos, y se abre la primera con error. Los nombres de país se calculan en el servidor y se pasan por props (`Intl.DisplayNames` da textos distintos en Node y en Chrome: error de hidratación). Nuevo `NativeSelect` (`src/components/ui/native-select.tsx`, 44 px en pantallas táctiles) para listas largas y selectores del sistema en celular. `Pagination` acepta `params` para conservar filtros. El e2e de la Task 6 cubre el panel; las comprobaciones sobre `/peleadores` pasaron a los e2e de las Tasks 8 y 9 (esa ruta no existía aún).
+- **Impacto:** Planes 03–04: cualquier `Intl` que produzca texto debe correr en el servidor.
+- **Estado:** aplicado · aplicado a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 02 · Task 7] Tiempo promedio de pelea — 2026-09-29
+- **Qué:** `avgFightSeconds` promedia todas las peleas del nivel, también las sin resultado (duraron igual).
+- **Impacto:** Plan 03: si se prefiere excluirlas, es un filtro en `computeRecord`.
+- **Estado:** aplicado · aplicado a planes siguientes (Plan 03, Task 8 muestra «Tiempo promedio»; se mantienen incluidas)
+
+## [Plan 02 · Task 8] Caché del sitio público con etiquetas y `updateTag` — 2026-09-29
+- **Qué:** sin `cacheComponents`, las lecturas públicas usan `unstable_cache` (`src/features/fighters/cached-queries.ts`): listado con etiquetas `fighters`, `divisions` y `media` (ids de imagen desconocidos de antemano); ficha con `fighter:<id>`, `divisions` y `media:<id>`, tras una lectura mínima sin caché (`getPublicFighterRef`) que decide si es público *ahora* (un borrador, uno en la papelera o uno programado nunca sale de la caché). Tope de 5 min para las publicaciones programadas. Las actions usan `updateTag` (inmediato), no `revalidateTag(…, "max")` (sirve contenido viejo una vez: dejaba visible a un peleador recién enviado a la papelera). Lo mismo se aplicó a `saveMediaEditAction` (con la nueva `MEDIA_ANY_TAG`). Las entradas de `TRASHABLE_ENTITIES` tienen `revalidate(id)`, que `restoreAction` llama al restaurar (el e2e mostró que restaurar dejaba el listado desactualizado). Filtros en la URL: `genero=male|female`, `estado=active|inactive|retired|all` (por defecto `active`); solo se ofrecen divisiones y países que tienen peleadores publicados.
+- **Por qué:** cumplir «páginas públicas cacheadas con tags e invalidadas en la action que escribe» sin activar Cache Components (que exige Suspense en todo el panel).
+- **Impacto:** Planes 03–06: mismo patrón (`unstable_cache` + `updateTag` en la action + `revalidate` en el registro de la papelera). Toda lectura con imágenes agrega `media:<id>` o `MEDIA_ANY_TAG`. Plan 07: valorar un cron que refresque lo programado si 5 min es mucho.
+- **Estado:** aplicado · aplicado a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 02 · Task 9] Cifras del hero y vista previa en la URL pública — 2026-09-29
+- **Qué:** las tres cifras del hero son Victorias/Derrotas/Empates del récord profesional manual: los conteos por KO/TKO y sumisión solo existen con el récord calculado (Plan 03), que pasará `figures` con KO/TKO, Sumisión y Victorias. `RecordSummary` acepta `computed` (ya renderiza métodos, racha y % de finalizaciones). Huecos con `data-slot`: `fighter-tags` (etiquetas de ranking, Plan 05), `fighter-history` (Plan 03), `fighter-news` (Plan 04). La vista previa usa `?preview=<token>` en la ficha pública (la página es dinámica por `searchParams`; los datos siguen cacheados) con `noindex`. `CountFigures` (cliente) reemplazó a `RecordCounters` al servir a tarjeta y hero.
+- **Impacto:** Plan 03 (pasar `computed` y cambiar `figures`, llenar `fighter-history`), Plan 05 (etiquetas), Plan 07 (sitemap de peleadores con `publicScope`).
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 02 · e2e] Pruebas en paralelo sobre una BD compartida — 2026-09-29
+- **Qué:** cada spec usa datos propios; los e2e del sitio público dependen de peleadores del seed (Matías, Diego, Camila, Ignacio, Nicolás) que ninguna prueba del panel modifica (la de edición usa a Joaquín Núñez). `global-setup` siembra divisiones, 12 peleadores, un borrador y uno en la papelera. Cambios optimistas en el panel (reordenar, activar) esperan el aviso «guardado» antes de recargar.
+- **Impacto:** Planes siguientes: mismo criterio (datos propios por spec y esperar la confirmación antes de recargar).
+- **Estado:** aplicado · aplicado a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 02 · Pendientes]
+- La búsqueda pública/panel usa `LIKE` sobre `search_text` (recorrido secuencial): suficiente hasta ~500 peleadores; con más, índice `pg_trgm` (extensión estándar de Postgres, portable). **Revisión:** aceptado; `pg_trgm` queda como mejora si el plantel pasa de ~500.
+- `MEDIA_REFERENCES` solo tiene las fotos de peleadores; Planes 03, 04 y 06 agregan las suyas. **Revisión:** aplicado a planes siguientes.
+- Revisión de código final (fresca, sin subagente) queda para la sesión de Opus (`docs/WORKFLOW.md`, Fase 2). **Revisión:** hecha (ver «Revisión del Plan 02»).
+
+## [Plan 02 · Ajuste posterior] Ficha: bio en la tarjeta, récord en Guerra Campal y pestañas Datos/Redes — 2026-09-29
+- **Qué:** (1) La bio pasa a ser breve (máx. 300 caracteres, `BIO_MAX_LENGTH`, con contador en el formulario) y se muestra dentro de la tarjeta del hero, bajo el nombre (que se achicó). (2) `RecordSummary` muestra siempre, por nivel, «Récord total» (manual) y «Guerra Campal» (calculado; «GC» en celular para caber en una línea; 0 peleas = «Sin peleas aún»); `computed` ahora es obligatorio y la página pasa `computeRecord([], …)` hasta que el Plan 03 entregue las peleas. `formatRecord` devuelve solo `V-D-E`; los sin resultado van aparte. (3) Pestañas solo Datos (por defecto) y Redes, con barra amarilla deslizante y panel que entra desde el lado (`transform`/`opacity`, sin movimiento con `prefers-reduced-motion`). Afecta a todos los peleadores: es la plantilla de la ficha.
+- **Impacto:** Plan 03 pasa las peleas reales a `computeRecord`. Bios existentes de más de 300 caracteres se muestran (recortadas a 5 líneas) pero al editarlas hay que acortarlas para guardar.
+- **Estado:** aplicado · aplicado a planes siguientes (Plan 03, Task 8; spec §3 y §4.2 actualizados)
+
+## [Plan 02 · Ajuste posterior] Récord solo con datos y parallax solo en escritorio — 2026-09-29
+- **Qué:** (1) `RecordSummary` no muestra lo que no tiene datos: sin récord amateur no hay bloque Amateur; sin peleas en Guerra Campal no hay columna GC (ni «Sin peleas aún»); sin nada, no hay sección (devuelve `null`). (2) Bug en celular: el parallax desplazaba la foto hacia abajo mientras el degradado inferior quedaba fijo, así que la foto asomaba bajo el degradado, sobre las etiquetas de división y estado. Ahora el contenedor de la foto recorta (`overflow-hidden`), el parallax solo corre en pantallas ≥ 1024 px (donde la foto está a un lado, no sobre el texto) y su desplazamiento tiene tope de 60 px.
+- **Impacto:** ninguno en planes siguientes; e2e cubren ambos casos.
+- **Estado:** aplicado
+
+---
+
+# Revisión del Plan 02 (Opus) — 2026-09-29
+
+Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la papelera o uno programado (la lectura mínima sin caché decide antes de `unstable_cache`) y toda action que escribe invalida con `updateTag` (también restaurar); `purgeUnreferencedMedia` en una sola sentencia con `on delete restrict` como respaldo, `MEDIA_REFERENCES` y su test; `assertUsableMedia` en crear y editar; token de vista previa HMAC ligado a entidad e id; formulario con `onSubmit` + `startTransition`, pestañas montadas y países calculados en el servidor; ficha con bio breve, récord solo con datos, pestañas animadas con `transform`/`opacity` y parallax solo en escritorio; búsqueda `LIKE` aceptada hasta ~500 peleadores.
+
+## [Plan 02 · Revisión] Correcciones de la revisión de código
+- **Qué:** (1) Una división con peleadores (también en la papelera) no puede cambiar de categoría; una vacía que cambia pasa al final de la nueva. (2) Los filtros de `/peleadores` se alinean con la URL cuando cambia por otro camino («Ver todos», «Atrás»); el campo en uso no se toca. (3) Ids validados con Zod en las actions de peleadores y en `/admin/peleadores/[id]` (`fighterIdSchema`); nuevo `src/app/admin/(protected)/not-found.tsx` en español (antes, el 404 del panel salía en inglés). (4) La edad usa el día de hoy en Santiago (`santiagoToday()`): con UTC cambiaba a las 20:00/21:00 del día anterior. (5) `?preview=` verifica la firma antes de leer el borrador. (6) Las búsquedas de texto no pasan por `unstable_cache`. (7) `deleteFighter` y restaurar solo convierten «no existe» en mensaje; otros errores quedan en el log (la papelera lanza `UserFacingError`). (8) `runUserFacing` reemplaza tres copias del mismo `try/catch` (peleadores, divisiones, medios); `MediaError` hereda de `UserFacingError`. (9) La lectura del slug de la vista previa pasó a `queries.ts` (`getFighterSlug`). (10) El contador de la bio ya no se anuncia en cada tecla.
+- **Por qué:** hallazgos de `/code-review high` (bugs reales 1–4; resto, eficiencia y convenciones de CLAUDE.md).
+- **Impacto:** `docs/convenciones.md` (errores, ids, «hoy», caché, búsquedas, vista previa). Planes 03–06 usan `runUserFacing` y validan ids.
+- **Estado:** aplicado · aplicado a planes siguientes
+
+## [Plan 02 · Revisión] Arreglos de UI en 375 px
+- **Qué:** (1) En celular las 6 pestañas del formulario de peleador ocupan dos filas y la segunda tapaba «Nombre»: `TabsList` de shadcn fija `group-data-horizontal/tabs:h-8`, que ganaba a `h-auto`; se agregó `group-data-horizontal/tabs:h-auto` (también en las pestañas públicas, donde los botones de 44 px desbordaban la lista de 32). (2) La foto del hero de la ficha se limita a `60svh` en celular: antes ocupaba toda la primera pantalla y el nombre y las cifras quedaban abajo. (3) El interruptor «Activa» de divisiones medía 18 px: la etiqueta entera es ahora el área táctil de 44 px. (4) El listado del panel muestra la silueta cuando el peleador no tiene foto (antes, un cuadro vacío).
+- **Por qué:** CLAUDE.md (objetivos táctiles de 44 px, información legible sin esperar ni desplazarse, estados visibles).
+- **Impacto:** convenciones (pestañas que se envuelven, interruptores). e2e nuevos: pestañas no tapan el primer campo, nombre visible sin desplazarse en celular, filtros alineados con la URL, «no encontrado» del panel.
+- **Estado:** aplicado · aplicado a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 02 · Revisión] Ajustes a los planes 03–07
+- **Qué:**
+  - **Plan 03:** sección «Patrones ya construidos en el Plan 02» (servicios, `runUserFacing`, caché con `unstable_cache` + `updateTag` + lectura mínima + `revalidate` en la papelera, vista previa, formularios, `TabsList`). Sin `date-fns-tz` (ya existe `santiago-time.ts`). FK: bloques, peleas y galería con `cascade` desde el evento; peleas → peleadores con `restrict`, y `deleteFighter` rechaza a quien tiene peleas (si no, la purga de la papelera fallaría). Índices listados. `listPublicEvents` paginado con `{ items, hasMore }`. Task 8: `getCachedFighterBouts` (tags `fighter:<id>` + `events`; `computeRecord` dentro de la caché porque sus entradas tienen `Date`), peleas reales a `RecordSummary`, cifras del hero KO/TKO · Sumisión · Victorias del récord pro en GC (con respaldo al manual V/D/E si no tiene peleas en GC), `data-slot="fighter-history"`, «Próxima/Última pelea», «Tiempo promedio». `Countdown` sin `Date.now()` en el render (hidratación). Buscador de peleadores por action (no un select con 500). Filas de cartelera con subir/bajar además de arrastrar.
+  - **Faltaban del spec (se agregan al Plan 03):** galería del evento (§3, `event_gallery`), galería del peleador (§3, `fighter_gallery` en la Task 8), catálogo editable de sumisiones (§4.5, `/admin/eventos/tecnicas`), última/próxima pelea en la ficha (§3).
+  - **Plan 04:** mismos patrones; `listPublicPosts` con `{ items, hasMore }` (no `totalPages`); las actions invalidan también las fichas y eventos relacionados (antes y después); `data-slot="fighter-news"`; el e2e de programación ya no usa `page.clock` (la hora que decide es la del servidor) y el Review Focus acepta hasta 5 min de retraso en listados.
+  - **Plan 05:** servicios y caché de rankings; `revalidateFighter` invalida también `rankings` (retirar o despublicar lo saca del ranking público sin repetirlo en cada action); `deleteFighter` rechaza a un rankeado o campeón; usar `data-slot="fighter-tags"`, `badge` de `FighterCard` y `data-slot="bout-rank"`.
+  - **Plan 06:** `updateTag` en settings y patrocinadores; `todayInChile` reemplazado por `toSantiagoInputs(now).date`; la home consume las lecturas cacheadas (`getCachedPublicFighters` devuelve `{ items, hasMore }`).
+  - **Plan 07:** sin `PREVIEW_SECRET` (firma con `BETTER_AUTH_SECRET`); sitemap con `publicScope` y solo slug/fecha; decidir si hace falta un cron de 5 min para lo programado; `noindex` en búsquedas.
+- **Por qué:** alinear los planes con lo construido y cubrir lo del spec que ningún plan tenía.
+- **Impacto:** planes 03–07 y spec (§3 ficha, §4.2 galería y bio, §4.4 galería del evento).
+- **Estado:** aplicado a planes siguientes
+
+## [Plan 02 · Revisión] Pendiente sin cambiar
+- **Qué:** el parallax del hero decide escritorio/celular solo al cargar (`matchMedia` una vez); girar una tablet no lo activa ni lo apaga. `queries.ts` de peleadores tiene ~270 líneas (cerca del tope de ~250): si el Plan 03 le agrega lecturas, separar las del panel en `admin-queries.ts`.
+- **Por qué:** impacto menor; no justifica tocarlo ahora.
+- **Impacto:** Plan 03 (si toca `fighters/queries.ts`).
+- **Estado:** pendiente
+
+## [Post Plan 02] Panel en su propio subdominio (`admin.guerracampal.cl`) — 2026-09-29
+- **Qué:** pedido del usuario: todo lo del panel en un subdominio. La app sigue siendo una sola (mismo despliegue y base); `src/proxy.ts` decide por dominio con `routeByHost` (`src/lib/admin-routing.ts`, testeado): en `ADMIN_URL`, `/x` se sirve desde `src/app/admin/x` (sin sesión, solo login/recuperar/restablecer; `/admin/x` redirige a `/x`); en `SITE_URL`, `/admin/...` redirige al subdominio. Enlaces del panel con `adminPath()`; vista previa con URL absoluta del sitio (`publicUrl`). Better Auth recibe `baseURL = ADMIN_URL` (reemplaza `BETTER_AUTH_URL` y el `trustedOrigins` de desarrollo). `next.config.ts` agrega `allowedDevOrigins: ["admin.localhost"]`. `createFighterAction` ya no hace `redirect()` (Next lo resuelve por dentro sin pasar por el proxy y mostraba la ficha pública): devuelve `redirectTo` y navega el cliente. El proxy deja pasar las server actions sin cookie (antes las redirigía con 307 y el navegador reenviaba el POST al login: «Algo salió mal» con la sesión vencida, también antes de este cambio); `requireAdmin()` redirige a la carpeta real cuando está dentro de una action. El proxy lee `x-forwarded-host` antes que `host` (Vercel/Caddy).
+- **Por qué:** separar el panel del sitio (cookie de sesión solo en el subdominio, URL propia para la promotora, robots/analítica aparte).
+- **Impacto:** `.env`/`.env.example` (`SITE_URL`, `ADMIN_URL`; ya no `BETTER_AUTH_URL`), `docs/configuracion-externa.md` (Google con `admin.localhost:3000` y `admin.guerracampal.cl`), spec §1 y §6, `docs/convenciones.md` («Panel en su subdominio»), e2e con `adminUrl()`. Plan 06: e2e del dashboard con `adminUrl`. Plan 07: dos dominios en Vercel, robots por host (panel siempre `Disallow: /`), Caddy con ambos hosts, analítica fuera del panel, axe en el login del panel. En desarrollo el panel se abre en `http://admin.localhost:3000` (Chrome/Firefox lo resuelven solos); Node no resuelve `admin.localhost`, así que en dev aparece un aviso «failed to get redirect response» cuando una action redirige: no afecta (el navegador sigue la redirección).
+- **Estado:** aplicado · aplicado a planes siguientes

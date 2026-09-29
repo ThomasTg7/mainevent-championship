@@ -2,17 +2,20 @@ import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { crc32, deflateSync } from "node:zlib";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { eq } from "drizzle-orm";
+import { eq, sql, type SQL } from "drizzle-orm";
 import sharp from "sharp";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
+import { fighters } from "@/db/schema/fighters";
 import { media } from "@/db/schema/media";
+import { createFighter } from "@/features/fighters/service";
+import { divisionIdBySlug, validFighterInput } from "@/features/fighters/test-helpers";
 import type { MediaKind } from "@/domain/media-specs";
 import { LocalDriver } from "@/lib/storage/local";
 import { createTestDb } from "@/test/db";
 import { getMedia, getMediaByIds, getMediaEdit } from "./queries";
 import type { MediaEdit } from "./schema";
-import { createUpload, finalizeUpload, purgeOrphanMedia, saveMediaEdit } from "./service";
+import { MediaError, assertUsableMedia, createUpload, finalizeUpload, purgeOrphanMedia, purgeUnreferencedMedia, saveMediaEdit } from "./service";
 
 const NEUTRAL_EDIT: MediaEdit = {
   crop: null,
@@ -67,6 +70,7 @@ describe("media service", () => {
   beforeEach(async () => {
     rootDir = await mkdtemp(path.join(tmpdir(), "gc-media-"));
     storage = new LocalDriver({ rootDir, secret: "test-secret" });
+    await db.delete(fighters);
     await db.delete(media);
   });
 
@@ -350,6 +354,105 @@ describe("media service", () => {
       const remaining = (await db.select({ id: media.id }).from(media)).map((row) => row.id);
       expect(remaining.sort()).toEqual([fresh, readyOld].sort());
       await expect(storage.get(staleRow.originalKey)).rejects.toThrow();
+    });
+  });
+  describe("assertUsableMedia", () => {
+    const UNAVAILABLE = "La imagen ya no está disponible. Súbela de nuevo.";
+
+    it("accepts ready images of the expected kind and ignores null ids", async () => {
+      const body = await readyMedia("fighter_body", 800, 1200);
+      await saveMediaEdit(db, storage, body, NEUTRAL_EDIT);
+      await expect(assertUsableMedia(db, [{ id: body, kind: "fighter_body" }, { id: null, kind: "fighter_headshot" }])).resolves.toBeUndefined();
+    });
+
+    it("rejects an id that does not exist", async () => {
+      await expect(assertUsableMedia(db, [{ id: "00000000-0000-4000-8000-000000000000", kind: "fighter_body" }])).rejects.toThrow(UNAVAILABLE);
+    });
+
+    it("rejects a gallery image requested as a fighter photo", async () => {
+      const gallery = await readyMedia("gallery", 1300, 900);
+      await saveMediaEdit(db, storage, gallery, NEUTRAL_EDIT);
+      const error = await assertUsableMedia(db, [{ id: gallery, kind: "fighter_body" }]).catch((caught: unknown) => caught);
+      expect(error).toBeInstanceOf(MediaError);
+      expect((error as MediaError).message).toBe(UNAVAILABLE);
+    });
+
+    it("rejects an upload that never finished", async () => {
+      const pending = await upload("fighter_body", "image/jpeg", await jpeg(50, 50));
+      await expect(assertUsableMedia(db, [{ id: pending, kind: "fighter_body" }])).rejects.toThrow(UNAVAILABLE);
+    });
+  });
+  describe("purgeUnreferencedMedia", () => {
+    const now = new Date("2026-10-10T12:00:00Z");
+    const DAY = 24 * HOUR;
+
+    async function savedMedia(kind: MediaKind, ageInDays: number): Promise<string> {
+      const id = await readyMedia(kind, kind === "fighter_body" ? 800 : 1300, kind === "fighter_body" ? 1200 : 900);
+      await saveMediaEdit(db, storage, id, NEUTRAL_EDIT);
+      await db.update(media).set({ createdAt: new Date(now.getTime() - ageInDays * DAY) }).where(eq(media.id, id));
+      return id;
+    }
+
+    async function fighterUsing(bodyMediaId: string, headshotMediaId?: string) {
+      const division = await divisionIdBySlug(db, "peso-ligero");
+      return createFighter(db, validFighterInput(division, { bodyMediaId, headshotMediaId }), "admin-1");
+    }
+
+    it("keeps images used by a fighter, even one in the trash, and deletes stale unused ones with their files", async () => {
+      const used = await savedMedia("fighter_body", 30);
+      const removed = await savedMedia("fighter_body", 30);
+      const [removedRow] = await db.select().from(media).where(eq(media.id, removed));
+      const removedFiles = [removedRow.originalKey, ...removedRow.variants.map((variant) => variant.key)];
+      const { id: fighterId } = await fighterUsing(used);
+      await db.update(fighters).set({ deletedAt: now }).where(eq(fighters.id, fighterId));
+
+      expect(await purgeUnreferencedMedia(db, storage, now)).toBe(1);
+
+      expect((await db.select({ id: media.id }).from(media)).map((row) => row.id)).toEqual([used]);
+      for (const key of removedFiles) await expect(storage.get(key)).rejects.toThrow();
+    });
+
+    it("keeps a recent upload that has no owner yet", async () => {
+      const fresh = await savedMedia("gallery", 6);
+      const stale = await savedMedia("gallery", 8);
+      expect(await purgeUnreferencedMedia(db, storage, now)).toBe(1);
+      expect((await db.select({ id: media.id }).from(media)).map((row) => row.id)).toEqual([fresh]);
+      expect(stale).not.toBe(fresh);
+    });
+
+    it("never touches pending uploads (the orphan purge owns those)", async () => {
+      const pending = await upload("gallery", "image/jpeg", await jpeg(50, 50));
+      await db.update(media).set({ createdAt: new Date(now.getTime() - 30 * DAY) }).where(eq(media.id, pending));
+      expect(await purgeUnreferencedMedia(db, storage, now)).toBe(0);
+    });
+
+    it("honors JSON-style references given as a SQL condition", async () => {
+      const referenced = await savedMedia("og_image", 30);
+      const other = await savedMedia("og_image", 30);
+      const references = [{ label: "Prueba", isReferenced: (mediaId: SQL) => sql`${mediaId} = ${referenced}::uuid` }];
+      expect(await purgeUnreferencedMedia(db, storage, now, references)).toBe(1);
+      expect((await db.select({ id: media.id }).from(media)).map((row) => row.id)).toEqual([referenced]);
+      expect(other).not.toBe(referenced);
+    });
+
+    it("processes at most 200 images per run", async () => {
+      await db.insert(media).values(
+        Array.from({ length: 205 }, (_, index) => ({
+          kind: "gallery" as const,
+          originalKey: `originals/gallery/bulk-${index}.jpg`,
+          mime: "image/jpeg",
+          status: "ready" as const,
+          createdAt: new Date(now.getTime() - 30 * DAY),
+        })),
+      );
+      expect(await purgeUnreferencedMedia(db, storage, now)).toBe(200);
+      expect(await purgeUnreferencedMedia(db, storage, now)).toBe(5);
+    });
+
+    it("the database refuses to delete an image a fighter uses", async () => {
+      const used = await savedMedia("fighter_body", 30);
+      await fighterUsing(used);
+      await expect(db.delete(media).where(eq(media.id, used))).rejects.toThrow();
     });
   });
 });

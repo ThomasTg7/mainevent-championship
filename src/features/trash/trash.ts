@@ -2,6 +2,7 @@ import { and, desc, eq, isNotNull, isNull, lte, type SQL } from "drizzle-orm";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { Db } from "@/db";
 import { logAudit } from "@/features/audit/log";
+import { UserFacingError } from "@/lib/user-facing-error";
 import { TRASHABLE_ENTITIES } from "./registry";
 
 export type TrashableEntity = {
@@ -12,6 +13,11 @@ export type TrashableEntity = {
   table: PgTable & { id: AnyPgColumn; deletedAt: AnyPgColumn };
   /** Columna o expresión que describe el elemento en la papelera ("Tomás Vera"). */
   title: AnyPgColumn | SQL<string>;
+  /**
+   * Invalida las cachés públicas de la entidad. La papelera lo llama tras restaurar (enviar a la papelera lo hace la
+   * action de cada entidad); solo puede usar funciones de caché válidas en server actions (`updateTag`).
+   */
+  revalidate?: (id: string) => void;
 };
 
 export type TrashItem = {
@@ -45,7 +51,7 @@ export function createTrash(entities: TrashableEntity[]) {
       .where(and(eq(entity.table.id, id), isNull(entity.table.deletedAt)))
       .returning({ title: entity.title });
     if (!row) {
-      throw new Error("No se encontró el elemento o ya estaba en la papelera");
+      throw new UserFacingError("No se encontró el elemento o ya estaba en la papelera");
     }
     await logAudit(db, {
       actorId,
@@ -64,7 +70,7 @@ export function createTrash(entities: TrashableEntity[]) {
       .where(and(eq(entity.table.id, id), isNotNull(entity.table.deletedAt)))
       .returning({ title: entity.title });
     if (!row) {
-      throw new Error("No se encontró el elemento en la papelera");
+      throw new UserFacingError("No se encontró el elemento en la papelera");
     }
     await logAudit(db, {
       actorId,
