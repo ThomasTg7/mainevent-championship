@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 // archivo, así que `@/db` se conecta a esa base y no a la de desarrollo.
 import { db } from "@/db";
 import { createAdminWithPassword } from "@/features/admin-users/accounts";
+import { seedDivisions } from "@/features/divisions/seed";
 import { auth } from "@/lib/auth";
 import { SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } from "./fixtures/admin";
 
@@ -37,6 +38,7 @@ export default async function globalSetup(): Promise<void> {
   ensureE2eDatabase();
   execSync("pnpm db:migrate", { stdio: "inherit" });
 
-  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit CASCADE`);
+  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions CASCADE`);
+  await seedDivisions(db);
   await createAdminWithPassword(auth, db, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
 }
