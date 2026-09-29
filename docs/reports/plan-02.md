@@ -15,7 +15,7 @@ Rama `plan-02` (desde `main`). Ejecutado con `superpowers:executing-plans` (inli
 | 6 Admin de peleadores | listado (filtros, tarjetas en móvil), formulario con 6 pestañas, fotos con `MediaField`, papelera y restaurar |
 | 7 Récord calculado | `src/domain/record.ts` (puro, 100 % testeado) |
 | 8 Listado público | `/peleadores` con filtros en URL, tarjetas, silueta sin foto, paginación de 24 |
-| 9 Ficha pública | `/peleadores/[slug]` (hero, récord, Bio/Datos/Redes, 404 útil, vista previa) |
+| 9 Ficha pública | `/peleadores/[slug]` (hero con bio breve, récord total + Guerra Campal solo con datos, pestañas Datos/Redes animadas, 404 útil, vista previa) |
 
 ## Desviaciones
 
@@ -26,6 +26,8 @@ Todas registradas en [`docs/decisions.md`](../decisions.md) → «Ejecución del
 - `listPublicFighters` devuelve `{ items, hasMore }`.
 - Servicios con auditoría dentro (`service.ts`) y `UserFacingError`, siguiendo `docs/convenciones.md`.
 
+Ajustes posteriores a pedido del usuario (bio en tarjeta, récord GC, parallax solo en escritorio): ver últimas entradas de `docs/decisions.md`.
+
 ## Pendientes
 
 - Revisión de código final con contexto nuevo (Fase 2 del flujo, Opus): no se lanzó revisor aparte.
@@ -35,7 +37,7 @@ Todas registradas en [`docs/decisions.md`](../decisions.md) → «Ejecución del
 
 ## Verificación
 
-Todo en verde al cerrar (comandos abajo): `pnpm test` (279 tests, 43 archivos), `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e` (48 tests) y `E2E_DIST_DIR=.next-e2e pnpm build`.
+Todo en verde al cerrar (comandos abajo): `pnpm test` (286 tests), `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e` (51 tests) y `E2E_DIST_DIR=.next-e2e pnpm build`.
 
 ## Cómo probar
 
@@ -60,6 +62,6 @@ Panel (entrar a `/admin/login`):
 
 Sitio público:
 1. `/peleadores`: buscar «perez», «TORO», «leona» (sin tildes/mayúsculas), filtros de división, país, género y estado (por defecto solo activos), silueta sin foto, contadores de récord.
-2. `/peleadores/matias-perez`: hero, cifras, récord pro/amateur por separado, pestañas Bio/Datos/Redes.
+2. `/peleadores/matias-perez`: hero, cifras, récord pro/amateur por separado, bio breve en la tarjeta, pestañas Datos/Redes con animación. El récord amateur y el de GC solo aparecen si tienen datos.
 3. `/peleadores/no-existe` y un borrador: 404 con mensaje.
 4. Con «reducir movimiento» activado en el sistema: las cifras aparecen finales, sin conteo.
