@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray, isNull, lt } from "drizzle-orm";
+import { and, eq, exists, inArray, isNull, lt, not, sql } from "drizzle-orm";
+import type { PgTable } from "drizzle-orm/pg-core";
 import sharp, { type Metadata } from "sharp";
 import type { Db } from "@/db";
 import { media, type MediaRow, type StoredVariant } from "@/db/schema/media";
@@ -7,10 +8,13 @@ import { MAX_INPUT_PIXELS, MAX_UPLOAD_BYTES, MEDIA_SPECS, checkResolution, isMed
 import type { StorageDriver } from "@/lib/storage";
 import { toMediaDTO, type MediaDTO } from "./dto";
 import { renderVariants, sanitizeSvg, visibleSize } from "./process";
+import { MEDIA_REFERENCES, type MediaReference } from "./references";
 import type { MediaEdit } from "./schema";
 
 const ORPHAN_AFTER_MS = 24 * 60 * 60 * 1000;
 const ORPHAN_BATCH = 200;
+/** Una imagen sin dueño se conserva este tiempo: puede estar subida en un formulario que aún no se guarda. */
+const UNREFERENCED_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 
 const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -193,4 +197,35 @@ export async function purgeOrphanMedia(db: Db, storage: StorageDriver, now: Date
   await Promise.allSettled(orphans.map((orphan) => storage.delete(orphan.originalKey)));
   await db.delete(media).where(inArray(media.id, orphans.map((orphan) => orphan.id)));
   return orphans.length;
+}
+
+function isReferenced(reference: MediaReference) {
+  if ("isReferenced" in reference) return reference.isReferenced(sql`${media.id}`);
+  return exists(
+    sql`(select 1 from ${reference.column.table as PgTable} where ${reference.column} = ${media.id})`,
+  );
+}
+
+/**
+ * Imágenes terminadas, de más de 7 días, que ninguna fila referencia (ver `MEDIA_REFERENCES`): archivos y fila.
+ * Se borra en una sola sentencia con la condición incluida, así una imagen que un formulario acaba de usar no se pierde
+ * (y `on delete restrict` impide borrar una en uso aunque algo falle).
+ */
+export async function purgeUnreferencedMedia(
+  db: Db,
+  storage: StorageDriver,
+  now: Date,
+  references: MediaReference[] = MEDIA_REFERENCES,
+): Promise<number> {
+  const cutoff = new Date(now.getTime() - UNREFERENCED_AFTER_MS);
+  const unused = and(eq(media.status, "ready"), lt(media.createdAt, cutoff), ...references.map((reference) => not(isReferenced(reference))));
+
+  const deleted = await db
+    .delete(media)
+    .where(inArray(media.id, db.select({ id: media.id }).from(media).where(unused).limit(ORPHAN_BATCH)))
+    .returning({ originalKey: media.originalKey, variants: media.variants });
+
+  const keys = deleted.flatMap((row) => [row.originalKey, ...row.variants.map((variant) => variant.key)]);
+  await Promise.allSettled(keys.map((key) => storage.delete(key)));
+  return deleted.length;
 }

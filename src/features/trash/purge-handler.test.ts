@@ -78,4 +78,27 @@ describe("GET /api/cron/purge", () => {
     const logs = await db.select().from(auditLog).where(eq(auditLog.actorId, "system"));
     expect(logs).toEqual([expect.objectContaining({ entityType: "media" })]);
   });
+
+  it("also purges unreferenced media and audits it, keeping the other counts", async () => {
+    const purgeUnreferencedMedia = async () => 4;
+
+    const response = await handlePurge(request("Bearer test-cron-secret"), { db, purgeExpired, purgeUnreferencedMedia });
+
+    await expect(response.json()).resolves.toEqual({ purged: 0, unreferencedMedia: 4 });
+    const logs = await db.select().from(auditLog).where(eq(auditLog.actorId, "system"));
+    expect(logs).toEqual([
+      expect.objectContaining({ entityType: "media", summary: "Se eliminaron 4 imágenes que ya no se usaban" }),
+    ]);
+  });
+
+  it("runs both media tasks when both are provided", async () => {
+    const response = await handlePurge(request("Bearer test-cron-secret"), {
+      db,
+      purgeExpired,
+      purgeOrphanMedia: async () => 1,
+      purgeUnreferencedMedia: async () => 2,
+    });
+
+    await expect(response.json()).resolves.toEqual({ purged: 0, orphanMedia: 1, unreferencedMedia: 2 });
+  });
 });
