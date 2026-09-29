@@ -214,3 +214,9 @@ Formato:
 - **Por qué:** pedido del usuario (editor con vista previa por proporción, quitar fondo y ajustes básicos: brillo, nitidez, etc.). Se mantiene el editor propio sobre `react-easy-crop` en vez de adoptar uno OSS completo (p. ej. Filerobot/TUI Image Editor) porque necesitamos proporciones fijas por tipo, punto de enfoque, vistas previas en los contextos reales y que el servidor genere las variantes; un editor genérico traería 1 MB+ de JS y no cubriría eso.
 - **Impacto:** `src/features/media/{schema,process,queries,actions}.ts`, `components/adjustments.tsx`, `preview-frames.tsx`. Ninguno en planes siguientes.
 - **Estado:** aplicado
+
+## [Plan 01 · Ajuste posterior] Rediseño del editor de imágenes (PC y celular)
+- **Qué:** el editor pasa a un diálogo con estructura fija: en celular es pantalla completa (zona de recorte de 44 dvh, herramientas debajo, luego vista previa, ajustes y texto alternativo, pie fijo con Cancelar/Guardar); en PC es una ventana de `min(92dvh, 52rem)` con la zona de recorte a la izquierda y un panel a la derecha (vistas previas, quitar fondo, ajustes, texto alternativo), pie siempre visible. Nuevos: selector Recortar/Enfoque grande con texto, giro con botones de icono junto al zoom, fondo de ajedrez para notar la transparencia, vistas previas en una fila con nombre y proporción, ajustes en dos columnas con "Restablecer", el selector de enfoque a tamaño máximo (`--stage-h`) con marcador visible.
+- **Por qué:** en la primera versión el pie quedaba fuera de pantalla en PC (había que desplazarse para guardar), las vistas previas se apilaban desordenadas y todo era una columna larga.
+- **Impacto:** `src/features/media/components/*` (sin cambios de API: `ImageEditor`, `MediaField`, `MediaGalleryField` iguales). Nota: el diálogo usa `sm:max-w-6xl`; las clases arbitrarias con `min()` en `max-w` no se generaron bien con Turbopack.
+- **Estado:** aplicado

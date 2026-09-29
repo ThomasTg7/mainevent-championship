@@ -1,6 +1,6 @@
 "use client";
 
-import { Eraser } from "lucide-react";
+import { Eraser, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { removeBackground } from "../bg-removal/remove-background";
@@ -31,11 +31,11 @@ export function RemoveBackgroundButton({ src, onDone }: RemoveBackgroundButtonPr
   const working = state.status === "working";
 
   return (
-    <div className="flex flex-col gap-1">
-      <Button type="button" variant="outline" disabled={working} onClick={handleClick}>
-        <Eraser aria-hidden /> Quitar fondo
+    <div className="flex flex-col gap-1.5">
+      <Button type="button" variant="outline" className="w-full" disabled={working} onClick={handleClick}>
+        {working ? <Loader2 aria-hidden className="animate-spin" /> : <Eraser aria-hidden />} Quitar fondo
       </Button>
-      <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+      <p role="status" aria-live="polite" className="text-sm text-muted-foreground empty:hidden">
         {working ? progressText(state.progress) : null}
       </p>
       {state.status === "error" ? (

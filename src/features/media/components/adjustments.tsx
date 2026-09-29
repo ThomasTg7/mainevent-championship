@@ -1,3 +1,4 @@
+import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_ADJUSTMENTS, type MediaEdit } from "../schema";
 import { RangeField } from "./range-field";
@@ -40,24 +41,28 @@ export function AdjustmentsPanel({ value, onChange }: AdjustmentsProps) {
   const isDefault = FIELDS.every(({ key }) => value[key] === DEFAULT_ADJUSTMENTS[key]);
 
   return (
-    <fieldset className="flex flex-col gap-1">
-      <legend className="mb-1 font-semibold">Ajustes de imagen</legend>
-      {FIELDS.map(({ key, label, min, max, display }) => (
-        <RangeField
-          key={key}
-          id={`adjust-${key}`}
-          label={label}
-          min={min}
-          max={max}
-          step={0.05}
-          value={value[key]}
-          display={display(value[key])}
-          onChange={(next) => onChange({ ...value, [key]: next })}
-        />
-      ))}
-      <Button type="button" variant="ghost" className="self-start" disabled={isDefault} onClick={() => onChange(DEFAULT_ADJUSTMENTS)}>
-        Restablecer ajustes
-      </Button>
+    <fieldset className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <legend className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ajustes de imagen</legend>
+        <Button type="button" variant="ghost" size="sm" disabled={isDefault} onClick={() => onChange(DEFAULT_ADJUSTMENTS)}>
+          <RotateCcw aria-hidden /> Restablecer
+        </Button>
+      </div>
+      <div className="grid grid-cols-2 gap-x-4">
+        {FIELDS.map(({ key, label, min, max, display }) => (
+          <RangeField
+            key={key}
+            id={`adjust-${key}`}
+            label={label}
+            min={min}
+            max={max}
+            step={0.05}
+            value={value[key]}
+            display={display(value[key])}
+            onChange={(next) => onChange({ ...value, [key]: next })}
+          />
+        ))}
+      </div>
     </fieldset>
   );
 }

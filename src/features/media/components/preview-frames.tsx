@@ -1,25 +1,26 @@
 import { MEDIA_SPECS, type MediaKind } from "@/domain/media-specs";
+import { CHECKERBOARD } from "./checkerboard";
 
-type Frame = { label: string; aspect: number; className: string };
+type Frame = { name: string; ratio: string; aspect: number };
 
 /** Contextos reales donde se verá cada tipo de imagen. */
 function framesFor(kind: MediaKind): Frame[] {
   switch (kind) {
     case "fighter_body":
       return [
-        { label: "Tarjeta de listado · 4:5", aspect: 4 / 5, className: "w-28" },
-        { label: "Ficha (escritorio) · 3:4", aspect: 3 / 4, className: "w-40" },
-        { label: "Móvil · 9:16", aspect: 9 / 16, className: "w-24" },
+        { name: "Tarjeta", ratio: "4:5", aspect: 4 / 5 },
+        { name: "Ficha", ratio: "3:4", aspect: 3 / 4 },
+        { name: "Móvil", ratio: "9:16", aspect: 9 / 16 },
       ];
     case "event_hero":
-      return [{ label: "Portada (escritorio) · 16:9", aspect: 16 / 9, className: "w-full max-w-sm" }];
+      return [{ name: "Portada (escritorio)", ratio: "16:9", aspect: 16 / 9 }];
     case "news_cover":
       return [
-        { label: "Tarjeta de noticia · 4:3", aspect: 4 / 3, className: "w-40" },
-        { label: "Cabecera de la noticia · 21:9", aspect: 21 / 9, className: "w-full max-w-sm" },
+        { name: "Tarjeta", ratio: "4:3", aspect: 4 / 3 },
+        { name: "Cabecera", ratio: "21:9", aspect: 21 / 9 },
       ];
     default:
-      return [{ label: `Así se verá · ${MEDIA_SPECS[kind].aspectLabel}`, aspect: MEDIA_SPECS[kind].aspect ?? 1, className: "w-40" }];
+      return [{ name: "Así se verá", ratio: MEDIA_SPECS[kind].aspectLabel, aspect: MEDIA_SPECS[kind].aspect ?? 1 }];
   }
 }
 
@@ -34,13 +35,13 @@ type PreviewFramesProps = {
 export function PreviewFrames({ kind, src, focal, filter }: PreviewFramesProps) {
   return (
     <section aria-label="Vista previa" className="flex flex-col gap-2">
-      <h3 className="font-semibold">Vista previa</h3>
-      <div className="flex flex-wrap items-end gap-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Así se verá en el sitio</h3>
+      <div className="flex items-end gap-3 overflow-x-auto pb-1">
         {framesFor(kind).map((frame) => (
-          <figure key={frame.label} className="flex flex-col gap-1">
+          <figure key={frame.name} className="flex shrink-0 flex-col gap-1">
             <div
-              style={{ aspectRatio: frame.aspect }}
-              className={`${frame.className} overflow-hidden border border-border bg-muted`}
+              style={{ ...CHECKERBOARD, aspectRatio: frame.aspect }}
+              className="h-28 overflow-hidden border border-border sm:h-32"
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- vista previa local (blob), no hay nada que optimizar */}
               <img
@@ -51,7 +52,9 @@ export function PreviewFrames({ kind, src, focal, filter }: PreviewFramesProps) 
                 className="size-full object-cover"
               />
             </div>
-            <figcaption className="text-xs text-muted-foreground">{frame.label}</figcaption>
+            <figcaption className="text-xs leading-tight">
+              {frame.name} <span className="text-muted-foreground">· {frame.ratio}</span>
+            </figcaption>
           </figure>
         ))}
       </div>

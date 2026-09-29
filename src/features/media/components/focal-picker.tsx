@@ -1,6 +1,7 @@
 "use client";
 
 import type { KeyboardEvent, MouseEvent } from "react";
+import { CHECKERBOARD } from "./checkerboard";
 
 const KEYBOARD_STEP = 0.05;
 
@@ -17,6 +18,10 @@ type FocalPickerProps = {
 
 const clampUnit = (value: number) => Math.min(1, Math.max(0, Math.round(value * 1000) / 1000));
 
+/**
+ * Muestra el resultado recortado a tamaño máximo dentro de la altura del editor
+ * (`--stage-h`) y deja marcar el punto importante con un toque o clic.
+ */
 export function FocalPicker({ src, aspect, focal, filter, onChange }: FocalPickerProps) {
   function handleClick(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -41,28 +46,26 @@ export function FocalPicker({ src, aspect, focal, filter, onChange }: FocalPicke
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm text-muted-foreground">
-        Toca o haz clic sobre lo más importante de la imagen (por ejemplo, el rostro). Ese punto se mantiene visible
-        cuando la foto se recorta en otros tamaños. También puedes moverlo con las flechas del teclado.
-      </p>
+    <div className="absolute inset-0 flex items-center justify-center">
       <div
         data-testid="focal-picker"
         role="application"
         tabIndex={0}
-        aria-label={`Punto de enfoque: ${Math.round(focal.x * 100)}% desde la izquierda, ${Math.round(focal.y * 100)}% desde arriba`}
+        aria-label={`Punto de enfoque: ${Math.round(focal.x * 100)}% desde la izquierda, ${Math.round(focal.y * 100)}% desde arriba. Usa las flechas para moverlo.`}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
-        style={{ aspectRatio: aspect }}
-        className="relative mx-auto max-h-[60vh] max-w-full cursor-crosshair touch-manipulation overflow-hidden border border-border bg-black outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        style={{ ...CHECKERBOARD, aspectRatio: aspect, width: `min(100%, calc(var(--stage-h) * ${aspect}))` }}
+        className="relative cursor-crosshair touch-manipulation overflow-hidden outline-none focus-visible:ring-3 focus-visible:ring-ring/60"
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- vista previa local (blob), no hay nada que optimizar */}
-        <img src={src} alt="" draggable={false} style={{ filter }} className="pointer-events-none size-full object-contain" />
+        <img src={src} alt="" draggable={false} style={{ filter }} className="pointer-events-none size-full object-cover" />
         <span
           aria-hidden
           style={{ left: `${focal.x * 100}%`, top: `${focal.y * 100}%` }}
-          className="pointer-events-none absolute size-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-primary/20 shadow-[0_0_0_2px_rgba(0,0,0,0.7)]"
-        />
+          className="pointer-events-none absolute flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-primary shadow-[0_0_0_2px_rgba(0,0,0,0.75)]"
+        >
+          <span className="size-1.5 rounded-full bg-primary" />
+        </span>
       </div>
     </div>
   );

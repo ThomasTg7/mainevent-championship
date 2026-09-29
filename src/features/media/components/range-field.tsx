@@ -10,13 +10,17 @@ type RangeFieldProps = {
   onChange: (value: number) => void;
   /** Texto del valor actual ("120%"). */
   display?: string;
+  /** El nombre visible puede omitirse si hay otro texto que ya lo dice (queda como etiqueta accesible). */
+  hideLabel?: boolean;
 };
 
-export function RangeField({ id, label, value, min, max, step, onChange, display }: RangeFieldProps) {
+export function RangeField({ id, label, value, min, max, step, onChange, display, hideLabel = false }: RangeFieldProps) {
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-baseline justify-between">
-        <Label htmlFor={id}>{label}</Label>
+    <div className="flex min-w-0 flex-col">
+      <div className={hideLabel ? "sr-only" : "flex items-baseline justify-between gap-2"}>
+        <Label htmlFor={id} className="text-sm">
+          {label}
+        </Label>
         {display ? <span className="text-xs text-muted-foreground tabular-nums">{display}</span> : null}
       </div>
       <input
@@ -27,7 +31,7 @@ export function RangeField({ id, label, value, min, max, step, onChange, display
         step={step}
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="h-11 w-full cursor-pointer accent-primary"
+        className="h-9 w-full cursor-pointer accent-primary pointer-coarse:h-11"
       />
     </div>
   );
