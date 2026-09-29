@@ -6,6 +6,8 @@ Plataforma web para la promotora de MMA Guerra Campal (Chile). Sitio público es
 - Planes: `docs/superpowers/plans/` (ejecutar en orden 00 → 07)
 - Flujo de trabajo (ejecución + revisión): `docs/WORKFLOW.md`
 - Registro de decisiones: `docs/decisions.md`
+- Convenciones ya construidas (usar antes de reinventar): `docs/convenciones.md`
+- Credenciales externas (Google, correo): `docs/configuracion-externa.md`
 - Maqueta visual aprobada del home: `maqueta/index.html`
 
 ## Reglas no negociables

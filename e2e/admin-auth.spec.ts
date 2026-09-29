@@ -1,5 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } from "./fixtures/admin";
+import { expect, test } from "@playwright/test";
+import { SEED_ADMIN_EMAIL, signInAsAdmin } from "./fixtures/admin";
 
 const SECTIONS = [
   "Inicio",
@@ -16,14 +16,6 @@ const SECTIONS = [
   "Historial",
 ];
 
-async function signIn(page: Page) {
-  await page.goto("/admin/login");
-  await page.getByLabel("Correo").fill(SEED_ADMIN_EMAIL);
-  await page.getByLabel("Contraseña").fill(SEED_ADMIN_PASSWORD);
-  await page.getByRole("button", { name: "Ingresar" }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
-
 test("visitar /admin sin sesión termina en /admin/login", async ({ page }) => {
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/admin\/login$/);
@@ -32,7 +24,7 @@ test("visitar /admin sin sesión termina en /admin/login", async ({ page }) => {
 test("login del admin muestra Inicio, el sidebar completo, y dar acceso queda en el historial", async ({ page }) => {
   const newEmail = `nuevo-${Date.now()}@x.cl`;
 
-  await signIn(page);
+  await signInAsAdmin(page);
   await expect(page.getByRole("heading", { name: "Inicio" })).toBeVisible();
 
   const sections = page.locator('[data-slot="sidebar-content"] [data-slot="sidebar-menu-button"]');
@@ -88,7 +80,7 @@ test("un enlace de contraseña inválido ofrece pedir otro", async ({ page }) =>
 });
 
 test("cerrar sesión vuelve al login y protege el panel", async ({ page }) => {
-  await signIn(page);
+  await signInAsAdmin(page);
 
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
   await expect(page).toHaveURL(/\/admin\/login$/);

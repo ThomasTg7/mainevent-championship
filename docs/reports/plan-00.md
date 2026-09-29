@@ -1,6 +1,6 @@
 # Reporte — Plan 00 · Fundación
 
-Rama: `plan-00` · Ejecutado por Sonnet (superpowers:executing-plans) · 2026-09-28
+Rama: `plan-00` · Ejecutado por Sonnet (superpowers:executing-plans) y revisado por Opus · 2026-09-28
 
 ## Tareas completadas
 
@@ -30,24 +30,38 @@ Todas están marcadas `aplicado`; ninguna quedó pendiente de resolver.
 - **Task 8** — `trustedOrigins` de Better Auth incluye el puerto de e2e (3100) para que el login funcione en los tests de Playwright.
 - **Fuera de tarea** — se agregó `pnpm typecheck` (`next typegen && tsc --noEmit`): CLAUDE.md lo exige pero el plan nunca pidió crear el script.
 
+## Revisión (Opus)
+
+Verificación inicial en verde. La revisión (`/code-review high`, lectura manual y navegador en 375/1440 px) encontró 10 problemas; todos corregidos con tests. Detalle en `docs/decisions.md` (sección "Revisión del Plan 00").
+
+- **Seguridad (crítico):** el registro con correo era público: cualquiera podía registrarse antes que el dueño de un correo recién agregado y quedarse con esa cuenta de admin. Ahora no hay registro público; los admins entran por **invitación por correo**, Google o el script.
+- **Seguridad:** las páginas del admin solo verificaban la sesión en el layout; ahora cada página llama `requireAdmin()`. Quitar un correo cierra sus sesiones. Límite de intentos de login guardado en la BD.
+- **Pedido tuyo:** recuperar contraseña y Google quedaron listos "para configurar": correos por consola en desarrollo, Resend en producción, y el botón de Google aparece solo con credenciales. Guía en `docs/configuracion-externa.md`.
+- **Papelera:** su diseño no habría visto a los peleadores del Plan 02; ahora usa un registro único, muestra el nombre del elemento y pagina.
+- **Historial:** paginado y muestra quién hizo cada acción (incluye inicios de sesión).
+- **E2E:** usaban tu BD de desarrollo (dejaban un admin con contraseña conocida); ahora tienen BD propia. Tu BD de desarrollo quedó limpia.
+- **Reglas de CLAUDE.md:** menú móvil usable con teclado, botones táctiles de 44 px, etiquetas visibles, estados de carga/error, fechas con zona horaria de Chile, footer sin JavaScript, cerrar sesión.
+- **Planes siguientes:** `docs/convenciones.md` resume lo construido y cada plan 01–07 lo referencia. Plan 02 (papelera) y 06 (correo, ya hecho) ajustados.
+
+Resultado final: 66 tests unitarios, 13 e2e, lint, typecheck y build en verde.
+
 ## Pendientes (para planes siguientes o antes de producción)
 
-- Google OAuth no tiene credenciales reales (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` vacíos en `.env.example`); el botón "Continuar con Google" existe pero no funciona hasta configurarlas.
-- `BETTER_AUTH_SECRET` y `CRON_SECRET` en `.env`/`.env.example` son valores de desarrollo; deben generarse valores reales antes de desplegar.
-- Recuperar contraseña por email (mencionado en la spec §6) no está implementado — Better Auth lo soporta, falta cablearlo con un proveedor de email (Resend, planeado para el Plan 06).
-- Las 8 secciones placeholder del admin (Peleadores, Divisiones, Eventos, Noticias, Rankings, Patrocinadores, Bandeja, Configuración) y el dashboard de "Inicio" son intencionalmente stubs — los llenan los planes 02–06 según la hoja de ruta de la spec.
-- La papelera y el historial están vacíos porque ningún plan siguiente registró todavía una tabla trashable real (`registerTrashable`) ni una acción de escritura de dominio — se poblarán solos cuando el Plan 02 (peleadores) empiece a usarlos.
+- Credenciales de Google y Resend: las creas tú cuando quieras con `docs/configuracion-externa.md`. Sin ellas todo funciona: no aparece el botón de Google y los correos se imprimen en la terminal.
+- `BETTER_AUTH_SECRET` y `CRON_SECRET` de `.env` son de desarrollo; se generan reales al desplegar (Plan 07).
+- Login en previews de Vercel: anotado como pendiente para el Plan 07 en `docs/decisions.md`.
+- Las 8 secciones placeholder del admin y el "Inicio" se llenan en los planes 02–06.
 
 ## Comandos para probar
 
 ```bash
 docker compose up -d
 pnpm db:migrate
-pnpm tsx scripts/create-admin.ts tu@correo.cl "tu-password"
+pnpm tsx scripts/create-admin.ts tu@correo.cl "una-clave-segura"
 pnpm dev
 ```
 
-Verificación completa (lo que se corrió antes de cerrar el plan):
+Verificación completa:
 
 ```bash
 pnpm test
@@ -57,13 +71,12 @@ pnpm build
 pnpm test:e2e
 ```
 
-`pnpm test:e2e` levanta Docker, migra y crea un admin de prueba (`seed-admin@guerracampal.cl` / `SeedPassword123!`) por su cuenta vía `e2e/global-setup.ts`; no hace falta el bloque anterior solo para correr los e2e.
+`pnpm test:e2e` necesita Docker Desktop abierto; crea y vacía su propia BD (`guerra_campal_e2e`) y su admin de prueba.
 
 ## Qué pantallas mirar
 
-- **`/`** — home "Próximamente" con el logo; header sólido al bajar 40px, se oculta/reaparece con el scroll; menú "☰" en móvil. Revisar en 375px y 1440px (sin scroll horizontal).
-- **`/admin/login`** — login con correo+contraseña; probar con un correo no listado para ver "Este correo no tiene acceso", y sin sesión visitar `/admin` para confirmar el redirect.
-- **`/admin`** — Inicio (placeholder) y el sidebar con las 12 secciones; en móvil, el sidebar se abre como panel lateral con el botón de arriba a la izquierda.
-- **`/admin/usuarios`** — agregar un correo (aparece de inmediato en la tabla), quitarlo (diálogo de confirmación primero); en 375px la tabla se convierte en tarjetas apiladas.
-- **`/admin/historial`** — debe mostrar la acción de agregar/quitar correo que se acaba de hacer.
-- **`/admin/papelera`** — vacía por ahora ("La papelera está vacía"), es esperado.
+- **`/`** (375 px y 1440 px) — header que se vuelve sólido al bajar y se oculta/reaparece; en móvil, menú ☰: ábrelo y ciérralo con Escape.
+- **`/admin/login`** — entra con el admin que creaste con el script. Prueba una clave mala (error junto al campo) y "¿Olvidaste tu contraseña?".
+- **`/admin/usuarios`** — "Dar acceso" a otro correo tuyo: en la terminal de `pnpm dev` aparece el correo con el enlace para crear contraseña. Ábrelo, crea la clave y entra con ese correo. En móvil la tabla pasa a tarjetas.
+- **`/admin/historial`** — debe mostrar quién dio acceso, el inicio de sesión y la creación de contraseña, con hora de Chile.
+- **Sidebar** — "Cerrar sesión" al final; en móvil se abre con el botón de arriba a la izquierda y se cierra al elegir una sección.
