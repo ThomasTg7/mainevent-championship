@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Division } from "@/db/schema/divisions";
 import type { Country } from "@/domain/countries";
 import { BIO_MAX_LENGTH } from "../schema";
-import { SelectField, TextAreaField, TextField } from "./fighter-fields";
+import { SelectField, TextAreaField, TextField } from "@/components/admin/form-fields";
 
 type FighterDataTabProps = {
   divisions: Division[];

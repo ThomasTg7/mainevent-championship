@@ -48,6 +48,7 @@ export default async function globalSetup(): Promise<void> {
   await seedFighters(db);
   await seedEvents(db);
   await seedHiddenFighters();
+  await seedCardFighters();
   await createAdminWithPassword(auth, db, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
 }
 
@@ -59,4 +60,16 @@ async function seedHiddenFighters(): Promise<void> {
   await createFighter(db, { ...base, firstName: "Borrador", lastName: "Oculto" }, "e2e");
   const trashed = await createFighter(db, { ...base, firstName: "Papelera", lastName: "Oculta", status: "published" }, "e2e");
   await deleteFighter(db, trashed.id, "e2e");
+}
+
+/**
+ * Peleadores en borrador para armar carteleras en los e2e del panel: no salen en el sitio público (ni cambian el récord ni
+ * el historial de los del seed) y el buscador del armador los encuentra por «Cartel Uno», «Cartel Dos»…
+ */
+async function seedCardFighters(): Promise<void> {
+  const [ligero] = await db.select({ id: divisions.id }).from(divisions).where(eq(divisions.slug, "peso-ligero"));
+  if (!ligero) throw new Error("Falta la división Ligero");
+  for (const lastName of ["Uno", "Dos", "Tres", "Cuatro", "Cinco", "Seis", "Siete", "Ocho"]) {
+    await createFighter(db, { gender: "male", nationality: "CL", divisionId: ligero.id, firstName: "Cartel", lastName }, "e2e");
+  }
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition, type FormEvent } from "react";
 import { toast } from "sonner";
+import { FormFieldsProvider } from "@/components/admin/form-fields";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Division } from "@/db/schema/divisions";
@@ -15,7 +16,6 @@ import { isPublicationValid, type PublicationValue } from "@/features/publicatio
 import type { FormActionState } from "@/lib/form-errors";
 import { FIELD_TABS, tabForField, type FighterFormValues, type FighterTab } from "../form-values";
 import { FighterDataTab } from "./fighter-data-tab";
-import { FighterFieldsProvider } from "./fighter-fields";
 import { FighterPhotosTab } from "./fighter-photos-tab";
 import { FighterPhysicalTab } from "./fighter-physical-tab";
 import { FighterRecordTab } from "./fighter-record-tab";
@@ -76,7 +76,7 @@ export function FighterForm({ action, defaults, divisions, countries, bodyMedia 
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
-      <FighterFieldsProvider value={{ defaults, errors }}>
+      <FormFieldsProvider value={{ defaults, errors, idPrefix: "fighter" }}>
         <Tabs value={tab} onValueChange={(value) => setTab(value as FighterTab)}>
           <TabsList variant="line" className="h-auto w-full flex-wrap group-data-horizontal/tabs:h-auto justify-start gap-x-1 gap-y-1.5 pb-2">
             {(Object.keys(FIELD_TABS) as FighterTab[]).map((key) => (
@@ -111,7 +111,7 @@ export function FighterForm({ action, defaults, divisions, countries, bodyMedia 
             ) : null}
           </TabsContent>
         </Tabs>
-      </FighterFieldsProvider>
+      </FormFieldsProvider>
 
       {state.error ? (
         <p role="alert" className="text-sm text-destructive">

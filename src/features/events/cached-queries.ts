@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { DIVISIONS_CACHE_TAG } from "@/features/divisions/cache";
 import { FIGHTERS_LIST_TAG } from "@/features/fighters/cache";
 import { MEDIA_ANY_TAG, mediaCacheTag } from "@/features/media/cache";
-import { EVENTS_LIST_TAG, eventCacheTag } from "./cache";
+import { EVENTS_LIST_TAG, TECHNIQUES_TAG, eventCacheTag } from "./cache";
 import { getNextEvent, getPublicEventBySlug, getPublicEventRef, listPublicEvents } from "./queries";
 
 // Lecturas del sitio público, cacheadas con etiquetas para invalidarlas desde la action que escribe.
@@ -15,7 +15,7 @@ const REVALIDATE_SECONDS = 300;
 
 // Las tarjetas y la cartelera muestran nombre, foto, bandera y récord de los peleadores: una edición de peleador
 // (`fighters`) o de imagen (`media`) las refresca.
-const LIST_TAGS = [EVENTS_LIST_TAG, FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG];
+const LIST_TAGS = [EVENTS_LIST_TAG, FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, TECHNIQUES_TAG];
 
 export function getCachedPublicEvents(when: "upcoming" | "past", page: number) {
   return unstable_cache(() => listPublicEvents(db, { when }, { page }), ["events-list", when, String(page)], {
@@ -40,7 +40,7 @@ export async function getCachedPublicEvent(slug: string) {
 
   const mediaTags = [ref.heroMediaId, ref.heroMobileMediaId, ref.posterMediaId].flatMap((id) => (id ? [mediaCacheTag(id)] : []));
   return unstable_cache(() => getPublicEventBySlug(db, slug), ["event-page", ref.id, slug], {
-    tags: [eventCacheTag(ref.id), FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, ...mediaTags],
+    tags: [eventCacheTag(ref.id), FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, TECHNIQUES_TAG, ...mediaTags],
     revalidate: REVALIDATE_SECONDS,
   })();
 }

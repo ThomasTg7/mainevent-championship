@@ -29,7 +29,7 @@ const TECHNIQUES = [
 export async function seedSubmissionTechniques(db: Db): Promise<void> {
   await db
     .insert(submissionTechniques)
-    .values(TECHNIQUES.map((name, index) => ({ name, sortOrder: index + 1 })))
+    .values(TECHNIQUES.map((name, index) => ({ name, sortOrder: index })))
     .onConflictDoNothing({ target: submissionTechniques.name });
 }
 

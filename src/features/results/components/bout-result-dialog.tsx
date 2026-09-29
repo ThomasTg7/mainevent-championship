@@ -1,0 +1,103 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import type { AdminBout } from "@/features/events/admin-card-queries";
+import { clearBoutResultAction, overturnResultAction, recordBoutResultAction, type RecordResultState } from "../actions";
+import { draftFromResult, EMPTY_DRAFT } from "../result-draft";
+import { ResultForm } from "./result-form";
+
+type BoutResultDialogProps = {
+  bout: AdminBout | null;
+  techniques: { id: string; name: string }[];
+  onClose: () => void;
+};
+
+/** Registra o corrige el resultado de una pelea; con un resultado guardado también permite borrarlo o anularlo. */
+export function BoutResultDialog({ bout, techniques, onClose }: BoutResultDialogProps) {
+  return (
+    <Dialog open={bout !== null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">{bout ? <Content key={bout.id} bout={bout} techniques={techniques} onClose={onClose} /> : null}</DialogContent>
+    </Dialog>
+  );
+}
+
+function Content({ bout, techniques, onClose }: { bout: AdminBout; techniques: { id: string; name: string }[]; onClose: () => void }) {
+  const [isPending, startTransition] = useTransition();
+  const [overturning, setOverturning] = useState(false);
+  const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const redName = bout.red.lastName;
+  const blueName = bout.blue.lastName;
+  const isOverturned = bout.result?.ncReason === "overturned";
+
+  function saved(state: RecordResultState) {
+    toast.success(state.success ?? "Resultado guardado");
+    if (state.titleChange) toast.info("Cambio de título: el retador ganó el cinturón. Queda pendiente de confirmar en Rankings y títulos.");
+    onClose();
+  }
+
+  function run(task: () => Promise<{ error?: string; success?: string }>) {
+    startTransition(async () => {
+      const result = await task();
+      if (result.error) return setError(result.error);
+      toast.success(result.success ?? "Listo");
+      onClose();
+    });
+  }
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>
+          {bout.result ? "Corregir resultado" : "Registrar resultado"}: {redName} vs {blueName}
+        </DialogTitle>
+        <DialogDescription>{bout.resultLine ?? "Elige quién ganó y cómo terminó. Solo se piden los datos que corresponden."}</DialogDescription>
+      </DialogHeader>
+
+      <ResultForm
+        bout={{ id: bout.id, redName, blueName, scheduledRounds: bout.scheduledRounds === 5 ? 5 : 3, roundSeconds: bout.roundSeconds }}
+        techniques={techniques}
+        initial={bout.result ? draftFromResult(bout.result) : EMPTY_DRAFT}
+        onSubmit={(input) => recordBoutResultAction(bout.id, input)}
+        onSaved={saved}
+        actions={
+          bout.result ? (
+            <>
+              <Button type="button" variant="outline" disabled={isPending} onClick={() => run(() => clearBoutResultAction(bout.id))}>
+                Borrar resultado
+              </Button>
+              {isOverturned ? null : (
+                <Button type="button" variant="outline" disabled={isPending} onClick={() => setOverturning((current) => !current)} aria-expanded={overturning}>
+                  Anular resultado
+                </Button>
+              )}
+            </>
+          ) : null
+        }
+      />
+
+      {overturning ? (
+        <div className="flex flex-col gap-2 border border-border p-3">
+          <label htmlFor="overturn-note" className="text-sm font-medium">
+            ¿Por qué se anula? (queda como «sin resultado» y se conserva el original)
+          </label>
+          <Input id="overturn-note" value={note} maxLength={200} onChange={(event) => setNote(event.target.value)} placeholder="Ej.: dopaje del ganador" autoComplete="off" />
+          <div>
+            <Button type="button" variant="destructive" disabled={isPending || note.trim() === ""} onClick={() => run(() => overturnResultAction(bout.id, note))}>
+              Confirmar anulación
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
+    </>
+  );
+}

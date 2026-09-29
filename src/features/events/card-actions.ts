@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { db } from "@/db";
 import { zodFieldErrors, type FormActionState } from "@/lib/form-errors";
+import { listAdminFighters } from "@/features/fighters/queries";
 import { requireAdmin } from "@/lib/require-admin";
 import { runFormAction } from "@/lib/run-form-action";
 import { getBoutEventId, getSegmentEventId } from "./admin-queries";
@@ -154,4 +155,33 @@ export async function deleteBoutAction(boutId: string): Promise<FormActionState>
     revalidateEventPanel();
     return { success: "Pelea eliminada" };
   });
+}
+
+export type FighterSearchResult = {
+  id: string;
+  name: string;
+  nickname: string | null;
+  divisionName: string;
+  nationality: string;
+  status: "draft" | "scheduled" | "published";
+  careerStatus: "active" | "inactive" | "retired";
+};
+
+const SEARCH_RESULTS = 10;
+
+/** Buscador del armador: hasta 10 peleadores por nombre, apellido o apodo (sin traer los 500 al navegador). */
+export async function searchFightersForBoutAction(query: string): Promise<FighterSearchResult[]> {
+  await requireAdmin();
+  const text = typeof query === "string" ? query.trim().slice(0, 60) : "";
+  if (text.length < 2) return [];
+  const { items } = await listAdminFighters(db, { q: text }, { pageSize: SEARCH_RESULTS });
+  return items.map((fighter) => ({
+    id: fighter.id,
+    name: `${fighter.firstName} ${fighter.lastName}`,
+    nickname: fighter.nickname,
+    divisionName: fighter.divisionName,
+    nationality: fighter.nationality,
+    status: fighter.status,
+    careerStatus: fighter.careerStatus,
+  }));
 }

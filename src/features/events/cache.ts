@@ -16,3 +16,10 @@ export function revalidateEvent(id: string): void {
   updateTag(eventCacheTag(id));
   updateTag(EVENTS_LIST_TAG);
 }
+
+/** Tag del catálogo de técnicas de sumisión: su nombre aparece en las líneas de resultado de eventos y fichas. */
+export const TECHNIQUES_TAG = "techniques";
+
+export function revalidateTechniques(): void {
+  updateTag(TECHNIQUES_TAG);
+}
