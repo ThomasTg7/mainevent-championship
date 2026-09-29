@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { revalidateFighter } from "@/features/fighters/cache";
 import { getEventFighterIds } from "./admin-queries";
@@ -15,4 +16,11 @@ export async function withEventRevalidation<T>(eventId: string, task: () => Prom
   for (const fighterId of new Set([...before, ...after])) revalidateFighter(fighterId);
   revalidateEvent(eventId);
   return result;
+}
+
+/** Refresca las pantallas del panel que muestran la cartelera: el listado, el armador y la noche de pelea. */
+export function revalidateEventPanel(): void {
+  revalidatePath("/admin/eventos");
+  revalidatePath("/admin/eventos/[id]/cartelera", "page");
+  revalidatePath("/admin/eventos/[id]/en-vivo", "page");
 }

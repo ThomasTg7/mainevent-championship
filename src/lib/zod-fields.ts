@@ -72,3 +72,11 @@ export function optionalHttpUrl(label: string) {
       return z.NEVER;
     });
 }
+
+/** Opción de una lista cerrada; vacío o ausente = `null`. */
+export function optionalEnum<const Values extends readonly [string, ...string[]]>(values: Values, message: string) {
+  return z
+    .union([z.enum(values, { error: message }), z.literal("")])
+    .nullish()
+    .transform((value) => (value === "" || value === undefined ? null : value));
+}

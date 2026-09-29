@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { publicationShape, requireScheduleDate } from "@/features/publication/schema";
-import { optionalImageId, optionalNumber, optionalSlug, optionalText } from "@/lib/zod-fields";
+import { optionalEnum, optionalImageId, optionalNumber, optionalSlug, optionalText } from "@/lib/zod-fields";
 
 /** La bio es breve: se muestra dentro de la tarjeta de la ficha, junto al nombre. */
 export const BIO_MAX_LENGTH = 300;
@@ -10,13 +10,6 @@ const BIRTH_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /** Contador del récord manual: vacío cuenta como 0. */
 function recordCount(label: string) {
   return optionalNumber(label, { min: 0, max: 999, integer: true }).transform((value) => value ?? 0);
-}
-
-function optionalEnum<const Values extends readonly [string, ...string[]]>(values: Values, message: string) {
-  return z
-    .union([z.enum(values, { error: message }), z.literal("")])
-    .nullish()
-    .transform((value) => (value === "" || value === undefined ? null : value));
 }
 
 const birthDate = z

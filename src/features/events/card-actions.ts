@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { zodFieldErrors, type FormActionState } from "@/lib/form-errors";
@@ -19,7 +18,7 @@ import {
   updateBout,
 } from "./card-service";
 import { boutInputSchema, type BoutRawInput, type SegmentRawInput } from "./card-schema";
-import { withEventRevalidation } from "./revalidate";
+import { revalidateEventPanel, withEventRevalidation } from "./revalidate";
 import { eventIdSchema } from "./schema";
 
 const SEGMENT_NOT_FOUND: FormActionState = { error: "No se encontró el bloque" };
@@ -28,13 +27,6 @@ const EVENT_NOT_FOUND: FormActionState = { error: "No se encontró el evento" };
 
 const isId = (id: unknown): id is string => eventIdSchema.safeParse(id).success;
 const run = (task: () => Promise<FormActionState | void>) => runFormAction("Error en la cartelera", task);
-
-/** Los cambios de la cartelera refrescan la pantalla del armador (y la de la noche de pelea). */
-function revalidatePanel(): void {
-  revalidatePath("/admin/eventos/[id]/cartelera", "page");
-  revalidatePath("/admin/eventos/[id]/en-vivo", "page");
-  revalidatePath("/admin/eventos");
-}
 
 /** Errores por campo del diálogo de pelea, antes de tocar la base (el servicio vuelve a validar). */
 function invalidBout(input: BoutRawInput): FormActionState | null {
@@ -48,7 +40,7 @@ export async function saveSegmentAction(eventId: string, input: SegmentRawInput)
 
   return run(async () => {
     await withEventRevalidation(eventId, () => saveSegment(db, eventId, input, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Bloque guardado" };
   });
 }
@@ -61,7 +53,7 @@ export async function deleteSegmentAction(segmentId: string): Promise<FormAction
 
   return run(async () => {
     await withEventRevalidation(eventId, () => deleteSegment(db, segmentId, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Bloque eliminado" };
   });
 }
@@ -74,7 +66,7 @@ export async function reorderSegmentsAction(eventId: string, ids: string[]): Pro
 
   return run(async () => {
     await withEventRevalidation(eventId, () => reorderSegments(db, eventId, parsed.data, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Orden guardado" };
   });
 }
@@ -89,7 +81,7 @@ export async function addBoutAction(segmentId: string, input: BoutRawInput): Pro
 
   return run(async () => {
     await withEventRevalidation(eventId, () => addBout(db, segmentId, input, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Pelea agregada" };
   });
 }
@@ -104,7 +96,7 @@ export async function updateBoutAction(boutId: string, input: BoutRawInput): Pro
 
   return run(async () => {
     await withEventRevalidation(eventId, () => updateBout(db, boutId, input, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Pelea guardada" };
   });
 }
@@ -120,7 +112,7 @@ export async function moveBoutAction(boutId: string, segmentId: string, index: n
 
   return run(async () => {
     await withEventRevalidation(eventId, () => moveBout(db, boutId, { segmentId, index }, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Orden guardado" };
   });
 }
@@ -133,7 +125,7 @@ export async function cancelBoutAction(boutId: string, reason: string | null): P
 
   return run(async () => {
     await withEventRevalidation(eventId, () => cancelBout(db, boutId, typeof reason === "string" ? reason : null, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Pelea cancelada" };
   });
 }
@@ -146,7 +138,7 @@ export async function reinstateBoutAction(boutId: string): Promise<FormActionSta
 
   return run(async () => {
     await withEventRevalidation(eventId, () => reinstateBout(db, boutId, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Pelea repuesta" };
   });
 }
@@ -159,7 +151,7 @@ export async function deleteBoutAction(boutId: string): Promise<FormActionState>
 
   return run(async () => {
     await withEventRevalidation(eventId, () => deleteBout(db, boutId, admin.userId));
-    revalidatePanel();
+    revalidateEventPanel();
     return { success: "Pelea eliminada" };
   });
 }
