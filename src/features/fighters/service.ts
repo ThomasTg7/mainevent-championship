@@ -1,6 +1,7 @@
-import { and, eq, isNull, ne } from "drizzle-orm";
+import { and, eq, isNull, ne, or } from "drizzle-orm";
 import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
+import { bouts } from "@/db/schema/events";
 import { fighters, type FighterSocials } from "@/db/schema/fighters";
 import { normalizeSearchText } from "@/domain/search";
 import { slugify, uniqueSlug } from "@/domain/slug";
@@ -188,8 +189,18 @@ export async function setFighterPublication(db: Db, id: string, input: Publicati
   });
 }
 
-/** Envía al peleador a la papelera (se recupera desde Papelera; se elimina solo a los 30 días). */
+/**
+ * Envía al peleador a la papelera (se recupera desde Papelera; se elimina solo a los 30 días). Con peleas no se puede:
+ * la FK `restrict` de `bouts` impediría purgarlo y el cron fallaría (cuenta también las peleas de eventos en la papelera).
+ */
 export async function deleteFighter(db: Db, id: string, actorId: string): Promise<void> {
+  const [hasBouts] = await db
+    .select({ id: bouts.id })
+    .from(bouts)
+    .where(or(eq(bouts.redFighterId, id), eq(bouts.blueFighterId, id)))
+    .limit(1);
+  if (hasBouts) throw new UserFacingError("Tiene peleas registradas: márcalo como Retirado o sácalo de la cartelera primero");
+
   try {
     await softDelete(db, "fighter", id, actorId);
   } catch (error) {

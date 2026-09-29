@@ -1,38 +1,11 @@
 import { z } from "zod";
 import { publicationShape, requireScheduleDate } from "@/features/publication/schema";
+import { optionalImageId, optionalNumber, optionalSlug, optionalText } from "@/lib/zod-fields";
 
 /** La bio es breve: se muestra dentro de la tarjeta de la ficha, junto al nombre. */
 export const BIO_MAX_LENGTH = 300;
 
-const IMAGE_UNAVAILABLE = "La imagen ya no está disponible. Súbela de nuevo.";
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const BIRTH_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
-/** Texto opcional: vacío o ausente se guarda como `null`. */
-function optionalText(max: number, label: string) {
-  return z
-    .string()
-    .trim()
-    .max(max, `${label} es demasiado largo (máx. ${max} caracteres)`)
-    .nullish()
-    .transform((value) => value || null);
-}
-
-/** Número opcional que llega como número o como texto de un formulario ("70,3" o "70.3"). */
-function optionalNumber(label: string, { min, max, integer = false }: { min: number; max: number; integer?: boolean }) {
-  let bounded = z.number({ error: `${label} debe ser un número` });
-  if (integer) bounded = bounded.int(`${label} debe ser un número entero`);
-  bounded = bounded.min(min, `${label} no puede ser menor que ${min}`).max(max, `${label} no puede ser mayor que ${max}`);
-
-  return z
-    .union([z.number(), z.string()])
-    .nullish()
-    .transform((value) => {
-      if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) return null;
-      return typeof value === "string" ? Number(value.replace(",", ".")) : value;
-    })
-    .pipe(bounded.nullable());
-}
 
 /** Contador del récord manual: vacío cuenta como 0. */
 function recordCount(label: string) {
@@ -44,13 +17,6 @@ function optionalEnum<const Values extends readonly [string, ...string[]]>(value
     .union([z.enum(values, { error: message }), z.literal("")])
     .nullish()
     .transform((value) => (value === "" || value === undefined ? null : value));
-}
-
-function optionalImageId() {
-  return z
-    .union([z.uuid({ error: IMAGE_UNAVAILABLE }), z.literal("")])
-    .nullish()
-    .transform((value) => value || null);
 }
 
 const birthDate = z
@@ -74,14 +40,7 @@ export const fighterInputSchema = z
     lastName: z.string({ error: "El apellido es obligatorio" }).trim().min(1, "El apellido es obligatorio").max(60, "El apellido es demasiado largo"),
     nickname: optionalText(40, "El apodo"),
     /** Solo al editar el enlace a mano; vacío = se genera del nombre (al crear) o se conserva (al editar). */
-    slug: z
-      .string()
-      .trim()
-      .max(80, "El enlace es demasiado largo")
-      .regex(SLUG_PATTERN, "El enlace solo puede tener letras minúsculas sin tildes, números y guiones")
-      .nullish()
-      .or(z.literal(""))
-      .transform((value) => value || null),
+    slug: optionalSlug(),
     gender: z.enum(["male", "female"], { error: "Elige masculino o femenino" }),
     birthDate,
     nationality: z

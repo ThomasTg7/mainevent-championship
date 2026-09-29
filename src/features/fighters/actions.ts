@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { formValues, zodFieldErrors, type FormActionState } from "@/lib/form-errors";
 import { requireAdmin } from "@/lib/require-admin";
 import { adminPath, publicUrl } from "@/lib/site-urls";
-import { runUserFacing } from "@/lib/user-facing-error";
+import { runFormAction } from "@/lib/run-form-action";
 import { publicationInputSchema } from "@/features/publication/schema";
 import { createPreviewToken } from "@/features/publication/preview";
 import { revalidateFighter } from "./cache";
@@ -19,11 +19,7 @@ const NOT_FOUND: FormActionState = { error: "No se encontró al peleador" };
 
 const isFighterId = (id: unknown): id is string => fighterIdSchema.safeParse(id).success;
 
-async function run(task: () => Promise<FormActionState | void>, formData?: FormData): Promise<FormActionState> {
-  const result = await runUserFacing("Error en peleadores", task);
-  if ("value" in result) return result.value ?? {};
-  return { error: result.error, ...(formData ? { values: formValues(formData) } : {}) };
-}
+const run = (task: () => Promise<FormActionState | void>, formData?: FormData) => runFormAction("Error en peleadores", task, formData);
 
 /** Valida en el servidor para devolver un error por campo; el servicio vuelve a validar. */
 function invalidForm(formData: FormData): FormActionState | null {

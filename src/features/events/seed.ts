@@ -7,7 +7,7 @@ import type { BoutLevel, ScheduledRounds } from "@/domain/bout-enums";
 import { validateBoutResult, type BoutResultInput } from "@/domain/bout-result";
 import { slugify } from "@/domain/slug";
 import { seedFighters } from "@/features/fighters/seed";
-import { fromSantiagoInputs, toSantiagoInputs } from "@/lib/santiago-time";
+import { addDaysToDate, fromSantiagoInputs, toSantiagoInputs } from "@/lib/santiago-time";
 
 /** Catálogo inicial de técnicas de sumisión (spec §4.5); la promotora lo edita desde el panel. */
 const TECHNIQUES = [
@@ -185,17 +185,10 @@ const UPCOMING_TIERS: TicketTier[] = [
 
 const VENUE = { venueName: "Arena Santiago", venueAddress: "Av. Ejemplo 1234", venueCity: "Santiago", lat: -33.4489, lng: -70.6693 };
 
-/** Suma días a una fecha `YYYY-MM-DD` (calendario, sin horas: no le afecta el cambio de horario). */
-function shiftDate(date: string, days: number): string {
-  const shifted = new Date(`${date}T12:00:00Z`);
-  shifted.setUTCDate(shifted.getUTCDate() + days);
-  return shifted.toISOString().slice(0, 10);
-}
-
 /** El sábado en o después de la fecha `YYYY-MM-DD`. */
 function saturdayOnOrAfter(date: string): string {
   const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
-  return shiftDate(date, (6 - weekday + 7) % 7);
+  return addDaysToDate(date, (6 - weekday + 7) % 7);
 }
 
 function instant(date: string, time: string): Date {
@@ -268,9 +261,9 @@ export async function seedEvents(db: Db, now: Date = new Date()): Promise<void> 
   await seedSubmissionTechniques(db);
   const lookups = await loadLookups(db);
 
-  const upcomingDate = saturdayOnOrAfter(shiftDate(toSantiagoInputs(now).date, 21));
+  const upcomingDate = saturdayOnOrAfter(addDaysToDate(toSantiagoInputs(now).date, 21));
   const definitions = [
-    ...PAST_EVENTS.map((event) => ({ ...event, date: shiftDate(upcomingDate, -7 * event.weeksBefore), past: true })),
+    ...PAST_EVENTS.map((event) => ({ ...event, date: addDaysToDate(upcomingDate, -7 * event.weeksBefore), past: true })),
     { number: 5, weeksBefore: 0, segments: UPCOMING_CARD, date: upcomingDate, past: false },
   ];
 
@@ -288,7 +281,7 @@ export async function seedEvents(db: Db, now: Date = new Date()): Promise<void> 
           ? { eventStatus: "completed" as const }
           : {
               doorsAt: instant(definition.date, "19:30"),
-              endsEstimatedAt: instant(shiftDate(definition.date, 1), "00:30"),
+              endsEstimatedAt: instant(addDaysToDate(definition.date, 1), "00:30"),
               ticketUrl: "https://www.example.com/entradas/guerra-campal-5",
               ticketProvider: "Ticketera de ejemplo",
               ticketTiers: UPCOMING_TIERS,

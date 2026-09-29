@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import { bouts, cardSegments, events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
+import type { EventFormInput } from "./schema";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -56,4 +57,17 @@ export async function eventIdBySlug(db: Db, slug: string): Promise<string> {
   const [row] = await db.select({ id: events.id }).from(events).where(eq(events.slug, slug));
   if (!row) throw new Error(`No existe el evento ${slug}`);
   return row.id;
+}
+
+/** Evento válido mínimo para los tests del servicio (fecha y hora escritas en Chile); `overrides` pisa cualquier campo. */
+export function validEventInput(overrides: Partial<EventFormInput> = {}): EventFormInput {
+  return {
+    name: "Guerra Campal 9",
+    startsDate: "2026-11-14",
+    startsTime: "21:00",
+    venueName: "Arena Santiago",
+    venueAddress: "Av. Ejemplo 1234",
+    venueCity: "Santiago",
+    ...overrides,
+  };
 }

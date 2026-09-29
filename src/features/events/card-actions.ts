@@ -1,0 +1,165 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { db } from "@/db";
+import { zodFieldErrors, type FormActionState } from "@/lib/form-errors";
+import { requireAdmin } from "@/lib/require-admin";
+import { runFormAction } from "@/lib/run-form-action";
+import { getBoutEventId, getSegmentEventId } from "./admin-queries";
+import {
+  addBout,
+  cancelBout,
+  deleteBout,
+  deleteSegment,
+  moveBout,
+  reinstateBout,
+  reorderSegments,
+  saveSegment,
+  updateBout,
+} from "./card-service";
+import { boutInputSchema, type BoutRawInput, type SegmentRawInput } from "./card-schema";
+import { withEventRevalidation } from "./revalidate";
+import { eventIdSchema } from "./schema";
+
+const SEGMENT_NOT_FOUND: FormActionState = { error: "No se encontró el bloque" };
+const BOUT_NOT_FOUND: FormActionState = { error: "No se encontró la pelea" };
+const EVENT_NOT_FOUND: FormActionState = { error: "No se encontró el evento" };
+
+const isId = (id: unknown): id is string => eventIdSchema.safeParse(id).success;
+const run = (task: () => Promise<FormActionState | void>) => runFormAction("Error en la cartelera", task);
+
+/** Los cambios de la cartelera refrescan la pantalla del armador (y la de la noche de pelea). */
+function revalidatePanel(): void {
+  revalidatePath("/admin/eventos/[id]/cartelera", "page");
+  revalidatePath("/admin/eventos/[id]/en-vivo", "page");
+  revalidatePath("/admin/eventos");
+}
+
+/** Errores por campo del diálogo de pelea, antes de tocar la base (el servicio vuelve a validar). */
+function invalidBout(input: BoutRawInput): FormActionState | null {
+  const parsed = boutInputSchema.safeParse(input);
+  return parsed.success ? null : { fieldErrors: zodFieldErrors(parsed.error) };
+}
+
+export async function saveSegmentAction(eventId: string, input: SegmentRawInput): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(eventId)) return EVENT_NOT_FOUND;
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => saveSegment(db, eventId, input, admin.userId));
+    revalidatePanel();
+    return { success: "Bloque guardado" };
+  });
+}
+
+export async function deleteSegmentAction(segmentId: string): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(segmentId)) return SEGMENT_NOT_FOUND;
+  const eventId = await getSegmentEventId(db, segmentId);
+  if (!eventId) return SEGMENT_NOT_FOUND;
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => deleteSegment(db, segmentId, admin.userId));
+    revalidatePanel();
+    return { success: "Bloque eliminado" };
+  });
+}
+
+export async function reorderSegmentsAction(eventId: string, ids: string[]): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(eventId)) return EVENT_NOT_FOUND;
+  const parsed = z.array(z.uuid()).safeParse(ids);
+  if (!parsed.success) return { error: "La lista de bloques cambió: recarga la página e inténtalo de nuevo" };
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => reorderSegments(db, eventId, parsed.data, admin.userId));
+    revalidatePanel();
+    return { success: "Orden guardado" };
+  });
+}
+
+export async function addBoutAction(segmentId: string, input: BoutRawInput): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(segmentId)) return SEGMENT_NOT_FOUND;
+  const invalid = invalidBout(input);
+  if (invalid) return invalid;
+  const eventId = await getSegmentEventId(db, segmentId);
+  if (!eventId) return SEGMENT_NOT_FOUND;
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => addBout(db, segmentId, input, admin.userId));
+    revalidatePanel();
+    return { success: "Pelea agregada" };
+  });
+}
+
+export async function updateBoutAction(boutId: string, input: BoutRawInput): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(boutId)) return BOUT_NOT_FOUND;
+  const invalid = invalidBout(input);
+  if (invalid) return invalid;
+  const eventId = await getBoutEventId(db, boutId);
+  if (!eventId) return BOUT_NOT_FOUND;
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => updateBout(db, boutId, input, admin.userId));
+    revalidatePanel();
+    return { success: "Pelea guardada" };
+  });
+}
+
+/** Mueve la pelea a la posición `index` del bloque (arrastrar y soltar, o los botones subir/bajar/mover). */
+export async function moveBoutAction(boutId: string, segmentId: string, index: number): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(boutId)) return BOUT_NOT_FOUND;
+  if (!isId(segmentId)) return SEGMENT_NOT_FOUND;
+  if (!Number.isInteger(index) || index < 0) return { error: "Posición no válida" };
+  const eventId = await getBoutEventId(db, boutId);
+  if (!eventId) return BOUT_NOT_FOUND;
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => moveBout(db, boutId, { segmentId, index }, admin.userId));
+    revalidatePanel();
+    return { success: "Orden guardado" };
+  });
+}
+
+export async function cancelBoutAction(boutId: string, reason: string | null): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(boutId)) return BOUT_NOT_FOUND;
+  const eventId = await getBoutEventId(db, boutId);
+  if (!eventId) return BOUT_NOT_FOUND;
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => cancelBout(db, boutId, typeof reason === "string" ? reason : null, admin.userId));
+    revalidatePanel();
+    return { success: "Pelea cancelada" };
+  });
+}
+
+export async function reinstateBoutAction(boutId: string): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(boutId)) return BOUT_NOT_FOUND;
+  const eventId = await getBoutEventId(db, boutId);
+  if (!eventId) return BOUT_NOT_FOUND;
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => reinstateBout(db, boutId, admin.userId));
+    revalidatePanel();
+    return { success: "Pelea repuesta" };
+  });
+}
+
+export async function deleteBoutAction(boutId: string): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  if (!isId(boutId)) return BOUT_NOT_FOUND;
+  const eventId = await getBoutEventId(db, boutId);
+  if (!eventId) return BOUT_NOT_FOUND;
+
+  return run(async () => {
+    await withEventRevalidation(eventId, () => deleteBout(db, boutId, admin.userId));
+    revalidatePanel();
+    return { success: "Pelea eliminada" };
+  });
+}

@@ -1,0 +1,18 @@
+import { db } from "@/db";
+import { revalidateFighter } from "@/features/fighters/cache";
+import { getEventFighterIds } from "./admin-queries";
+import { revalidateEvent } from "./cache";
+
+/**
+ * Corre un cambio en la cartelera de un evento y expira lo público que lo muestra: la página del evento, los
+ * listados y la ficha de cada peleador de la cartelera (historial, récord, próxima pelea). Se leen los peleadores
+ * antes y después: quien acaba de salir de la cartelera también debe actualizarse. Solo desde server actions.
+ */
+export async function withEventRevalidation<T>(eventId: string, task: () => Promise<T>): Promise<T> {
+  const before = await getEventFighterIds(db, eventId);
+  const result = await task();
+  const after = await getEventFighterIds(db, eventId);
+  for (const fighterId of new Set([...before, ...after])) revalidateFighter(fighterId);
+  revalidateEvent(eventId);
+  return result;
+}

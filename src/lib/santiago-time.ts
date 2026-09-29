@@ -61,3 +61,10 @@ export function toSantiagoInputs(instant: Date): { date: string; time: string } 
 export function santiagoToday(now: Date = new Date()): Date {
   return new Date(`${toSantiagoInputs(now).date}T12:00:00Z`);
 }
+
+/** Suma días a una fecha `YYYY-MM-DD` (calendario, sin horas: el cambio de horario no la afecta). */
+export function addDaysToDate(date: string, days: number): string {
+  const shifted = new Date(`${date}T12:00:00Z`);
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+  return shifted.toISOString().slice(0, 10);
+}
