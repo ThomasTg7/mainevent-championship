@@ -8,6 +8,11 @@ try {
   // sin .env local (por ejemplo en CI, donde las variables ya están en el entorno)
 }
 
+// Los e2e usan su propia base (se vacía en cada corrida) para no ensuciar la de
+// desarrollo. `next dev` no pisa variables que ya vienen del entorno.
+process.env.DATABASE_URL =
+  process.env.E2E_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/guerra_campal_e2e";
+
 const PORT = 3100;
 
 export default defineConfig({
@@ -15,13 +20,17 @@ export default defineConfig({
   globalSetup: "./e2e/global-setup.ts",
   fullyParallel: true,
   reporter: "list",
+  // `next dev` compila cada ruta la primera vez que se visita; con varios
+  // workers a la vez eso puede pasar de los 5 s por defecto.
+  expect: { timeout: 15_000 },
   use: {
     baseURL: `http://localhost:${PORT}`,
   },
   webServer: {
     command: `pnpm run dev --port ${PORT}`,
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    // Nunca reutilizar un `pnpm dev` ya abierto: apuntaría a la BD de desarrollo.
+    reuseExistingServer: false,
     timeout: 60_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

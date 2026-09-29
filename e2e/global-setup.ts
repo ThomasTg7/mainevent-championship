@@ -1,10 +1,11 @@
 import { execSync } from "node:child_process";
+import { sql } from "drizzle-orm";
+// playwright.config.ts ya apuntó DATABASE_URL a la BD de e2e antes de cargar este
+// archivo, así que `@/db` se conecta a esa base y no a la de desarrollo.
 import { db } from "@/db";
-import { addAllowedEmail } from "@/features/admin-users/allowlist";
+import { createAdminWithPassword } from "@/features/admin-users/accounts";
 import { auth } from "@/lib/auth";
-
-export const SEED_ADMIN_EMAIL = "seed-admin@guerracampal.cl";
-export const SEED_ADMIN_PASSWORD = "SeedPassword123!";
+import { SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } from "./fixtures/admin";
 
 async function waitForPostgres(): Promise<void> {
   for (let attempt = 0; attempt < 30; attempt += 1) {
@@ -18,18 +19,24 @@ async function waitForPostgres(): Promise<void> {
   throw new Error("Postgres no respondió a tiempo para los e2e");
 }
 
+function ensureE2eDatabase(): void {
+  const databaseName = new URL(process.env.DATABASE_URL ?? "").pathname.slice(1);
+  const exists = execSync(
+    `docker compose exec -T postgres psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '${databaseName}'"`,
+  )
+    .toString()
+    .trim();
+  if (exists !== "1") {
+    execSync(`docker compose exec -T postgres createdb -U postgres ${databaseName}`, { stdio: "inherit" });
+  }
+}
+
 export default async function globalSetup(): Promise<void> {
   execSync("docker compose up -d", { stdio: "inherit" });
   await waitForPostgres();
+  ensureE2eDatabase();
   execSync("pnpm db:migrate", { stdio: "inherit" });
 
-  await addAllowedEmail(db, SEED_ADMIN_EMAIL, null);
-
-  try {
-    await auth.api.signUpEmail({
-      body: { email: SEED_ADMIN_EMAIL, password: SEED_ADMIN_PASSWORD, name: SEED_ADMIN_EMAIL },
-    });
-  } catch {
-    // El admin de prueba ya existe de una corrida anterior; no es un error.
-  }
+  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit CASCADE`);
+  await createAdminWithPassword(auth, db, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
 }

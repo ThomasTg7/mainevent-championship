@@ -20,5 +20,9 @@ export default defineConfig({
     // completa; el timeout por defecto (5s) alcanza a fallar por contención
     // de CPU aunque cada test, aislado, tarde ~1s.
     testTimeout: 15000,
+    hookTimeout: 30000,
+    // Cada worker arranca su propio PGlite (WASM); con un worker por núcleo se
+    // ahogan entre sí y los beforeAll pasan de 10 s. Con la mitad va más rápido.
+    maxWorkers: "50%",
   },
 });
