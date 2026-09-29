@@ -1,7 +1,8 @@
 import { MEDIA_SPECS, type MediaKind } from "@/domain/media-specs";
 import { CHECKERBOARD } from "./checkerboard";
 
-type Frame = { name: string; ratio: string; aspect: number };
+/** `contain`: la imagen se ve entera dentro del marco (logos), en vez de llenarlo recortada. */
+type Frame = { name: string; ratio: string; aspect: number; contain?: boolean };
 
 /** Contextos reales donde se verá cada tipo de imagen. */
 function framesFor(kind: MediaKind): Frame[] {
@@ -19,8 +20,10 @@ function framesFor(kind: MediaKind): Frame[] {
         { name: "Tarjeta", ratio: "4:3", aspect: 4 / 3 },
         { name: "Cabecera", ratio: "21:9", aspect: 21 / 9 },
       ];
-    default:
-      return [{ name: "Así se verá", ratio: MEDIA_SPECS[kind].aspectLabel, aspect: MEDIA_SPECS[kind].aspect ?? 1 }];
+    default: {
+      const { aspect, box, aspectLabel } = MEDIA_SPECS[kind];
+      return [{ name: "Así se verá", ratio: aspectLabel, aspect: aspect ?? box ?? 1, contain: box !== undefined }];
+    }
   }
 }
 
@@ -49,7 +52,7 @@ export function PreviewFrames({ kind, src, focal, filter }: PreviewFramesProps) 
                 alt=""
                 draggable={false}
                 style={{ objectPosition: `${focal.x * 100}% ${focal.y * 100}%`, filter }}
-                className="size-full object-cover"
+                className={`size-full ${frame.contain ? "object-contain" : "object-cover"}`}
               />
             </div>
             <figcaption className="text-xs leading-tight">

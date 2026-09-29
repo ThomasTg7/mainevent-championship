@@ -36,6 +36,19 @@ export class LocalDriver implements StorageDriver {
     await writeFile(filePath, body);
   }
 
+  /** Escribe solo si la clave no existe (subida del navegador de un solo uso). Devuelve `false` si ya existía. */
+  async putIfAbsent(key: string, body: Buffer): Promise<boolean> {
+    const filePath = this.resolveKey(key);
+    await mkdir(path.dirname(filePath), { recursive: true });
+    try {
+      await writeFile(filePath, body, { flag: "wx" });
+      return true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "EEXIST") return false;
+      throw error;
+    }
+  }
+
   async get(key: string): Promise<Buffer> {
     return readFile(this.resolveKey(key));
   }

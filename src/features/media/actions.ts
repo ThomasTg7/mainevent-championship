@@ -1,9 +1,11 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import { db } from "@/db";
 import { logAudit } from "@/features/audit/log";
 import { getStorage } from "@/lib/storage";
 import { requireAdmin } from "@/lib/require-admin";
+import { mediaCacheTag } from "./cache";
 import type { MediaDTO } from "./dto";
 import { getMediaEdit } from "./queries";
 import { createUploadSchema, mediaEditSchema, mediaIdSchema } from "./schema";
@@ -72,6 +74,7 @@ export async function saveMediaEditAction(mediaId: unknown, edit: unknown): Prom
       entityId: result.data.id,
       summary: `Guardó una imagen (${result.data.kind})`,
     });
+    revalidateTag(mediaCacheTag(result.data.id), "max");
   }
   return result;
 }

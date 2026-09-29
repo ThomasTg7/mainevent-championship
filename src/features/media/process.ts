@@ -1,6 +1,6 @@
 import DOMPurify from "isomorphic-dompurify";
 import sharp, { type Metadata, type Sharp } from "sharp";
-import { MEDIA_SPECS, clampCrop, variantWidthsFor, type Crop, type MediaKind, type Size } from "@/domain/media-specs";
+import { MAX_INPUT_PIXELS, MEDIA_SPECS, clampCrop, variantWidthsFor, type Crop, type MediaKind, type Size } from "@/domain/media-specs";
 import type { MediaEdit } from "./schema";
 
 const WEBP_OPTIONS = { quality: 82, alphaQuality: 90 } as const;
@@ -37,27 +37,31 @@ export async function renderVariants(
   original: Buffer,
   kind: MediaKind,
   edit: MediaEdit,
-): Promise<{ width: number; buffer: Buffer }[]> {
-  const size = visibleSize(await sharp(original).metadata(), edit.rotation);
+): Promise<{ width: number; height: number; buffer: Buffer }[]> {
+  const input = () => sharp(original, { limitInputPixels: MAX_INPUT_PIXELS });
+  const size = visibleSize(await input().metadata(), edit.rotation);
   const crop = clampCrop(edit.crop ?? defaultCrop(size, MEDIA_SPECS[kind].aspect, edit.focal), size);
+  const widths = variantWidthsFor(kind, crop.width);
   const { brightness, contrast, saturation, sharpness } = edit.adjustments;
 
-  // Se aplica el recorte y los ajustes una sola vez y cada variante sale de ese resultado.
-  let pipeline = sharp(original).autoOrient();
+  // Recorte, ajustes y reducción al ancho mayor se aplican una sola vez; cada variante sale de ese resultado.
+  // Reducir antes de pasar a `raw` evita tener en memoria la foto completa sin comprimir (48 MP ≈ 190 MB).
+  let pipeline = input().autoOrient();
   if (edit.rotation !== 0) pipeline = pipeline.rotate(edit.rotation);
   pipeline = pipeline.extract({ left: crop.x, top: crop.y, width: crop.width, height: crop.height });
+  const largest = Math.max(...widths);
+  if (largest < crop.width) pipeline = pipeline.resize({ width: largest });
   if (brightness !== 1 || saturation !== 1) pipeline = pipeline.modulate({ brightness, saturation });
   if (contrast !== 1) pipeline = pipeline.linear(contrast, 128 * (1 - contrast));
 
   const { data, info } = await pipeline.raw().toBuffer({ resolveWithObject: true });
 
   return Promise.all(
-    variantWidthsFor(kind, crop.width).map(async (width) => ({
-      width,
-      buffer: await sharpen(sharp(data, { raw: info }).resize({ width, withoutEnlargement: true }), sharpness)
-        .webp(WEBP_OPTIONS)
-        .toBuffer(),
-    })),
+    widths.map(async (width) => {
+      const resized = sharp(data, { raw: info }).resize({ width, withoutEnlargement: true });
+      const output = await sharpen(resized, sharpness).webp(WEBP_OPTIONS).toBuffer({ resolveWithObject: true });
+      return { width: output.info.width, height: output.info.height, buffer: output.data };
+    }),
   );
 }
 

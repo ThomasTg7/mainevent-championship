@@ -12,9 +12,9 @@ const media: MediaDTO = {
   focal: { x: 0.5, y: 0.2 },
   alt: "Peleador con guantes",
   variants: [
-    { width: 400, url: "/media/variants/m1/v1/400.webp" },
-    { width: 800, url: "/media/variants/m1/v1/800.webp" },
-    { width: 1200, url: "/media/variants/m1/v1/1200.webp" },
+    { width: 400, height: 600, url: "/media/variants/m1/v1/400.webp" },
+    { width: 800, height: 1200, url: "/media/variants/m1/v1/800.webp" },
+    { width: 1200, height: 1800, url: "/media/variants/m1/v1/1200.webp" },
   ],
   originalUrl: "/media/originals/fighter_body/m1.jpg",
 };
@@ -38,6 +38,13 @@ describe("MediaImage", () => {
     render(<MediaImage media={media} sizes="100vw" />);
 
     expect(screen.getByRole("img")).toHaveAttribute("src", "/media/variants/m1/v1/1200.webp");
+  });
+
+  it("declares the size of the result so the page reserves its space (no layout shift)", () => {
+    render(<MediaImage media={media} sizes="100vw" />);
+
+    expect(screen.getByRole("img")).toHaveAttribute("width", "1200");
+    expect(screen.getByRole("img")).toHaveAttribute("height", "1800");
   });
 
   it("loads lazily by default", () => {

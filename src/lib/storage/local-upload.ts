@@ -11,8 +11,12 @@ export async function handleLocalUpload(request: Request, key: string, storage: 
     return Response.json({ error: "Formato no permitido" }, { status: 400 });
   }
 
-  const declaredLength = Number(request.headers.get("content-length") ?? 0);
-  if (declaredLength > grant.maxBytes) {
+  // Sin largo declarado habría que leer el cuerpo entero antes de saber si excede el límite.
+  const lengthHeader = request.headers.get("content-length");
+  if (lengthHeader === null) {
+    return Response.json({ error: "Falta el tamaño del archivo" }, { status: 411 });
+  }
+  if (Number(lengthHeader) > grant.maxBytes) {
     return Response.json({ error: "El archivo es demasiado grande" }, { status: 413 });
   }
 
@@ -21,6 +25,9 @@ export async function handleLocalUpload(request: Request, key: string, storage: 
     return Response.json({ error: "El archivo es demasiado grande" }, { status: 413 });
   }
 
-  await storage.put(key, body, grant.contentType);
+  // Un solo uso: una vez subido (y quizá ya validado o sanitizado por finalizeUpload) no se puede reemplazar.
+  if (!(await storage.putIfAbsent(key, body))) {
+    return Response.json({ error: "Este enlace de subida ya se usó" }, { status: 409 });
+  }
   return Response.json({ ok: true });
 }

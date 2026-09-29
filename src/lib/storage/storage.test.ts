@@ -78,11 +78,15 @@ describe("handleLocalUpload", () => {
 
   afterEach(() => rm(rootDir, { recursive: true, force: true }));
 
-  async function upload(body: string, overrides: { contentType?: string; key?: string } = {}) {
+  async function upload(body: string, overrides: { contentType?: string; key?: string; withLength?: boolean } = {}) {
     const { url, headers } = await driver.presignPut("originals/x.png", "image/png", 10);
     const request = new Request(new URL(url, "http://localhost"), {
       method: "PUT",
-      headers: { ...headers, ...(overrides.contentType ? { "Content-Type": overrides.contentType } : {}) },
+      headers: {
+        ...headers,
+        ...(overrides.withLength === false ? {} : { "Content-Length": String(Buffer.byteLength(body)) }),
+        ...(overrides.contentType ? { "Content-Type": overrides.contentType } : {}),
+      },
       body,
     });
     return handleLocalUpload(request, overrides.key ?? "originals/x.png", driver);
@@ -104,6 +108,16 @@ describe("handleLocalUpload", () => {
 
   it("rejects an invalid token", async () => {
     expect((await upload("12345", { key: "originals/other.png" })).status).toBe(403);
+  });
+
+  it("requires the declared length so the body is never read without a limit", async () => {
+    expect((await upload("12345", { withLength: false })).status).toBe(411);
+  });
+
+  it("only accepts one upload per signed url (the validated file cannot be replaced)", async () => {
+    expect((await upload("12345")).status).toBe(200);
+    expect((await upload("67890")).status).toBe(409);
+    expect((await driver.get("originals/x.png")).toString()).toBe("12345");
   });
 });
 
@@ -144,6 +158,7 @@ describe("S3Driver", () => {
     expect(url).toContain("localhost:9000");
     expect(url).toContain("originals/x.jpg");
     expect(url).toContain("X-Amz-Signature=");
-    expect(headers).toEqual({ "Content-Type": "image/jpeg" });
+    expect(headers).toEqual({ "Content-Type": "image/jpeg", "If-None-Match": "*" });
+    expect(decodeURIComponent(url)).toContain("if-none-match");
   });
 });

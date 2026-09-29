@@ -5,6 +5,9 @@ import { AutoModel, AutoProcessor, RawImage, env } from "@huggingface/transforme
 env.allowLocalModels = false;
 
 const MODEL_ID = "Xenova/modnet";
+// Lado mayor del PNG resultante. A tamaño completo, una foto de celular de 12 MP pasa de 15 MB en PNG con
+// transparencia y la subida se rechaza; 2400 px sobra para la variante más grande (1200×1800).
+const MAX_OUTPUT_SIDE = 2400;
 
 type Request = { id: number; blob: Blob };
 
@@ -35,15 +38,18 @@ async function removeBackground(blob: Blob, onProgress: (value: number) => void)
   const image = await RawImage.fromBlob(blob);
   const { pixel_values } = await processor(image);
   const { output } = await model({ input: pixel_values });
-  const mask = await RawImage.fromTensor(output[0].mul(255).to("uint8")).resize(image.width, image.height);
+  const scale = Math.min(1, MAX_OUTPUT_SIDE / Math.max(image.width, image.height));
+  const width = Math.round(image.width * scale);
+  const height = Math.round(image.height * scale);
+  const mask = await RawImage.fromTensor(output[0].mul(255).to("uint8")).resize(width, height);
 
-  const canvas = new OffscreenCanvas(image.width, image.height);
+  const canvas = new OffscreenCanvas(width, height);
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Canvas no disponible");
 
   const bitmap = await createImageBitmap(blob);
-  context.drawImage(bitmap, 0, 0, image.width, image.height);
-  const pixels = context.getImageData(0, 0, image.width, image.height);
+  context.drawImage(bitmap, 0, 0, width, height);
+  const pixels = context.getImageData(0, 0, width, height);
   for (let i = 0; i < mask.data.length; i++) {
     pixels.data[4 * i + 3] = mask.data[i];
   }

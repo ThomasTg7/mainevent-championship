@@ -70,12 +70,21 @@ describe("MEDIA_SPECS", () => {
       .map(([kind]) => kind);
     expect(withSvg).toEqual(["sponsor_logo"]);
   });
+
+  it("never forces a crop on sponsor logos: they are shown whole inside a 2:1 box (spec §5)", () => {
+    expect(MEDIA_SPECS.sponsor_logo.aspect).toBeNull();
+    expect(MEDIA_SPECS.sponsor_logo.box).toBe(2);
+  });
 });
 
 describe("describeSpec", () => {
   it("describes fixed-aspect kinds with recommended, minimum and ratio", () => {
     expect(describeSpec("fighter_body")).toBe("Recomendado: 1200×1800 · Mínimo: 800×1200 · Proporción 2:3");
     expect(describeSpec("og_image")).toBe("Recomendado: 1200×630 · Mínimo: 1200×630 · Proporción 1.91:1");
+  });
+
+  it("describes boxed kinds as shown whole inside their box", () => {
+    expect(describeSpec("sponsor_logo")).toBe("Recomendado: 600×300 · Mínimo: 300×150 · Se ve completo dentro de una caja 2:1");
   });
 
   it("describes free-form kinds by their longest side", () => {

@@ -16,6 +16,14 @@ const FREE_ASPECTS = [
   { value: "0.8", label: "4:5 (vertical)" },
 ] as const;
 
+/** Proporción de la lista que corresponde a un recorte guardado, para reabrirlo igual ("original" si no calza con ninguna). */
+export function aspectChoiceFor(crop: Crop | null | undefined): string {
+  if (!crop) return "original";
+  const ratio = crop.width / crop.height;
+  const match = FREE_ASPECTS.find((option) => option.value !== "original" && Math.abs(Number(option.value) - ratio) < 0.01);
+  return match?.value ?? "original";
+}
+
 type CropStageProps = {
   src: string;
   aspect: number;

@@ -115,6 +115,24 @@ describe("renderVariants", () => {
     expect(height).toBe(900);
   });
 
+  it("reports the height of every variant so pages can reserve their space", async () => {
+    const variants = await renderVariants(fixture("fighter-transparent.png"), "gallery", {
+      ...NEUTRAL_EDIT,
+      crop: { x: 0, y: 0, width: 1200, height: 900 },
+    });
+
+    expect(variants.map(({ width, height }) => [width, height])).toEqual([[800, 600]]);
+    const { height } = await dimensions(variants[0].buffer);
+    expect(height).toBe(600);
+  });
+
+  it("keeps a square sponsor logo whole instead of cropping it to 2:1", async () => {
+    const square = await sharp({ create: { width: 600, height: 600, channels: 4, background: "#fb0" } }).png().toBuffer();
+    const variants = await renderVariants(square, "sponsor_logo", NEUTRAL_EDIT);
+
+    expect(variants.map(({ width, height }) => [width, height])).toEqual([[300, 300], [600, 600]]);
+  });
+
   it("never upscales a small image", async () => {
     const tiny = await sharp({ create: { width: 300, height: 200, channels: 3, background: "#fff" } }).jpeg().toBuffer();
     const variants = await renderVariants(tiny, "news_cover", NEUTRAL_EDIT);

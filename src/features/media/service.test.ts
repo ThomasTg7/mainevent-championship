@@ -1,4 +1,5 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { crc32, deflateSync } from "node:zlib";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { eq } from "drizzle-orm";
@@ -22,6 +23,30 @@ const NEUTRAL_EDIT: MediaEdit = {
 };
 
 const HOUR = 60 * 60 * 1000;
+
+function pngChunk(name: string, data: Buffer): Buffer {
+  const type = Buffer.from(name);
+  const chunk = Buffer.alloc(12 + data.length);
+  chunk.writeUInt32BE(data.length, 0);
+  type.copy(chunk, 4);
+  data.copy(chunk, 8);
+  chunk.writeUInt32BE(crc32(Buffer.concat([type, data])), 8 + data.length);
+  return chunk;
+}
+
+/** PNG diminuto que declara las dimensiones pedidas: `sharp().metadata()` lo lee sin decodificar píxeles. */
+function pngDeclaring(width: number, height: number): Buffer {
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(width, 0);
+  header.writeUInt32BE(height, 4);
+  header.set([8, 2, 0, 0, 0], 8);
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    pngChunk("IHDR", header),
+    pngChunk("IDAT", deflateSync(Buffer.alloc(0))),
+    pngChunk("IEND", Buffer.alloc(0)),
+  ]);
+}
 const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100"/></svg>';
 const DIRTY_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><script>alert(1)</script><rect width="200" height="100" onclick="x()"/></svg>';
@@ -157,6 +182,14 @@ describe("media service", () => {
       expect(await db.select().from(media).where(eq(media.id, mediaId))).toEqual([]);
     });
 
+    it("rejects and discards an image with too many pixels (decompression bomb)", async () => {
+      // 60 MP declarados en un archivo de pocos bytes.
+      const mediaId = await upload("gallery", "image/png", pngDeclaring(10_000, 6_000));
+
+      await expect(finalizeUpload(db, storage, mediaId)).rejects.toThrow("La imagen tiene demasiados píxeles");
+      expect(await db.select().from(media).where(eq(media.id, mediaId))).toEqual([]);
+    });
+
     it("rewrites SVG logos sanitized", async () => {
       const mediaId = await upload("sponsor_logo", "image/svg+xml", Buffer.from(DIRTY_SVG));
 
@@ -216,6 +249,20 @@ describe("media service", () => {
       expect(newKeys.filter((key) => oldKeys.includes(key))).toEqual([]);
       for (const key of oldKeys) await expect(storage.get(key)).rejects.toThrow();
       for (const key of newKeys) await expect(storage.get(key)).resolves.toBeInstanceOf(Buffer);
+    });
+
+    it("does not leave orphan variant files when two edits are saved at the same time", async () => {
+      const mediaId = await readyMedia("fighter_body", 1200, 1800);
+
+      await Promise.all([
+        saveMediaEdit(db, storage, mediaId, NEUTRAL_EDIT),
+        saveMediaEdit(db, storage, mediaId, { ...NEUTRAL_EDIT, rotation: 180 }),
+      ]);
+
+      const [row] = await db.select().from(media).where(eq(media.id, mediaId));
+      const files = await readdir(path.join(rootDir, "variants", mediaId), { recursive: true, withFileTypes: true });
+      const stored = files.filter((file) => file.isFile()).map((file) => path.join(file.parentPath, file.name));
+      expect(stored.sort()).toEqual(row.variants.map((variant) => path.join(rootDir, variant.key)).sort());
     });
 
     it("keeps SVG logos as they are, without variants", async () => {

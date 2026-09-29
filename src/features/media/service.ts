@@ -3,7 +3,7 @@ import { and, eq, inArray, lt } from "drizzle-orm";
 import sharp, { type Metadata } from "sharp";
 import type { Db } from "@/db";
 import { media, type MediaRow, type StoredVariant } from "@/db/schema/media";
-import { MAX_UPLOAD_BYTES, MEDIA_SPECS, checkResolution, isMediaKind, type MediaKind } from "@/domain/media-specs";
+import { MAX_INPUT_PIXELS, MAX_UPLOAD_BYTES, MEDIA_SPECS, checkResolution, isMediaKind, type MediaKind } from "@/domain/media-specs";
 import type { StorageDriver } from "@/lib/storage";
 import { toMediaDTO, type MediaDTO } from "./dto";
 import { renderVariants, sanitizeSvg, visibleSize } from "./process";
@@ -82,7 +82,8 @@ export async function finalizeUpload(
 
   let metadata: Metadata;
   try {
-    metadata = await sharp(original).metadata();
+    // Solo lee la cabecera; el tope de píxeles se revisa abajo con un mensaje claro.
+    metadata = await sharp(original, { limitInputPixels: false }).metadata();
   } catch {
     metadata = {} as Metadata;
   }
@@ -94,6 +95,10 @@ export async function finalizeUpload(
   if (!actualMime || w === 0 || h === 0 || (actualMime === "image/svg+xml") !== isSvg || !MEDIA_SPECS[row.kind].accepts.includes(actualMime)) {
     await discardUpload(db, storage, row);
     throw new MediaError("El archivo no es una imagen válida");
+  }
+  if (!isSvg && w * h > MAX_INPUT_PIXELS) {
+    await discardUpload(db, storage, row);
+    throw new MediaError("La imagen tiene demasiados píxeles (máx. 50 megapíxeles). Achícala e inténtalo de nuevo.");
   }
 
   if (isSvg) {
@@ -122,30 +127,36 @@ export async function saveMediaEdit(
     // La versión va en la clave: las variantes nuevas nunca pisan a las anteriores y se cachean para siempre.
     const version = randomUUID().slice(0, 8);
     variants = await Promise.all(
-      rendered.map(async ({ width, buffer }) => {
+      rendered.map(async ({ width, height, buffer }) => {
         const key = `variants/${row.id}/${version}/${width}.webp`;
         await storage.put(key, buffer, "image/webp");
-        return { width, key };
+        return { width, height, key };
       }),
     );
   }
 
-  const [saved] = await db
-    .update(media)
-    .set({
-      crop: edit.crop,
-      rotation: edit.rotation,
-      focalX: edit.focal.x,
-      focalY: edit.focal.y,
-      adjustments: edit.adjustments,
-      variants,
-      alt: edit.alt,
-      status: "ready",
-    })
-    .where(eq(media.id, row.id))
-    .returning();
+  // Se bloquea la fila para leer las variantes que de verdad se reemplazan: si dos ediciones se guardan
+  // a la vez, cada una borra las de la anterior y no quedan archivos sin dueño.
+  const { saved, replaced } = await db.transaction(async (tx) => {
+    const [current] = await tx.select({ variants: media.variants }).from(media).where(eq(media.id, row.id)).for("update");
+    const [updated] = await tx
+      .update(media)
+      .set({
+        crop: edit.crop,
+        rotation: edit.rotation,
+        focalX: edit.focal.x,
+        focalY: edit.focal.y,
+        adjustments: edit.adjustments,
+        variants,
+        alt: edit.alt,
+        status: "ready",
+      })
+      .where(eq(media.id, row.id))
+      .returning();
+    return { saved: updated, replaced: current?.variants ?? [] };
+  });
 
-  await Promise.allSettled(row.variants.map((variant) => storage.delete(variant.key)));
+  await Promise.allSettled(replaced.map((variant) => storage.delete(variant.key)));
   return toMediaDTO(saved, storage);
 }
 

@@ -9,8 +9,8 @@ export type MediaDTO = {
   height: number;
   focal: { x: number; y: number };
   alt: string;
-  /** Vacío para SVG: se usa `originalUrl` (sanitizado, sin variantes). */
-  variants: { width: number; url: string }[];
+  /** Vacío para SVG: se usa `originalUrl` (sanitizado, sin variantes). `height` falta en imágenes guardadas antes de registrarlo. */
+  variants: { width: number; height?: number; url: string }[];
   originalUrl: string;
 };
 
@@ -22,7 +22,7 @@ export function toMediaDTO(row: MediaRow, storage: StorageDriver): MediaDTO {
     height: row.height ?? 0,
     focal: { x: row.focalX, y: row.focalY },
     alt: row.alt,
-    variants: row.variants.map((variant) => ({ width: variant.width, url: storage.publicUrl(variant.key) })),
+    variants: row.variants.map(({ width, height, key }) => ({ width, height, url: storage.publicUrl(key) })),
     originalUrl: storage.publicUrl(row.originalKey),
   };
 }

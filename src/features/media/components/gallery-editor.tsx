@@ -3,7 +3,7 @@
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { MEDIA_SPECS } from "@/domain/media-specs";
 import type { MediaDTO } from "../dto";
 import { EditorDialog } from "./editor-dialog";
@@ -24,6 +24,7 @@ export function GalleryEditor({ media: initialMedia = [], onChange }: GalleryEdi
   const [items, setItems] = useState<MediaDTO[]>(initialMedia);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const commit = useCallback(
     (next: MediaDTO[]) => {
@@ -76,7 +77,7 @@ export function GalleryEditor({ media: initialMedia = [], onChange }: GalleryEdi
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div ref={containerRef} className="flex flex-col gap-3">
       {items.length > 0 ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
@@ -114,8 +115,8 @@ export function GalleryEditor({ media: initialMedia = [], onChange }: GalleryEdi
           </>
         ) : null}
       </p>
-      {[...errors, ...(editing.error ? [editing.error] : [])].map((message) => (
-        <p key={message} role="alert" className="text-sm text-destructive">
+      {[...errors, ...(editing.error ? [editing.error] : [])].map((message, index) => (
+        <p key={index} role="alert" className="text-sm text-destructive">
           {message}
         </p>
       ))}
@@ -126,6 +127,7 @@ export function GalleryEditor({ media: initialMedia = [], onChange }: GalleryEdi
         onSave={editing.save}
         onCancel={editing.cancel}
         onBackgroundRemoved={editing.replaceWithCutout}
+        returnFocusTo={containerRef}
       />
     </div>
   );

@@ -10,7 +10,7 @@ import type { MediaEdit } from "../schema";
 import { DEFAULT_ADJUSTMENTS } from "../schema";
 import { AdjustmentsPanel, SharpenFilter, adjustmentsFilter } from "./adjustments";
 import { CHECKERBOARD } from "./checkerboard";
-import { CropStage, CropTools } from "./crop-stage";
+import { CropStage, CropTools, aspectChoiceFor } from "./crop-stage";
 import { FocalPicker } from "./focal-picker";
 import { ModeSwitch, type EditorMode } from "./mode-switch";
 import { PreviewFrames } from "./preview-frames";
@@ -42,7 +42,7 @@ export function ImageEditor({ kind, src, natural, initial, onSave, onCancel, onB
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState<Rotation>(initial?.rotation ?? 0);
-  const [aspectChoice, setAspectChoice] = useState("original");
+  const [aspectChoice, setAspectChoice] = useState(() => aspectChoiceFor(initial?.crop));
   const [pixels, setPixels] = useState<Crop | null>(initial?.crop ?? null);
   const [focal, setFocal] = useState(initial?.focal ?? { x: 0.5, y: 0.5 });
   const [adjustments, setAdjustments] = useState(initial?.adjustments ?? DEFAULT_ADJUSTMENTS);

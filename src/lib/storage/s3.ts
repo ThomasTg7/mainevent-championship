@@ -53,11 +53,12 @@ export class S3Driver implements StorageDriver {
 
   async presignPut(key: string, contentType: string, _maxBytes: number) {
     // El largo exacto no se conoce al firmar; el tamaño se verifica en finalizeUpload.
+    // `If-None-Match: *` (firmado) hace la URL de un solo uso: no puede reemplazar un original ya validado.
     const url = await getSignedUrl(
       this.client,
-      new PutObjectCommand({ Bucket: this.config.bucket, Key: key, ContentType: contentType }),
-      { expiresIn: PRESIGN_TTL_SECONDS },
+      new PutObjectCommand({ Bucket: this.config.bucket, Key: key, ContentType: contentType, IfNoneMatch: "*" }),
+      { expiresIn: PRESIGN_TTL_SECONDS, signableHeaders: new Set(["content-type", "if-none-match"]) },
     );
-    return { url, headers: { "Content-Type": contentType } };
+    return { url, headers: { "Content-Type": contentType, "If-None-Match": "*" } };
   }
 }

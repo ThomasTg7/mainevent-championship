@@ -136,6 +136,23 @@ describe("ImageEditor", () => {
     expect(cropperProps.current.aspect).toBe(1);
   });
 
+  it("reopens a gallery photo with the ratio it was cropped to", () => {
+    renderEditor({
+      kind: "gallery",
+      natural: { w: 2400, h: 1600 },
+      initial: {
+        crop: { x: 0, y: 0, width: 1600, height: 1600 },
+        rotation: 0,
+        focal: { x: 0.5, y: 0.5 },
+        adjustments: { brightness: 1, contrast: 1, saturation: 1, sharpness: 0 },
+        alt: "",
+      },
+    });
+
+    expect(cropperProps.current.aspect).toBe(1);
+    expect(screen.getByLabelText("Proporción del recorte")).toHaveValue("1");
+  });
+
   it("does not offer a free aspect ratio for fixed kinds", () => {
     renderEditor({ kind: "fighter_body" });
 
