@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/site-urls";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +53,7 @@ export function FightersAdminFilters({ divisions, values }: FightersAdminFilters
           Filtrar
         </Button>
         <Button asChild variant="outline">
-          <Link href="/admin/peleadores">Limpiar</Link>
+          <Link href={adminPath("/peleadores")}>Limpiar</Link>
         </Button>
       </div>
     </form>

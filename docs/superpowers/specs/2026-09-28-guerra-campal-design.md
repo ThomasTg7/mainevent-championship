@@ -22,7 +22,7 @@ Maqueta visual de referencia: `maqueta/index.html` (home aprobado en estilo, con
 | Entradas | Solo links a ticketera externa + info de puntos de venta. Sin pagos. |
 | Instagram/YouTube/TikTok | Embeds manuales pegando el link. Sin API de Meta. |
 | Analítica | Sin cookies (Vercel Analytics o Umami). Sin banner de cookies. |
-| Dominio | Subdominio `*.vercel.app` al inicio; dominio propio después (solo config). |
+| Dominio | Sitio en `guerracampal.cl` y panel en `admin.guerracampal.cl` (mismo proyecto; el proxy decide por dominio). Antes del dominio propio: dos alias `*.vercel.app` (uno para el panel). Cambiar de dominio es solo configuración (`SITE_URL`, `ADMIN_URL`). |
 | Imagen al compartir | Una imagen fija de marca (1200×630) configurable en el panel. |
 | Lanzamiento | Todo junto al completar. Se desarrolla con datos de prueba (seed); la promotora carga lo real desde el panel. |
 | Unidades | Métrico + imperial (kg/lb, cm/pies-pulgadas). Se guarda en métrico. |
@@ -142,7 +142,8 @@ Textos de Nosotros, Contacto, Privacidad, FAQ de entradas, redes, email, WhatsAp
 
 ## 6. Panel de administración
 
-- Login: `/admin/login`. Email+contraseña o Google; ambos filtrados por lista blanca (`allowed_emails`). Primer admin por script de seed. Recuperar contraseña por email.
+- El panel vive en su subdominio: `admin.guerracampal.cl` (`ADMIN_URL`); el sitio público, en `guerracampal.cl` (`SITE_URL`). Las rutas del panel se escriben sin `/admin` en el navegador (`admin.guerracampal.cl/peleadores`); en el código viven en `src/app/admin` y el proxy traduce. `/admin/...` en el sitio público redirige al subdominio. La sesión solo existe en el subdominio.
+- Login: `admin.guerracampal.cl/login`. Email+contraseña o Google; ambos filtrados por lista blanca (`allowed_emails`). Primer admin por script de seed. Recuperar contraseña por email.
 - Secciones: Inicio (próximo evento, bandeja nueva, borradores, programados, accesos rápidos), Peleadores, Divisiones, Eventos (datos + armador de cartelera con arrastrar y soltar + resultados), Noche de pelea (móvil), Noticias, Rankings y títulos, Patrocinadores, Bandeja, Configuración, Usuarios (lista blanca), Papelera (30 días), Historial de cambios.
 - Todo contenido: borrador / programado / publicado + vista previa.
 - **Noche de pelea** (`/admin/eventos/[id]/en-vivo`): pantalla móvil, pelea actual, botones grandes Roja/Azul/Empate/NC, método, round, tiempo, guardar ⇒ web pública actualizada en ≤ 30 s; avanza a la siguiente pelea. Evento pasa a `en_vivo` al abrir y a `finalizado` al cerrar la última pelea.

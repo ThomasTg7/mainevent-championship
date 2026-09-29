@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   // Los e2e compilan en su propia carpeta para poder correr con `pnpm dev` abierto
   // (Next no permite dos servidores de desarrollo sobre el mismo `.next`).
   distDir: process.env.E2E_DIST_DIR ?? ".next",
+  // En desarrollo el panel se abre en admin.localhost (ver src/lib/site-urls.ts): Next bloquea por defecto
+  // los recursos de desarrollo (HMR, chunks) pedidos desde otro origen.
+  allowedDevOrigins: ["admin.localhost"],
 };
 
 export default nextConfig;

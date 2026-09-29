@@ -17,7 +17,8 @@
 - Plantilla de título: `"%s | Guerra Campal"`; home: `"Guerra Campal — MMA en Chile"`.
 - Descripción máx. 160 caracteres (se trunca en palabra completa con "…").
 - Imagen Open Graph: la variante de 1200 px de `settings.share.ogMediaId` (`getMedia`, URL absoluta); fallback estático `public/og-default.jpg`.
-- `robots.txt`: `Disallow: /admin`, `Disallow: /api`; `Sitemap: <SITE_URL>/sitemap.xml`. Si `SITE_URL` termina en `.vercel.app` y `ALLOW_INDEXING` no es `true`, `Disallow: /` (evitar indexar el subdominio de prueba antes del lanzamiento).
+- **Dos dominios (decisión posterior al Plan 02):** sitio en `SITE_URL` (`guerracampal.cl`) y panel en `ADMIN_URL` (`admin.guerracampal.cl`), servidos por la misma app; `src/proxy.ts` + `src/lib/admin-routing.ts` deciden por dominio. `robots.txt` (`src/app/robots.ts`) responde según el host: en el panel `Disallow: /` siempre; en el sitio lo de abajo. `sitemap.xml` solo en el sitio. Canonical y Open Graph siempre con `SITE_URL`.
+- `robots.txt` del sitio: `Disallow: /admin`, `Disallow: /api`; `Sitemap: <SITE_URL>/sitemap.xml`. Si `SITE_URL` termina en `.vercel.app` y `ALLOW_INDEXING` no es `true`, `Disallow: /` (evitar indexar el subdominio de prueba antes del lanzamiento).
 - `SITE_URL` desde variable de entorno; cambiar de dominio no requiere cambios de código.
 - Analítica: `ANALYTICS_PROVIDER=vercel|umami|none`; nunca cookies.
 - Presupuestos (móvil, Lighthouse): LCP < 2.5 s, CLS < 0.1, TBT < 300 ms, Accesibilidad ≥ 95, SEO = 100 en home, ficha de peleador y página de evento.
@@ -82,9 +83,9 @@
 - Modify: `src/app/(site)/layout.tsx`
 
 **Interfaces:**
-- Produces: `<Analytics />` según `ANALYTICS_PROVIDER` (`vercel` → `@vercel/analytics/react`; `umami` → script `UMAMI_SRC` con `data-website-id`; `none` → nada). No se incluye en `/admin`.
+- Produces: `<Analytics />` según `ANALYTICS_PROVIDER` (`vercel` → `@vercel/analytics/react`; `umami` → script `UMAMI_SRC` con `data-website-id`; `none` → nada). No se incluye en el panel (subdominio de `ADMIN_URL`).
 
-- [ ] **Step 1:** Implementar. **Verificación:** con `ANALYTICS_PROVIDER=none` el HTML no contiene scripts de analítica; con `vercel` aparece; en `/admin` nunca. Ninguna cookie nueva en `document.cookie` tras navegar.
+- [ ] **Step 1:** Implementar. **Verificación:** con `ANALYTICS_PROVIDER=none` el HTML no contiene scripts de analítica; con `vercel` aparece; en el panel nunca. Ninguna cookie nueva en `document.cookie` tras navegar.
 - [ ] **Step 2: Commit** `feat: cookieless analytics`
 
 ### Task 5: Rendimiento y accesibilidad
@@ -93,7 +94,7 @@
 - Create: `lighthouserc.json`, `e2e/a11y.spec.ts`
 - Modify: componentes según hallazgos
 
-- [ ] **Step 1: Test que falla:** `e2e/a11y.spec.ts` corre axe en home, `/peleadores`, ficha, `/eventos/<slug>`, `/rankings`, `/noticias/<slug>`, `/quiero-pelear`, `/admin/login`: 0 violaciones `serious`/`critical`.
+- [ ] **Step 1: Test que falla:** `e2e/a11y.spec.ts` corre axe en home, `/peleadores`, ficha, `/eventos/<slug>`, `/rankings`, `/noticias/<slug>`, `/quiero-pelear` y el login del panel (`adminUrl("/login")` de `e2e/fixtures/admin.ts`): 0 violaciones `serious`/`critical`.
 - [ ] **Step 2:** Corregir hasta PASS (contraste amarillo sobre blanco solo en textos grandes, foco visible, `aria-label` en controles de ícono, orden de encabezados).
 - [ ] **Step 3:** `pnpm build && pnpm start` + `lhci autorun` con los presupuestos de Global Constraints en perfil móvil. Corregir (imagen del hero con `priority` y `fetchPriority`, GSAP/Lenis cargados en cliente de forma diferida, fuentes con `display: swap`) hasta cumplir.
 - [ ] **Step 4: Commit** `perf/a11y: meet lighthouse budgets and axe checks`
@@ -111,15 +112,16 @@
   - Regla de encabezados del dominio de medios (Cloudflare → Rules → Transform Rules → Response headers): `X-Content-Type-Options: nosniff` y `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox` (igual que el driver local), para que un SVG abierto directo no ejecute nada.
   - Modelo de "Quitar fondo": subir los archivos de `Xenova/modnet` (`config.json`, `preprocessor_config.json`, `onnx/model.onnx`) a `models/Xenova/modnet/` del bucket; en `src/features/media/bg-removal/worker.ts`, si existe `NEXT_PUBLIC_MODEL_BASE_URL`, usar `env.remoteHost = <esa URL>/` y `env.remotePathTemplate = "{model}/"`; sin la variable (desarrollo) sigue el Hub. Agregar la variable a `.env.example` y actualizar `bg-removal/README.md`.
   - **Verificación:** subir una foto en producción, reeditarla (vista previa recortada visible) y quitar el fondo: en la pestaña Red, el modelo viene del dominio de medios.
+- [ ] **Step 1c: Dominios:** en el proyecto de Vercel agregar `guerracampal.cl` (y `www` con redirección) y `admin.guerracampal.cl` al **mismo** proyecto; DNS: `A`/`CNAME` que indique Vercel para ambos. Variables: `SITE_URL=https://guerracampal.cl`, `ADMIN_URL=https://admin.guerracampal.cl` (obligatorias en producción: sin ellas la app no arranca; ya no se usa `BETTER_AUTH_URL`). Antes del dominio propio: dos alias `*.vercel.app` (p. ej. `guerracampal.vercel.app` y `guerracampal-admin.vercel.app`) y esas URL en las variables. Google OAuth y los enlaces de los correos apuntan al panel (`docs/configuracion-externa.md`). Los *preview deployments* de Vercel tienen una sola URL: el panel no se puede probar ahí salvo asignando un alias de panel a la rama (ver pendiente de Plan 00 en `docs/decisions.md`).
 - [ ] **Step 2:** Primer deploy; `scripts/create-admin.ts` contra producción para el email de la promotora.
-- [ ] **Step 3: Verificación (smoke test en producción):** login admin, subir foto, crear peleador borrador, previsualizar, publicar, verlo en el sitio; enviar formulario y recibir email; `/sitemap.xml` y `/robots.txt` responden; cron de purga responde 401 sin secreto.
+- [ ] **Step 3: Verificación (smoke test en producción):** `guerracampal.cl/admin` redirige a `admin.guerracampal.cl`; login admin, subir foto, crear peleador borrador, previsualizar, publicar, verlo en el sitio; enviar formulario y recibir email; `/sitemap.xml` y `/robots.txt` responden; cron de purga responde 401 sin secreto.
 - [ ] **Step 4: Commit** `docs: deployment guide`
 
 ### Task 7: Guías de operación y migración a VPS
 
 **Files:**
 - Create: `docs/guia-admin.md` (para la promotora: cómo crear evento, armar cartelera, noche de pelea, cargar resultados, rankings, noticias, formatos de imagen con la tabla del spec, papelera)
-- Create: `docs/vps-migration.md`, `deploy/docker-compose.prod.yml` (app Next standalone, postgres:17, minio, umami, caddy con HTTPS), `deploy/Dockerfile`, `deploy/cron` (purga diaria con `curl` + `CRON_SECRET`; incluye subidas abandonadas e imágenes sin uso), CORS de MinIO y encabezados del dominio de medios en Caddy iguales a los del Step 1b de la Task 6
+- Create: `docs/vps-migration.md`, `deploy/docker-compose.prod.yml` (app Next standalone, postgres:17, minio, umami, caddy con HTTPS para `guerracampal.cl` **y** `admin.guerracampal.cl` hacia la misma app, conservando el `Host`), `deploy/Dockerfile`, `deploy/cron` (purga diaria con `curl` + `CRON_SECRET`; incluye subidas abandonadas e imágenes sin uso), CORS de MinIO y encabezados del dominio de medios en Caddy iguales a los del Step 1b de la Task 6
 
 - [ ] **Step 1:** `next.config.ts` con `output: 'standalone'`; `docker compose -f deploy/docker-compose.prod.yml up` levanta el sitio localmente con MinIO y `STORAGE_DRIVER=s3` apuntando a MinIO. **Verificación:** home carga e imágenes se sirven desde MinIO.
 - [ ] **Step 2:** Documentar migración: `pg_dump`/`pg_restore`, `rclone sync` R2 → MinIO, cambio de DNS, variables a cambiar.

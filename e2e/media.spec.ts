@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
-import { signInAsAdmin } from "./fixtures/admin";
+import { adminUrl, signInAsAdmin } from "./fixtures/admin";
 
 async function png(width: number, height: number, color: string): Promise<Buffer> {
   return sharp({ create: { width, height, channels: 3, background: color } }).png().toBuffer();
@@ -17,7 +17,7 @@ async function expectNoHorizontalScroll(page: Page) {
 
 test.beforeEach(async ({ page }) => {
   await signInAsAdmin(page);
-  await page.goto("/admin/medios");
+  await page.goto(adminUrl("/medios"));
   await expect(page.getByRole("heading", { name: "Prueba de imágenes" })).toBeVisible();
 });
 

@@ -74,9 +74,7 @@ export function createAuth({ db, mailer, baseURL, secret, google }: CreateAuthOp
       },
     },
     socialProviders: google ? { google } : {},
-    // El puerto 3100 es el que usan los e2e (playwright.config.ts).
-    trustedOrigins:
-      process.env.NODE_ENV === "production" ? undefined : ["http://localhost:3000", "http://localhost:3100"],
+    // Solo se confía en `baseURL` (el subdominio del panel): el sitio público nunca llama a la API de auth.
     // En serverless la memoria no se comparte entre instancias; en la BD sí.
     rateLimit: { storage: "database" },
     databaseHooks: {

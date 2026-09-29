@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/site-urls";
 import type { Metadata } from "next";
 import { db } from "@/db";
 import { AdminPage } from "@/components/admin/admin-page";
@@ -17,7 +18,7 @@ export default async function AdminHistorialPage({ searchParams }: PageProps<"/a
   return (
     <AdminPage title="Historial">
       <AuditLogList entries={entries} />
-      <Pagination basePath="/admin/historial" page={page} hasMore={hasMore} />
+      <Pagination basePath={adminPath("/historial")} page={page} hasMore={hasMore} />
     </AdminPage>
   );
 }

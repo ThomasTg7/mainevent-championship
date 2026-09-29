@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { signInAsAdmin } from "./fixtures/admin";
+import { adminUrl, signInAsAdmin } from "./fixtures/admin";
 
 async function expectNoHorizontalScroll(page: Page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -8,7 +8,7 @@ async function expectNoHorizontalScroll(page: Page) {
 
 test.beforeEach(async ({ page }) => {
   await signInAsAdmin(page);
-  await page.goto("/admin/divisiones");
+  await page.goto(adminUrl("/divisiones"));
   await expect(page.getByRole("heading", { name: "Divisiones", level: 1 })).toBeVisible();
 });
 

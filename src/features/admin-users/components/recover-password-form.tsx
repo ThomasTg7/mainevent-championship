@@ -1,5 +1,6 @@
 "use client";
 
+import { adminPath } from "@/lib/site-urls";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { FormField } from "@/components/admin/form-field";
@@ -40,7 +41,7 @@ export function RecoverPasswordForm() {
           Si el correo tiene acceso al panel, te enviamos un enlace para elegir una nueva contraseña. Revisa también
           la carpeta de spam.
         </p>
-        <Link href="/admin/login" className="text-sm text-muted-foreground underline underline-offset-4">
+        <Link href={adminPath("/login")} className="text-sm text-muted-foreground underline underline-offset-4">
           Volver a ingresar
         </Link>
       </div>
@@ -55,7 +56,7 @@ export function RecoverPasswordForm() {
       <Button type="submit" disabled={pending}>
         {pending ? "Enviando…" : "Enviar enlace"}
       </Button>
-      <Link href="/admin/login" className="self-center text-sm text-muted-foreground underline underline-offset-4">
+      <Link href={adminPath("/login")} className="self-center text-sm text-muted-foreground underline underline-offset-4">
         Volver a ingresar
       </Link>
     </form>

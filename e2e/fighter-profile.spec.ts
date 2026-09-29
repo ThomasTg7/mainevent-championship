@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { signInAsAdmin } from "./fixtures/admin";
+import { adminUrl, signInAsAdmin } from "./fixtures/admin";
 
 async function expectNoHorizontalScroll(page: Page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -116,13 +116,14 @@ test("un borrador y un peleador en la papelera responden 404 y no están en el l
 
 test("el borrador se ve con el enlace de vista previa del panel y sin él sigue oculto", async ({ page, context }) => {
   await signInAsAdmin(page);
-  await page.goto("/admin/peleadores?q=borrador");
+  await page.goto(adminUrl("/peleadores?q=borrador"));
   await page.getByRole("link", { name: "Editar Borrador Oculto" }).click();
   await page.getByRole("tab", { name: "Publicación" }).click();
 
   const [preview] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: /Vista previa/ }).click()]);
   await preview.waitForLoadState();
-  await expect(preview).toHaveURL(/\/peleadores\/borrador-oculto\?preview=/);
+  // La vista previa se abre en el sitio público, no en el subdominio del panel.
+  await expect(preview).toHaveURL(/^http:\/\/localhost:\d+\/peleadores\/borrador-oculto\?preview=/);
   await expect(preview.getByRole("heading", { name: "Borrador Oculto", level: 1 })).toBeVisible();
   await expect(preview.getByRole("status").filter({ hasText: "Vista previa" })).toBeVisible();
   await expect(preview.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);

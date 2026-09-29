@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { formValues, zodFieldErrors, type FormActionState } from "@/lib/form-errors";
 import { requireAdmin } from "@/lib/require-admin";
+import { adminPath, publicUrl } from "@/lib/site-urls";
 import { runUserFacing } from "@/lib/user-facing-error";
 import { publicationInputSchema } from "@/features/publication/schema";
 import { createPreviewToken } from "@/features/publication/preview";
@@ -13,6 +13,7 @@ import { getFighterSlug } from "./queries";
 import { fighterIdSchema, fighterInputSchema } from "./schema";
 import { createFighter, deleteFighter, setFighterPublication, updateFighter } from "./service";
 
+/** Carpeta del listado en `src/app` (para `revalidatePath`); en el navegador es `adminPath("/peleadores")`. */
 const ADMIN_PATH = "/admin/peleadores";
 const NOT_FOUND: FormActionState = { error: "No se encontró al peleador" };
 
@@ -42,8 +43,7 @@ export async function createFighterAction(_previous: FormActionState, formData: 
     revalidateFighter(created.id);
     revalidatePath(ADMIN_PATH);
   }, formData);
-  if (createdId) redirect(`${ADMIN_PATH}/${createdId}?creado=1`);
-  return result;
+  return createdId ? { redirectTo: adminPath(`/peleadores/${createdId}?creado=1`) } : result;
 }
 
 export async function updateFighterAction(id: string, _previous: FormActionState, formData: FormData): Promise<FormActionState> {
@@ -91,5 +91,6 @@ export async function createFighterPreviewLinkAction(id: string): Promise<string
   await requireAdmin();
   if (!isFighterId(id)) return null;
   const slug = await getFighterSlug(db, id);
-  return slug ? `/peleadores/${slug}?preview=${createPreviewToken("fighter", id)}` : null;
+  // Absoluto: el panel está en otro dominio que la ficha pública.
+  return slug ? publicUrl(`/peleadores/${slug}?preview=${createPreviewToken("fighter", id)}`) : null;
 }

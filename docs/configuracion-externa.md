@@ -19,14 +19,15 @@ Cuando quieras activarlos, sigue estos pasos. **No pegues las claves en el chat*
    - Publica la app ("En producción"). Si la dejas "En prueba", solo podrán entrar los correos que agregues como usuarios de prueba.
 3. **Credenciales → Crear credenciales → ID de cliente de OAuth**:
    - Tipo: **Aplicación web**.
-   - Orígenes de JavaScript autorizados: `http://localhost:3000` y, cuando exista, `https://<tu-dominio>` (o `https://<proyecto>.vercel.app`).
-   - URI de redireccionamiento autorizados: `http://localhost:3000/api/auth/callback/google` y `https://<tu-dominio>/api/auth/callback/google`.
+   - El panel vive en su propio subdominio (`admin.guerracampal.cl`; en tu PC, `admin.localhost:3000`), así que Google se configura con ese dominio, no con el del sitio.
+   - Orígenes de JavaScript autorizados: `http://admin.localhost:3000` y, cuando exista, `https://admin.guerracampal.cl`.
+   - URI de redireccionamiento autorizados: `http://admin.localhost:3000/api/auth/callback/google` y `https://admin.guerracampal.cl/api/auth/callback/google`.
 4. Copia el **ID de cliente** y el **Secreto** a `.env`:
    ```
    GOOGLE_CLIENT_ID="...apps.googleusercontent.com"
    GOOGLE_CLIENT_SECRET="..."
    ```
-5. Reinicia `pnpm dev`. El botón aparece en `/admin/login`. Solo entran correos que estén en **Usuarios** del panel; cualquier otro ve "Este correo no tiene acceso al panel."
+5. Reinicia `pnpm dev`. El botón aparece en `http://admin.localhost:3000/login`. Solo entran correos que estén en **Usuarios** del panel; cualquier otro ve "Este correo no tiene acceso al panel."
 
 ## 2. Correos con Resend (~15 min + esperar DNS)
 

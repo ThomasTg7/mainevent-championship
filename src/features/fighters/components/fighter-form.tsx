@@ -1,6 +1,8 @@
 "use client";
 
+import { adminPath } from "@/lib/site-urls";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -44,9 +46,11 @@ type FighterFormProps = {
 };
 
 export function FighterForm({ action, defaults, divisions, countries, bodyMedia = null, headshotMedia = null, publication: initialPublication, previewHref, isEdit, justCreated }: FighterFormProps) {
+  const router = useRouter();
   const [tab, setTab] = useState<FighterTab>("data");
   const [state, formAction, isSaving] = useActionState(async (previous: FormActionState, formData: FormData) => {
     const result = await action(previous, formData);
+    if (result.redirectTo) router.replace(result.redirectTo);
     if (result.success) toast.success(result.success);
     if (result.error) toast.error(result.error);
     // Abre la primera pestaña que tenga un error para que se vea junto al campo.
@@ -121,7 +125,7 @@ export function FighterForm({ action, defaults, divisions, countries, bodyMedia 
           {isSaving ? "Guardando…" : isEdit ? "Guardar cambios" : "Crear peleador"}
         </Button>
         <Button asChild variant="outline">
-          <Link href="/admin/peleadores">Volver al listado</Link>
+          <Link href={adminPath("/peleadores")}>Volver al listado</Link>
         </Button>
       </div>
     </form>

@@ -9,6 +9,7 @@ import { runUserFacing } from "@/lib/user-facing-error";
 import { divisionInputSchema, reorderDivisionsSchema, toggleDivisionSchema } from "./schema";
 import { reorderDivisions, saveDivision, toggleDivision } from "./service";
 
+/** Carpeta en `src/app` (para `revalidatePath`). */
 const ADMIN_PATH = "/admin/divisiones";
 
 async function run(task: () => Promise<string>): Promise<FormActionState> {

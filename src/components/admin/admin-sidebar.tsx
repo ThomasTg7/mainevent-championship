@@ -1,5 +1,6 @@
 "use client";
 
+import { adminPath } from "@/lib/site-urls";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -33,22 +34,22 @@ import {
 import { authClient } from "@/lib/auth-client";
 
 const SECTIONS = [
-  { href: "/admin", label: "Inicio", icon: Home },
-  { href: "/admin/peleadores", label: "Peleadores", icon: Swords },
-  { href: "/admin/divisiones", label: "Divisiones", icon: Layers },
-  { href: "/admin/eventos", label: "Eventos", icon: Calendar },
-  { href: "/admin/noticias", label: "Noticias", icon: Newspaper },
-  { href: "/admin/rankings", label: "Rankings", icon: Trophy },
-  { href: "/admin/patrocinadores", label: "Patrocinadores", icon: Handshake },
-  { href: "/admin/bandeja", label: "Bandeja", icon: Inbox },
-  { href: "/admin/configuracion", label: "Configuración", icon: Settings },
-  { href: "/admin/usuarios", label: "Usuarios", icon: UserCog },
-  { href: "/admin/papelera", label: "Papelera", icon: Trash2 },
-  { href: "/admin/historial", label: "Historial", icon: History },
+  { href: adminPath("/"), label: "Inicio", icon: Home },
+  { href: adminPath("/peleadores"), label: "Peleadores", icon: Swords },
+  { href: adminPath("/divisiones"), label: "Divisiones", icon: Layers },
+  { href: adminPath("/eventos"), label: "Eventos", icon: Calendar },
+  { href: adminPath("/noticias"), label: "Noticias", icon: Newspaper },
+  { href: adminPath("/rankings"), label: "Rankings", icon: Trophy },
+  { href: adminPath("/patrocinadores"), label: "Patrocinadores", icon: Handshake },
+  { href: adminPath("/bandeja"), label: "Bandeja", icon: Inbox },
+  { href: adminPath("/configuracion"), label: "Configuración", icon: Settings },
+  { href: adminPath("/usuarios"), label: "Usuarios", icon: UserCog },
+  { href: adminPath("/papelera"), label: "Papelera", icon: Trash2 },
+  { href: adminPath("/historial"), label: "Historial", icon: History },
 ];
 
 function isActive(pathname: string, href: string): boolean {
-  return href === "/admin" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+  return href === adminPath("/") ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function AdminSidebar({ email }: { email: string }) {
@@ -58,14 +59,14 @@ export function AdminSidebar({ email }: { email: string }) {
 
   async function signOut() {
     await authClient.signOut();
-    router.replace("/admin/login");
+    router.replace(adminPath("/login"));
     router.refresh();
   }
 
   return (
     <Sidebar>
       <SidebarHeader className="px-3 py-4">
-        <Link href="/admin" className="flex items-center gap-2 px-1" onClick={() => setOpenMobile(false)}>
+        <Link href={adminPath("/")} className="flex items-center gap-2 px-1" onClick={() => setOpenMobile(false)}>
           <Logo size="sm" />
         </Link>
       </SidebarHeader>

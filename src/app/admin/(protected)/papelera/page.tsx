@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/site-urls";
 import type { Metadata } from "next";
 import { db } from "@/db";
 import { AdminPage } from "@/components/admin/admin-page";
@@ -17,7 +18,7 @@ export default async function AdminPapeleraPage({ searchParams }: PageProps<"/ad
   return (
     <AdminPage title="Papelera">
       <TrashManager items={items} />
-      <Pagination basePath="/admin/papelera" page={page} hasMore={hasMore} />
+      <Pagination basePath={adminPath("/papelera")} page={page} hasMore={hasMore} />
     </AdminPage>
   );
 }

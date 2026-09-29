@@ -7,6 +7,11 @@ export type FormActionState = {
   fieldErrors?: Record<string, string>;
   /** Lo que la persona escribió, para volver a mostrarlo: React 19 vacía el formulario tras cada action. */
   values?: Record<string, string>;
+  /**
+   * Adónde ir tras guardar (p. ej. la edición de lo recién creado). Lo hace el cliente con el router: un `redirect()`
+   * dentro de la action lo resuelve Next sin pasar por el proxy, y en el subdominio del panel caería en otra ruta.
+   */
+  redirectTo?: string;
 };
 
 /** Primer mensaje de cada campo (`path[0]`) para mostrarlo junto al input. */

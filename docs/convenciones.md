@@ -84,3 +84,12 @@ Patrones que ya existen en el código. Los planes 01–07 los heredan: **úsalos
 - **Pestañas que se envuelven en celular:** `TabsList` de shadcn fija `group-data-horizontal/tabs:h-8`, que gana a `h-auto`; agregar `group-data-horizontal/tabs:h-auto` o la 2.ª fila tapa el contenido.
 - **Interruptores (`Switch`):** miden 18 px; envolverlos en una `<label className="flex min-h-11 …">` con texto para que el área táctil sea de 44 px.
 - **Tests e2e en paralelo:** datos propios por spec; los del sitio público dependen del seed y ninguna prueba del panel modifica esos peleadores; esperar el aviso «guardado» antes de recargar tras cambios optimistas.
+
+## Panel en su subdominio (después del Plan 02)
+
+- **Dominios:** sitio en `SITE_URL` (`guerracampal.cl`; dev `localhost:3000`) y panel en `ADMIN_URL` (`admin.guerracampal.cl`; dev `admin.localhost:3000`). `src/lib/site-urls.ts` (`siteOrigin`, `adminOrigin`, `publicUrl`, `adminPath`) y `src/lib/admin-routing.ts` (`routeByHost`, testeado) + `src/proxy.ts`. En producción ambas variables son obligatorias.
+- **Rutas del panel:** los archivos siguen en `src/app/admin/...`, pero en el navegador no llevan `/admin`: `admin.guerracampal.cl/peleadores`. En enlaces, `router.push`/`replace`, `redirect()` de páginas y `basePath` de `Pagination`, usar siempre `adminPath("/peleadores")`; nunca escribir `"/admin/..."`. `revalidatePath` y `PageProps<"/admin/...">` sí usan la ruta de la carpeta (`/admin/peleadores`). En los planes, `/admin/x` indica la carpeta; la URL real es `admin.<dominio>/x`.
+- **Sin `redirect()` dentro de server actions:** Next lo resuelve por dentro sin pasar por el proxy y caería en una página del sitio. La action devuelve `redirectTo` (`FormActionState`) y el cliente hace `router.replace(result.redirectTo)` (ejemplo: `createFighterAction` + `FighterForm`). `requireAdmin()` ya maneja la sesión vencida dentro de una action.
+- **Enlaces del panel al sitio** (vista previa, «ver en el sitio»): absolutos con `publicUrl(path)`; el sitio no se sirve en el subdominio del panel.
+- **Better Auth** usa `ADMIN_URL` como `baseURL`: sesión, Google y enlaces de correo van al panel; la cookie de sesión nunca llega al sitio público.
+- **E2E:** `adminUrl("/peleadores")` de `e2e/fixtures/admin.ts` para todo lo del panel (`playwright.config.ts` fija `SITE_URL`/`ADMIN_URL` al puerto 3100); lo público sigue con rutas relativas.

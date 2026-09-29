@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/site-urls";
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -45,7 +46,7 @@ export default async function AdminPeleadoresPage({ searchParams }: PageProps<"/
       title="Peleadores"
       actions={
         <Button asChild>
-          <Link href="/admin/peleadores/nuevo">
+          <Link href={adminPath("/peleadores/nuevo")}>
             <Plus aria-hidden /> Nuevo peleador
           </Link>
         </Button>
@@ -53,7 +54,7 @@ export default async function AdminPeleadoresPage({ searchParams }: PageProps<"/
     >
       <FightersAdminFilters divisions={divisions} values={values} />
       <FightersAdminList fighters={items} hasFilters={hasFilters} />
-      <Pagination basePath="/admin/peleadores" page={page} hasMore={hasMore} params={values} />
+      <Pagination basePath={adminPath("/peleadores")} page={page} hasMore={hasMore} params={values} />
     </AdminPage>
   );
 }

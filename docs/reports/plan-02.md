@@ -53,12 +53,12 @@ pnpm test && pnpm lint && pnpm typecheck && pnpm test:e2e
 
 ## Qué mirar (en 375 px y 1440 px)
 
-Panel (entrar a `/admin/login`):
-1. `/admin/divisiones`: filas con arrastre, flechas subir/bajar, interruptor «Activa», «Nueva división»; intentar poner 0 kg.
-2. `/admin/peleadores`: filtros (2 columnas en móvil), tarjetas en móvil y tabla en PC, «Publicar / Pasar a borrador / Papelera».
-3. `/admin/peleadores/nuevo`: enviar vacío (errores junto al campo y pestaña con punto rojo), pestaña Fotos (subir foto, recortar), pestaña Publicación (Programar sin fecha deshabilita «Crear peleador»), botón fijo abajo en móvil.
+Panel (desde el ajuste posterior vive en su subdominio: entrar a `http://admin.localhost:3000/login`):
+1. `admin.localhost:3000/divisiones`: filas con arrastre, flechas subir/bajar, interruptor «Activa», «Nueva división»; intentar poner 0 kg.
+2. `admin.localhost:3000/peleadores`: filtros (2 columnas en móvil), tarjetas en móvil y tabla en PC, «Publicar / Pasar a borrador / Papelera».
+3. `admin.localhost:3000/peleadores/nuevo`: enviar vacío (errores junto al campo y pestaña con punto rojo), pestaña Fotos (subir foto, recortar), pestaña Publicación (Programar sin fecha deshabilita «Crear peleador»), botón fijo abajo en móvil.
 4. Editar un peleador: «Vista previa» abre la ficha en otra pestaña (aunque sea borrador); renombrar no cambia el enlace.
-5. `/admin/papelera`: enviar un peleador y restaurarlo; se oculta/muestra al instante en el sitio.
+5. `admin.localhost:3000/papelera`: enviar un peleador y restaurarlo; se oculta/muestra al instante en el sitio.
 
 Sitio público:
 1. `/peleadores`: buscar «perez», «TORO», «leona» (sin tildes/mayúsculas), filtros de división, país, género y estado (por defecto solo activos), silueta sin foto, contadores de récord.

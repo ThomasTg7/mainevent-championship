@@ -1,23 +1,36 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { routeByHost } from "@/lib/admin-routing";
+import { adminOrigin } from "@/lib/site-urls";
 
-// Solo filtro rápido por cookie: la verificación real (sesión válida + lista
-// blanca) la hace requireAdmin() en cada página y server action.
-const PUBLIC_ADMIN_PATHS = new Set(["/admin/login", "/admin/recuperar", "/admin/restablecer"]);
-
+// El panel vive en su subdominio (ADMIN_URL) y el sitio en el suyo (SITE_URL); ver `routeByHost`.
 export function proxy(request: NextRequest) {
-  if (PUBLIC_ADMIN_PATHS.has(request.nextUrl.pathname)) {
-    return NextResponse.next();
-  }
+  const origin = adminOrigin();
+  const route = routeByHost(
+    {
+      // `x-forwarded-host` primero: es el dominio que pidió el navegador cuando hay un proxy delante (Vercel, Caddy).
+      // Falsearlo no da acceso: las páginas del panel igual exigen la sesión, y su cookie solo existe en el subdominio.
+      host: request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? request.nextUrl.host,
+      pathname: request.nextUrl.pathname,
+      search: request.nextUrl.search,
+      hasSession: Boolean(getSessionCookie(request)),
+      isServerAction: request.headers.has("next-action"),
+    },
+    { adminHost: new URL(origin).host, adminOrigin: origin },
+  );
 
-  if (!getSessionCookie(request)) {
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+  if (route.kind === "redirect") return NextResponse.redirect(route.url);
+  if (route.kind === "rewrite") {
+    const url = request.nextUrl.clone();
+    url.pathname = route.pathname;
+    return NextResponse.rewrite(url);
   }
-
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  // Todo menos lo que se sirve igual en ambos dominios: la API (auth, subidas, cron), las imágenes locales,
+  // los archivos de Next y los que tienen extensión (favicon, robots.txt, sitemap.xml).
+  matcher: ["/((?!api/|media/|_next/|.*\\.[a-zA-Z0-9]+$).*)"],
 };

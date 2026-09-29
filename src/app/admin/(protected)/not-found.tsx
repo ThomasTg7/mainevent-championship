@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/site-urls";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -12,10 +13,10 @@ export default function AdminNotFound() {
       </p>
       <div className="flex flex-wrap gap-3">
         <Button asChild>
-          <Link href="/admin">Ir al inicio</Link>
+          <Link href={adminPath("/")}>Ir al inicio</Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href="/admin/papelera">Ver la papelera</Link>
+          <Link href={adminPath("/papelera")}>Ver la papelera</Link>
         </Button>
       </div>
     </div>

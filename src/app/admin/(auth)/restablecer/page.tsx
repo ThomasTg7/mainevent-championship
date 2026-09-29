@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/site-urls";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthCard } from "@/components/admin/auth-card";
@@ -15,7 +16,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps<"/ad
         <p role="alert" className="text-center">
           {authErrorMessage({ code: typeof error === "string" ? error : "INVALID_TOKEN" }, "El enlace no es válido.")}
         </p>
-        <Link href="/admin/recuperar" className="self-center text-sm underline underline-offset-4">
+        <Link href={adminPath("/recuperar")} className="self-center text-sm underline underline-offset-4">
           Pedir un enlace nuevo
         </Link>
       </AuthCard>

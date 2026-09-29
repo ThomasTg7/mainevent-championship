@@ -1,7 +1,9 @@
+import { adminPath } from "@/lib/site-urls";
+
 export const ADMIN_PASSWORD_MIN_LENGTH = 8;
 
 // Página a la que llevan los enlaces de invitación y de recuperación.
-export const PASSWORD_LINK_PATH = "/admin/restablecer";
+export const PASSWORD_LINK_PATH = adminPath("/restablecer");
 
 export type NewPasswordErrors = { password?: string; confirmation?: string };
 

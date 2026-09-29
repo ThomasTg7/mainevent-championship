@@ -1,5 +1,6 @@
 "use client";
 
+import { adminPath } from "@/lib/site-urls";
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
@@ -33,7 +34,7 @@ export function FighterRowActions({ id, name, status }: FighterRowActionsProps) 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button asChild variant="outline">
-        <Link href={`/admin/peleadores/${id}`} aria-label={`Editar ${name}`}>
+        <Link href={adminPath(`/peleadores/${id}`)} aria-label={`Editar ${name}`}>
           <Pencil aria-hidden /> Editar
         </Link>
       </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { adminPath } from "@/lib/site-urls";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -38,12 +39,12 @@ export function LoginForm({ googleEnabled, oauthErrorCode }: LoginFormProps) {
       return;
     }
 
-    router.replace("/admin");
+    router.replace(adminPath("/"));
     router.refresh();
   }
 
   async function handleGoogle() {
-    await authClient.signIn.social({ provider: "google", callbackURL: "/admin", errorCallbackURL: "/admin/login" });
+    await authClient.signIn.social({ provider: "google", callbackURL: adminPath("/"), errorCallbackURL: adminPath("/login") });
   }
 
   return (
@@ -67,7 +68,7 @@ export function LoginForm({ googleEnabled, oauthErrorCode }: LoginFormProps) {
           {pending ? "Ingresando…" : "Ingresar"}
         </Button>
       </form>
-      <Link href="/admin/recuperar" className="self-center text-sm text-muted-foreground underline underline-offset-4">
+      <Link href={adminPath("/recuperar")} className="self-center text-sm text-muted-foreground underline underline-offset-4">
         ¿Olvidaste tu contraseña?
       </Link>
       {googleEnabled ? (
