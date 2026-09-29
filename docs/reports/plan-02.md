@@ -65,3 +65,8 @@ Sitio público:
 2. `/peleadores/matias-perez`: hero, cifras, récord pro/amateur por separado, bio breve en la tarjeta, pestañas Datos/Redes con animación. El récord amateur y el de GC solo aparecen si tienen datos.
 3. `/peleadores/no-existe` y un borrador: 404 con mensaje.
 4. Con «reducir movimiento» activado en el sistema: las cifras aparecen finales, sin conteo.
+
+## Revisión (Opus, 2026-09-29)
+
+- Verificación completa en verde: `pnpm test` (289), `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e` (53) y `E2E_DIST_DIR=.next-e2e pnpm build`.
+- Correcciones (código y UI en 375 px) y ajustes a los planes 03–07: `docs/decisions.md` → «Revisión del Plan 02».

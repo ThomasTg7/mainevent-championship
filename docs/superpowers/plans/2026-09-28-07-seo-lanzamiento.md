@@ -21,13 +21,14 @@
 - `SITE_URL` desde variable de entorno; cambiar de dominio no requiere cambios de código.
 - Analítica: `ANALYTICS_PROVIDER=vercel|umami|none`; nunca cookies.
 - Presupuestos (móvil, Lighthouse): LCP < 2.5 s, CLS < 0.1, TBT < 300 ms, Accesibilidad ≥ 95, SEO = 100 en home, ficha de peleador y página de evento.
+- Heredado del Plan 02: la ficha de peleador (y la de evento y noticia) es dinámica por `?preview=` pero sus datos vienen de `unstable_cache`; `generateMetadata` ya reutiliza la misma lectura (`cache()` de React) y marca `noindex` en la vista previa. Las fichas usan `FighterProfileDTO` (sin `Date`); el JSON-LD se arma desde ese DTO. Contenido programado aparece en listados con hasta 5 min de retraso (tope de caché).
 
 ## Review Focus
 
 - Nombre con comillas o tildes en título/descripción (`Matías "El Toro" Pérez`) debe escaparse bien en meta tags y JSON-LD.
 - Evento cancelado: JSON-LD con `eventStatus: EventCancelled`; evento pasado sigue indexable.
 - Contenido en borrador nunca aparece en el sitemap ni tiene JSON-LD accesible por URL directa.
-- Canonical sin parámetros de filtro (`/peleadores?division=…` → canonical `/peleadores`).
+- Canonical sin parámetros de filtro (`/peleadores?division=…` → canonical `/peleadores`); `/peleadores?q=…` (búsqueda) con `noindex`.
 - Previsualización de admin (`?preview=`) devuelve `noindex`.
 
 ---
@@ -67,7 +68,8 @@
 - Create: `src/app/sitemap.ts`, `src/app/robots.ts`, `src/features/seo/sitemap-entries.ts`, `sitemap-entries.test.ts`
 
 **Interfaces:**
-- Produces: `getSitemapEntries(db, siteUrl): Promise<MetadataRoute.Sitemap>` — rutas fijas + peleadores, eventos y noticias públicos con `lastModified = updated_at`.
+- Produces: `getSitemapEntries(db, siteUrl): Promise<MetadataRoute.Sitemap>` — rutas fijas + peleadores, eventos y noticias públicos (`publicScope` de `src/db/public-scope.ts`) con `lastModified = updated_at`; una consulta por entidad (solo `slug` y `updated_at`), nunca las fichas completas.
+- Decidir (y anotar en `docs/decisions.md`) si 5 min de retraso para lo programado basta; si no, el cron diario no alcanza: agregar un cron cada 5 min que expire los tags de los listados (en un route handler no existe `updateTag`: usar `revalidateTag` con expiración inmediata, verificando en la documentación de Next 16 que no sirva contenido viejo) cuando hay `publish_at` vencido desde la última corrida.
 
 - [ ] **Step 1: Tests que fallan:** entradas incluyen `/peleadores/matias-perez`, excluyen borradores, programados futuros y papelera; `robots` con `SITE_URL=https://gc.vercel.app` y sin `ALLOW_INDEXING` → `disallow: '/'`; con `ALLOW_INDEXING=true` → solo `/admin` y `/api`.
 - [ ] **Step 2:** FAIL → implementar → PASS.
@@ -102,7 +104,7 @@
 - Create: `docs/deploy.md`, `.env.example` (completo y comentado)
 - Modify: `package.json` (`"vercel-build": "pnpm db:migrate && next build"`)
 
-- [ ] **Step 1:** Ejecutar con el usuario siguiendo `docs/configuracion-externa.md` (Google y Resend ya están documentados ahí; completar el resto) (cada servicio lo crea el usuario con su cuenta): Postgres (Neon o Supabase, solo cadena de conexión), bucket R2 con dominio público, dominio de envío en Resend, credenciales OAuth de Google (redirect `https://<SITE_URL>/api/auth/callback/google`), `BETTER_AUTH_SECRET`, `CRON_SECRET`, `PREVIEW_SECRET`, `SITE_URL`, `ANALYTICS_PROVIDER=vercel`, `STORAGE_DRIVER=s3`, `MAIL_DRIVER=resend`, `RESEND_API_KEY`, `MAIL_FROM`. Con Google configurado, el botón aparece solo.
+- [ ] **Step 1:** Ejecutar con el usuario siguiendo `docs/configuracion-externa.md` (Google y Resend ya están documentados ahí; completar el resto) (cada servicio lo crea el usuario con su cuenta): Postgres (Neon o Supabase, solo cadena de conexión), bucket R2 con dominio público, dominio de envío en Resend, credenciales OAuth de Google (redirect `https://<SITE_URL>/api/auth/callback/google`), `BETTER_AUTH_SECRET` (también firma los enlaces de vista previa: no hay `PREVIEW_SECRET`), `CRON_SECRET`, `SITE_URL`, `ANALYTICS_PROVIDER=vercel`, `STORAGE_DRIVER=s3`, `MAIL_DRIVER=resend`, `RESEND_API_KEY`, `MAIL_FROM`. Con Google configurado, el botón aparece solo.
 - [ ] **Step 1b: Bucket de medios** (decisiones de la revisión del Plan 01 en `docs/decisions.md`):
   - CORS del bucket: orígenes `SITE_URL` (y la URL de preview si se usa), métodos `PUT` (el navegador sube el original directo) y `GET` (reeditar una imagen, vista previa recortada en canvas, quitar fondo), encabezados permitidos `Content-Type` e `If-None-Match`, `MaxAgeSeconds` 3600.
   - Verificar la escritura condicional: repetir el `PUT` a una URL firmada ya usada responde 412 (la URL es de un solo uso). Si el proveedor no la respeta, anotarlo en `docs/decisions.md`.

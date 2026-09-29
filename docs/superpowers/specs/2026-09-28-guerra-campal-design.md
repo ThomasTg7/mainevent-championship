@@ -52,7 +52,7 @@ Rutas:
 | `/eventos` | Próximos y pasados |
 | `/eventos/[slug]` | Hero careo, barra fija con fecha/lugar/entradas, pestañas por bloque de cartelera, peleas en orden, horarios, mapa, resultados post-evento, galería, video, patrocinadores del evento |
 | `/peleadores` | Buscador + filtros (división, nacionalidad, género, estado) |
-| `/peleadores/[slug]` | Hero (etiquetas campeón/ranking/estado, apodo, nombre, foto recortada, 3 cifras), última/próxima pelea, noticias relacionadas, récord total vs en la promotora (pro y amateur separados), victorias por método, historial de peleas, info (bio, físico, gimnasio), redes, galería |
+| `/peleadores/[slug]` | Hero (etiquetas campeón/ranking/estado, apodo, nombre, bio breve, foto recortada, 3 cifras: KO/TKO, sumisión y victorias en la promotora; V-D-E del récord total si aún no pelea en la promotora), última/próxima pelea, noticias relacionadas, récord total vs en la promotora (pro y amateur separados; lo que no tiene datos no se muestra), victorias por método, historial de peleas, pestañas Datos (físico, gimnasio) y Redes, galería |
 | `/rankings` | Pestañas Pro / Amateur; P4P + cada división con campeón y puestos; flechas ▲▼/NUEVO; fecha de actualización |
 | `/noticias`, `/noticias/[slug]` | Listado por categoría; post con portada, texto, galería, embeds, peleadores/eventos relacionados, compartir |
 | `/entradas` | Por evento: tramos y precios, link ticketera, puntos de venta, FAQ |
@@ -67,7 +67,7 @@ Peleadores, eventos y noticias tienen `status: draft | scheduled | published`, `
 Es público si `deleted_at IS NULL` y (`status = 'published'` o (`status = 'scheduled'` y `publish_at <= now()`)). La programación se resuelve al leer: no requiere cron.
 
 ### 4.2 Peleadores
-Nombre, apellido, apodo, slug, género, fecha de nacimiento (edad calculada), nacionalidad (ISO 3166-1 alfa-2), ciudad de origen, división, peso (kg), estatura (cm), alcance (cm), guardia (ortodoxo/zurdo/switch), gimnasio, entrenador, disciplina base, bio, estado (activo/inactivo/retirado), redes (instagram, tiktok, youtube, x), foto cuerpo entero, foto rostro.
+Nombre, apellido, apodo, slug, género, fecha de nacimiento (edad calculada), nacionalidad (ISO 3166-1 alfa-2), ciudad de origen, división, peso (kg), estatura (cm), alcance (cm), guardia (ortodoxo/zurdo/switch), gimnasio, entrenador, disciplina base, bio breve (máx. 300 caracteres), estado (activo/inactivo/retirado), redes (instagram, tiktok, youtube, x), foto cuerpo entero, foto rostro, galería de fotos.
 **Récord total manual** (carrera completa, incluye fuera de la promotora): V-D-E-NC pro y V-D-E-NC amateur.
 **Récord en la promotora:** siempre calculado desde las peleas finalizadas; nunca se guarda.
 
@@ -75,7 +75,7 @@ Nombre, apellido, apodo, slug, género, fecha de nacimiento (edad calculada), na
 Nombre, slug, género, límite en kg (lb calculado), orden, cantidad de puestos de ranking, activa. Seed con divisiones UFC (masculinas: Mosca 56.7, Gallo 61.2, Pluma 65.8, Ligero 70.3, Wélter 77.1, Medio 83.9, Semipesado 93.0, Pesado 120.2; femeninas: Paja 52.2, Mosca 56.7, Gallo 61.2, Pluma 65.8). Editables.
 
 ### 4.4 Eventos y cartelera
-Evento: nombre, número, slug, inicio, apertura de puertas, término estimado, recinto, dirección, ciudad, coordenadas, imágenes (hero 16:9, hero móvil 4:5, póster 4:5), link ticketera, tramos de precio `[{nombre, descripción, precio_clp, agotado}]`, puntos de venta, link streaming, estado del evento (`programado | en_vivo | finalizado | cancelado`).
+Evento: nombre, número, slug, inicio, apertura de puertas, término estimado, recinto, dirección, ciudad, coordenadas, imágenes (hero 16:9, hero móvil 4:5, póster 4:5, galería), link ticketera, tramos de precio `[{nombre, descripción, precio_clp, agotado}]`, puntos de venta, link streaming, estado del evento (`programado | en_vivo | finalizado | cancelado`).
 Bloques de cartelera: nombre libre + orden + hora de inicio opcional.
 Pelea: bloque, orden, esquina roja, esquina azul, división o peso pactado (kg), nivel (pro/amateur), rounds programados (3 o 5), duración del round (300 s por defecto; editable), pelea titular (sí/no).
 
