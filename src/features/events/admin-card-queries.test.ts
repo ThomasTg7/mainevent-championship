@@ -34,7 +34,7 @@ describe("getAdminCard", () => {
     const main = card.segments[0]!.bouts[0]!;
     expect(main.status).toBe("completed");
     expect(main.result).toMatchObject({ outcome: "red_win", method: "ko_tko", koTkoType: "ko", endRound: 2, endTimeSeconds: 123, bonuses: ["ko_of_night"] });
-    expect(main.resultLine).toBe("Pérez vence a Araya · KO · R2 2:03");
+    expect(main.resultLine).toBe("Soto vence a Araya · KO · R2 2:03");
   });
 
   it("keeps cancelled fights in the card", async () => {

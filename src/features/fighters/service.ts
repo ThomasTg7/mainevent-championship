@@ -2,7 +2,8 @@ import { and, eq, isNull, ne, or } from "drizzle-orm";
 import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
 import { bouts } from "@/db/schema/events";
-import { fighters, type FighterSocials } from "@/db/schema/fighters";
+import { fighterGallery, fighters, type FighterSocials } from "@/db/schema/fighters";
+import type { Executor } from "@/db/types";
 import { normalizeSearchText } from "@/domain/search";
 import { slugify, uniqueSlug } from "@/domain/slug";
 import { logAudit } from "@/features/audit/log";
@@ -81,6 +82,22 @@ async function assertDivisionFits(db: Db, data: FighterData, currentDivisionId?:
   }
 }
 
+function imageRefs(data: FighterData) {
+  return [
+    { id: data.bodyMediaId, kind: "fighter_body" as const },
+    { id: data.headshotMediaId, kind: "fighter_headshot" as const },
+    ...data.galleryMediaIds.map((id) => ({ id, kind: "gallery" as const })),
+  ];
+}
+
+/** La galería se reescribe entera, en el orden recibido. */
+async function writeGallery(tx: Executor, fighterId: string, mediaIds: string[]): Promise<void> {
+  await tx.delete(fighterGallery).where(eq(fighterGallery.fighterId, fighterId));
+  if (mediaIds.length > 0) {
+    await tx.insert(fighterGallery).values(mediaIds.map((mediaId, sortOrder) => ({ fighterId, mediaId, sortOrder })));
+  }
+}
+
 async function slugTaken(db: Db, slug: string, exceptId?: string): Promise<boolean> {
   const [row] = await db
     .select({ id: fighters.id })
@@ -93,10 +110,7 @@ async function slugTaken(db: Db, slug: string, exceptId?: string): Promise<boole
 export async function createFighter(db: Db, input: FighterRawInput, actorId: string): Promise<{ id: string; slug: string }> {
   const data = parseFighter(input);
   await assertDivisionFits(db, data);
-  await assertUsableMedia(db, [
-    { id: data.bodyMediaId, kind: "fighter_body" },
-    { id: data.headshotMediaId, kind: "fighter_headshot" },
-  ]);
+  await assertUsableMedia(db, imageRefs(data));
 
   let slug: string;
   if (data.slug) {
@@ -107,20 +121,17 @@ export async function createFighter(db: Db, input: FighterRawInput, actorId: str
   }
 
   const status = data.status ?? "draft";
-  const [created] = await db
-    .insert(fighters)
-    .values({ ...editableColumns(data), slug, status, publishAt: normalizePublishAt({ status, publishAt: data.publishAt }) })
-    .returning({ id: fighters.id });
-  if (!created) throw new UserFacingError("No se pudo guardar al peleador");
+  return db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(fighters)
+      .values({ ...editableColumns(data), slug, status, publishAt: normalizePublishAt({ status, publishAt: data.publishAt }) })
+      .returning({ id: fighters.id });
+    if (!created) throw new UserFacingError("No se pudo guardar al peleador");
 
-  await logAudit(db, {
-    actorId,
-    action: "create",
-    entityType: "fighter",
-    entityId: created.id,
-    summary: `Creó al peleador ${fullName(data)}`,
+    await writeGallery(tx, created.id, data.galleryMediaIds);
+    await logAudit(tx, { actorId, action: "create", entityType: "fighter", entityId: created.id, summary: `Creó al peleador ${fullName(data)}` });
+    return { id: created.id, slug };
   });
-  return { id: created.id, slug };
 }
 
 /**
@@ -137,31 +148,24 @@ export async function updateFighter(db: Db, id: string, input: FighterRawInput, 
   if (!current) throw new UserFacingError(NOT_FOUND);
 
   await assertDivisionFits(db, data, current.divisionId);
-  await assertUsableMedia(db, [
-    { id: data.bodyMediaId, kind: "fighter_body" },
-    { id: data.headshotMediaId, kind: "fighter_headshot" },
-  ]);
+  await assertUsableMedia(db, imageRefs(data));
 
   const slug = data.slug ?? current.slug;
   if (slug !== current.slug && (await slugTaken(db, slug, id))) {
     throw new UserFacingError("Ese enlace ya lo usa otro peleador");
   }
 
-  await db
-    .update(fighters)
-    .set({
-      ...editableColumns(data),
-      slug,
-      ...(data.status ? { status: data.status, publishAt: normalizePublishAt({ status: data.status, publishAt: data.publishAt }) } : {}),
-    })
-    .where(eq(fighters.id, id));
-
-  await logAudit(db, {
-    actorId,
-    action: "update",
-    entityType: "fighter",
-    entityId: id,
-    summary: `Editó al peleador ${fullName(data)}`,
+  await db.transaction(async (tx) => {
+    await tx
+      .update(fighters)
+      .set({
+        ...editableColumns(data),
+        slug,
+        ...(data.status ? { status: data.status, publishAt: normalizePublishAt({ status: data.status, publishAt: data.publishAt }) } : {}),
+      })
+      .where(eq(fighters.id, id));
+    await writeGallery(tx, id, data.galleryMediaIds);
+    await logAudit(tx, { actorId, action: "update", entityType: "fighter", entityId: id, summary: `Editó al peleador ${fullName(data)}` });
   });
   return { slug };
 }

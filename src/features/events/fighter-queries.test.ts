@@ -11,16 +11,19 @@ import { daysFromNow, fighterIdBySlug, insertBout, insertEvent, insertSegment } 
 let db: Db;
 let close: () => Promise<void>;
 let perezId: string;
+let sotoId: string;
 let newcomerId: string;
 
+// Diego Soto tiene tres peleas terminadas en la promotora (2-1-0); Matías Pérez ninguna, solo la programada de GC 5.
 beforeAll(async () => {
   ({ db, close } = await createTestDb());
   await seedEvents(db);
   perezId = await fighterIdBySlug(db, "matias-perez");
+  sotoId = await fighterIdBySlug(db, "diego-soto");
   const newcomer = await createFighter(db, validFighterInput(await divisionIdBySlug(db, "peso-ligero"), { firstName: "Nuevo", lastName: "Ingreso" }), "admin-1");
   await setFighterPublication(db, newcomer.id, { status: "published", publishAt: null }, "admin-1");
   newcomerId = newcomer.id;
-  const soto = await fighterIdBySlug(db, "diego-soto");
+  const soto = sotoId;
 
   // Peleas con resultado que no deben contar: evento en borrador, en la papelera y programado a futuro.
   const finished = {
@@ -44,17 +47,21 @@ afterAll(() => close());
 
 describe("listBoutsForRecord", () => {
   it("returns only finished fights of public events", async () => {
-    const rows = await listBoutsForRecord(db, perezId);
+    const rows = await listBoutsForRecord(db, sotoId);
     expect(rows).toHaveLength(3);
     expect(rows.every((row) => row.date instanceof Date)).toBe(true);
-    // Pérez pelea de rojo en dos y de azul en una (la que perdió): el récord la lee bien desde cualquier esquina.
-    expect(rows.filter((row) => row.blueFighterId === perezId)).toHaveLength(1);
+    // Soto pelea de rojo en dos y de azul en una (la que perdió): el récord la lee bien desde cualquier esquina.
+    expect(rows.filter((row) => row.blueFighterId === sotoId)).toHaveLength(1);
   });
 
-  it("feeds computeRecord: two wins and a loss for Pérez, in the promotion", async () => {
-    const record = computeRecord(await listBoutsForRecord(db, perezId), perezId, "pro");
+  it("feeds computeRecord: two wins and a loss for Soto, in the promotion", async () => {
+    const record = computeRecord(await listBoutsForRecord(db, sotoId), sotoId, "pro");
     expect([record.wins, record.losses, record.draws]).toEqual([2, 1, 0]);
     expect(record.streak).toEqual({ type: "win", count: 1 });
+  });
+
+  it("does not count the fights of a draft, trashed or not yet public event (Pérez only has those)", async () => {
+    expect(await listBoutsForRecord(db, perezId)).toEqual([]);
   });
 
   it("keeps amateur and pro fights apart", async () => {
@@ -71,20 +78,21 @@ describe("listBoutsForRecord", () => {
 
 describe("getFighterFightHistory", () => {
   it("lists the finished fights of public events, newest first", async () => {
-    const history = await getFighterFightHistory(db, perezId);
+    const history = await getFighterFightHistory(db, sotoId);
     expect(history.map((row) => row.eventSlug)).toEqual(["guerra-campal-4", "guerra-campal-2", "guerra-campal-1"]);
     expect(history.map((row) => row.fighterResult)).toEqual(["win", "loss", "win"]);
+    expect(await getFighterFightHistory(db, perezId)).toEqual([]);
   });
 
   it("describes each fight from the fighter's point of view", async () => {
-    const [knockout, loss, decision] = await getFighterFightHistory(db, perezId);
+    const [knockout, loss, decision] = await getFighterFightHistory(db, sotoId);
     expect(knockout).toMatchObject({ opponent: { lastName: "Araya", isPublic: true }, methodText: "KO", endRound: 2, endTimeSeconds: 123, level: "pro" });
-    expect(loss).toMatchObject({ opponent: { lastName: "Soto" }, methodText: "Decisión dividida" });
+    expect(loss).toMatchObject({ opponent: { lastName: "Araya" }, methodText: "Decisión dividida" });
     expect(decision).toMatchObject({ methodText: "Decisión unánime", endRound: 3, endTimeSeconds: 300 });
   });
 
   it("carries the date as ISO text and the event name", async () => {
-    const [latest] = await getFighterFightHistory(db, perezId);
+    const [latest] = await getFighterFightHistory(db, sotoId);
     expect(latest!.eventName).toBe("Guerra Campal 4");
     expect(new Date(latest!.date).toISOString()).toBe(latest!.date);
     expect(JSON.parse(JSON.stringify(latest))).toEqual(latest);
@@ -105,6 +113,7 @@ describe("getFighterNextBout", () => {
     const next = await getFighterNextBout(db, perezId);
     expect(next).toMatchObject({ isTitleFight: true, scheduledRounds: 5, opponent: { lastName: "Soto" }, event: { slug: "guerra-campal-5", name: "Guerra Campal 5" } });
     expect(new Date(next!.event.startsAt).toISOString()).toBe(next!.event.startsAt);
+    expect(await getFighterNextBout(db, sotoId)).toMatchObject({ opponent: { lastName: "Pérez" }, isTitleFight: true });
   });
 
   it("names the division, or the catch weight when there is one", async () => {

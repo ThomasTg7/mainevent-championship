@@ -1,4 +1,4 @@
-import { index, integer, jsonb, numeric, pgEnum, pgTable, char, date, text, uuid } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, numeric, pgEnum, pgTable, char, date, primaryKey, text, uuid } from "drizzle-orm/pg-core";
 import { publication, timestamps } from "./_columns";
 import { divisions, fighterGender } from "./divisions";
 import { media } from "./media";
@@ -59,6 +59,21 @@ export const fighters = pgTable(
     index("fighters_nationality_idx").on(table.nationality),
     index("fighters_career_status_idx").on(table.careerStatus),
   ],
+);
+
+/** Galería de fotos del peleador (spec §3), en el orden que se muestra. Se borra con el peleador; la imagen, en cambio, no se puede quitar mientras se use. */
+export const fighterGallery = pgTable(
+  "fighter_gallery",
+  {
+    fighterId: uuid("fighter_id")
+      .notNull()
+      .references(() => fighters.id, { onDelete: "cascade" }),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => media.id, { onDelete: "restrict" }),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.fighterId, table.mediaId] }), index("fighter_gallery_media_id_idx").on(table.mediaId)],
 );
 
 export type Fighter = typeof fighters.$inferSelect;

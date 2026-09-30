@@ -1,3 +1,4 @@
+import { formatClock } from "@/domain/clock";
 import type { ComputedRecord } from "@/domain/record";
 import type { ManualRecord } from "../dto";
 
@@ -69,6 +70,14 @@ function GuerraCampalRecord({ record, title }: { record: ComputedRecord; title: 
           <li className="col-span-2 flex justify-between gap-2">
             <span>Finalizaciones</span>
             <span className="font-bold tabular-nums text-white">{Math.round(record.finishRate * 100)} %</span>
+          </li>
+        ) : null}
+        {record.avgFightSeconds !== null ? (
+          <li className="col-span-2 flex justify-between gap-2">
+            <span>Tiempo promedio</span>
+            <span data-average-time className="font-bold tabular-nums text-white">
+              {formatClock(record.avgFightSeconds)}
+            </span>
           </li>
         ) : null}
       </ul>

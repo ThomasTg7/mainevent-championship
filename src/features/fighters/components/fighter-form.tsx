@@ -38,6 +38,7 @@ type FighterFormProps = {
   countries: Country[];
   bodyMedia?: MediaDTO | null;
   headshotMedia?: MediaDTO | null;
+  gallery?: MediaDTO[];
   publication: PublicationValue;
   /** Solo al editar: enlace de vista previa (o su generador). */
   previewHref?: () => Promise<string | null>;
@@ -45,7 +46,7 @@ type FighterFormProps = {
   justCreated?: boolean;
 };
 
-export function FighterForm({ action, defaults, divisions, countries, bodyMedia = null, headshotMedia = null, publication: initialPublication, previewHref, isEdit, justCreated }: FighterFormProps) {
+export function FighterForm({ action, defaults, divisions, countries, bodyMedia = null, headshotMedia = null, gallery = [], publication: initialPublication, previewHref, isEdit, justCreated }: FighterFormProps) {
   const router = useRouter();
   const [tab, setTab] = useState<FighterTab>("data");
   const [state, formAction, isSaving] = useActionState(async (previous: FormActionState, formData: FormData) => {
@@ -97,7 +98,7 @@ export function FighterForm({ action, defaults, divisions, countries, bodyMedia 
             <FighterRecordTab />
           </TabsContent>
           <TabsContent value="photos" forceMount className="pt-6" hidden={tab !== "photos"}>
-            <FighterPhotosTab bodyMedia={bodyMedia} headshotMedia={headshotMedia} />
+            <FighterPhotosTab bodyMedia={bodyMedia} headshotMedia={headshotMedia} gallery={gallery} />
           </TabsContent>
           <TabsContent value="socials" forceMount className="pt-6" hidden={tab !== "socials"}>
             <FighterSocialsTab />

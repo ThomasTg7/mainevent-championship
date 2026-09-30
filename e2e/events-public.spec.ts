@@ -87,12 +87,12 @@ test("/eventos/guerra-campal-5: careo, cartelera por bloques, horarios y barra f
 
 test("un evento pasado muestra los resultados de cada pelea, sin cuenta regresiva ni entradas", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-4");
-  await expect(page.getByRole("heading", { name: /Pérez\s*VS\s*Araya/, level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Soto\s*VS\s*Araya/, level: 1 })).toBeVisible();
   await expect(page.locator("[data-countdown]")).toHaveCount(0);
   await expect(page.getByRole("main").getByRole("link", { name: "Comprar entradas" })).toHaveCount(0);
 
   const main = page.getByRole("tabpanel").locator("[data-bout]").first();
-  await expect(main.locator("[data-result-line]")).toHaveText("Pérez vence a Araya · KO · R2 2:03");
+  await expect(main.locator("[data-result-line]")).toHaveText("Soto vence a Araya · KO · R2 2:03");
   await expect(main.locator('[data-corner="red"] [data-result="win"]')).toHaveText("Victoria");
   await expect(main.locator('[data-corner="blue"] [data-result="win"]')).toHaveCount(0);
 
@@ -146,6 +146,8 @@ test("un evento que no existe, uno en borrador y uno en la papelera no se ven; l
   await page.goto(adminUrl("/eventos?publicacion=published"));
   await page.getByRole("row").filter({ hasText: "Evento E2E Papelera Público" }).getByRole("button", { name: "Enviar a la papelera Evento E2E Papelera Público" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Enviar a la papelera" }).click();
+  // Se espera el aviso de la action: mientras la lista se recarga la fila desaparece un instante aunque aún no se haya enviado.
+  await expect(page.getByText("Enviado a la papelera").first()).toBeVisible();
   await expect(page.getByRole("row").filter({ hasText: "Evento E2E Papelera Público" })).toHaveCount(0);
   await page.goto(`/eventos/${trashed.slug}`);
   await expect(page.getByRole("heading", { name: "Evento no encontrado" })).toBeVisible();
@@ -158,7 +160,11 @@ test("mientras el evento está en vivo la página pública muestra cada resultad
   const admin = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
   const panel = await admin.newPage();
   await signInAsAdmin(panel);
+  // Abrir la consola pone el evento en vivo con una action: se espera su respuesta (la insignia «EN VIVO» de la consola se
+  // muestra antes, sin esperar al servidor) para que la página pública ya cargue con el evento en vivo.
+  const started = panel.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/en-vivo"));
   await panel.goto(adminUrl(`/eventos/${card.eventId}/en-vivo`));
+  await started;
   await expect(panel.getByRole("main").getByText("● EN VIVO")).toBeVisible();
 
   // El evento ya está en vivo: la página pública lo dice y se refresca sola.

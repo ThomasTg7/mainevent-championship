@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { publicationShape, requireScheduleDate } from "@/features/publication/schema";
-import { optionalEnum, optionalImageId, optionalNumber, optionalSlug, optionalText } from "@/lib/zod-fields";
+import { IMAGE_UNAVAILABLE, optionalEnum, optionalImageId, optionalNumber, optionalSlug, optionalText } from "@/lib/zod-fields";
 
 /** La bio es breve: se muestra dentro de la tarjeta de la ficha, junto al nombre. */
 export const BIO_MAX_LENGTH = 300;
@@ -58,6 +58,12 @@ export const fighterInputSchema = z
     x: optionalText(200, "X"),
     bodyMediaId: optionalImageId(),
     headshotMediaId: optionalImageId(),
+    /** Fotos de la galería en el orden mostrado; sin fotos (o sin el campo) la galería queda vacía. */
+    galleryMediaIds: z
+      .array(z.uuid({ error: IMAGE_UNAVAILABLE }))
+      .max(60, "La galería admite hasta 60 fotos")
+      .default([])
+      .transform((ids) => [...new Set(ids)]),
     proWins: recordCount("Las victorias profesionales"),
     proLosses: recordCount("Las derrotas profesionales"),
     proDraws: recordCount("Los empates profesionales"),
@@ -72,7 +78,7 @@ export const fighterInputSchema = z
 
 export type FighterFormInput = z.input<typeof fighterInputSchema>;
 /** Lo que entrega un formulario HTML: solo textos. Se valida y convierte con `fighterInputSchema`. */
-export type FighterRawInput = FighterFormInput | Record<string, string>;
+export type FighterRawInput = FighterFormInput | Record<string, string | string[]>;
 export type FighterData = z.output<typeof fighterInputSchema>;
 
 export type FighterFilters = {

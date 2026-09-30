@@ -64,6 +64,13 @@
       "when": 1790713104135,
       "tag": "0008_groovy_jetstream",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790727388356,
+      "tag": "0009_burly_the_phantom",
+      "breakpoints": true
     }
   ]
 }

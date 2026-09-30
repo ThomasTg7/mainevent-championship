@@ -74,6 +74,7 @@ const profile: FighterProfileDTO = {
   proRecord: card.record,
   amateurRecord: { wins: 0, losses: 0, draws: 0, noContests: 0 },
   headshotMedia: null,
+  gallery: [],
 };
 
 describe("FighterCard", () => {
@@ -160,6 +161,17 @@ describe("RecordSummary", () => {
     expect(pro.querySelector('[data-record="total"]')).toHaveTextContent("12-2-0");
     expect(pro).toHaveTextContent("GC");
     expect(pro).toHaveTextContent("Guerra Campal");
+  });
+
+  it("shows the average fight time in the Guerra Campal column, only when there is one", () => {
+    const withTime = { ...emptyComputed, wins: 2, losses: 1, avgFightSeconds: 522 };
+    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: empty }} computed={{ pro: withTime, amateur: emptyComputed }} />);
+    expect(container.querySelector('[data-record="gc"]')).toHaveTextContent("Tiempo promedio");
+    expect(container.querySelector('[data-record="gc"] [data-average-time]')).toHaveTextContent("8:42");
+
+    cleanup();
+    const { container: without } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: empty }} computed={{ pro: { ...emptyComputed, wins: 1 }, amateur: emptyComputed }} />);
+    expect(without.querySelector("[data-average-time]")).toBeNull();
   });
 
   it("shows the amateur block only when it has an amateur record", () => {

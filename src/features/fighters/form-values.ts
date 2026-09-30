@@ -78,7 +78,7 @@ export const FIELD_TABS = {
   data: ["firstName", "lastName", "nickname", "slug", "gender", "birthDate", "nationality", "hometown", "divisionId", "careerStatus", "bio"],
   physical: ["weightKg", "heightCm", "reachCm", "stance", "gym", "coach", "baseDiscipline"],
   record: ["proWins", "proLosses", "proDraws", "proNoContests", "amWins", "amLosses", "amDraws", "amNoContests"],
-  photos: ["bodyMediaId", "headshotMediaId"],
+  photos: ["bodyMediaId", "headshotMediaId", "galleryMediaIds"],
   socials: ["instagram", "tiktok", "youtube", "x"],
   publication: ["status", "publishAt"],
 } as const;

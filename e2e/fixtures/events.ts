@@ -7,6 +7,10 @@ import { createEvent } from "@/features/events/service";
 
 /** «Cartel Uno» → `uno`: los peleadores en borrador que crea `e2e/global-setup.ts` para armar carteleras. */
 export type CardFighter = "uno" | "dos" | "tres" | "cuatro" | "cinco" | "seis" | "siete" | "ocho";
+/** Un peleador de prueba («uno»…) o el slug completo de cualquier otro («javiera-munoz»). */
+export type FighterRef = CardFighter | (string & {});
+
+const slugOf = (fighter: FighterRef) => (fighter.includes("-") ? fighter : `cartel-${fighter}`);
 
 export type E2eCard = { eventId: string; slug: string; boutIds: string[] };
 
@@ -18,10 +22,16 @@ export type E2eCard = { eventId: string; slug: string; boutIds: string[] };
  */
 export async function createE2eCard(
   name: string,
-  layout: Record<string, [CardFighter, CardFighter][]>,
-  options: { status?: "draft" | "published"; startsDate?: string } = {},
+  layout: Record<string, [FighterRef, FighterRef][]>,
+  options: {
+    status?: "draft" | "published";
+    startsDate?: string;
+    ticketUrl?: string;
+    ticketTiers?: { name: string; description: string; priceClp: number; soldOut: boolean }[];
+    ticketPoints?: string;
+  } = {},
 ): Promise<E2eCard> {
-  const slugs = [...new Set(Object.values(layout).flatMap((pairs) => pairs.flatMap((pair) => pair.map((last) => `cartel-${last}`))))];
+  const slugs = [...new Set(Object.values(layout).flatMap((pairs) => pairs.flatMap((pair) => pair.map(slugOf))))];
   const rows = slugs.length === 0 ? [] : await db.select({ id: fighters.id, slug: fighters.slug }).from(fighters).where(inArray(fighters.slug, slugs));
   const fighterId = new Map(rows.map((row) => [row.slug, row.id]));
   const [ligero] = await db.select({ id: divisions.id }).from(divisions).where(eq(divisions.slug, "peso-ligero"));
@@ -29,7 +39,18 @@ export async function createE2eCard(
 
   const event = await createEvent(
     db,
-    { name, startsDate: options.startsDate ?? "2031-09-20", startsTime: "21:00", venueName: "Arena Santiago", venueAddress: "Av. Ejemplo 1234", venueCity: "Santiago", status: options.status ?? "published" },
+    {
+      name,
+      startsDate: options.startsDate ?? "2031-09-20",
+      startsTime: "21:00",
+      venueName: "Arena Santiago",
+      venueAddress: "Av. Ejemplo 1234",
+      venueCity: "Santiago",
+      status: options.status ?? "published",
+      ticketUrl: options.ticketUrl,
+      ticketTiers: options.ticketTiers,
+      ticketPoints: options.ticketPoints,
+    },
     "e2e",
   );
 
@@ -37,9 +58,9 @@ export async function createE2eCard(
   for (const [segmentName, pairs] of Object.entries(layout)) {
     const segment = await saveSegment(db, event.id, { name: segmentName }, "e2e");
     for (const [red, blue] of pairs) {
-      const redId = fighterId.get(`cartel-${red}`);
-      const blueId = fighterId.get(`cartel-${blue}`);
-      if (!redId || !blueId) throw new Error(`Faltan los peleadores de prueba «Cartel ${red}» y «Cartel ${blue}»`);
+      const redId = fighterId.get(slugOf(red));
+      const blueId = fighterId.get(slugOf(blue));
+      if (!redId || !blueId) throw new Error(`Faltan los peleadores «${red}» y «${blue}»`);
       boutIds.push((await addBout(db, segment.id, { redFighterId: redId, blueFighterId: blueId, divisionId: ligero.id }, "e2e")).id);
     }
   }

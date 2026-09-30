@@ -75,7 +75,7 @@ const PAST_EVENTS: SeedEvent[] = [
         name: "Cartelera estelar",
         time: "21:30",
         bouts: [
-          { red: F.perez, blue: F.araya, division: "peso-ligero", result: { outcome: "red_win", method: "decision", decisionType: "unanimous", scorecards: cards([29, 28], [29, 28], [30, 27]), referee: "Ricardo Salas" } },
+          { red: F.soto, blue: F.araya, division: "peso-ligero", result: { outcome: "red_win", method: "decision", decisionType: "unanimous", scorecards: cards([29, 28], [29, 28], [30, 27]), referee: "Ricardo Salas" } },
           { red: F.fuentes, blue: F.andrade, division: "peso-welter", result: { outcome: "red_win", method: "ko_tko", koTkoType: "tko_strikes", endRound: 2, endTimeSeconds: 110 } },
         ],
       },
@@ -97,7 +97,7 @@ const PAST_EVENTS: SeedEvent[] = [
         name: "Cartelera estelar",
         time: "21:30",
         bouts: [
-          { red: F.soto, blue: F.perez, division: "peso-ligero", result: { outcome: "red_win", method: "decision", decisionType: "split", scorecards: cards([29, 28], [28, 29], [29, 28]) } },
+          { red: F.araya, blue: F.soto, division: "peso-ligero", result: { outcome: "red_win", method: "decision", decisionType: "split", scorecards: cards([29, 28], [28, 29], [29, 28]) } },
           { red: F.andrade, blue: F.nunez, division: "peso-welter", result: { outcome: "red_win", method: "submission", technique: "Kimura", submissionType: "tap", endRound: 2, endTimeSeconds: 161 } },
         ],
       },
@@ -119,7 +119,7 @@ const PAST_EVENTS: SeedEvent[] = [
         name: "Cartelera estelar",
         time: "21:30",
         bouts: [
-          { red: F.soto, blue: F.araya, division: "peso-ligero", result: { outcome: "red_win", method: "submission", technique: "Triángulo", submissionType: "tap", endRound: 2, endTimeSeconds: 222 } },
+          { red: F.araya, blue: F.lagos, catchweightKg: 68, result: { outcome: "red_win", method: "submission", technique: "Triángulo", submissionType: "tap", endRound: 2, endTimeSeconds: 222 } },
           { red: F.fuentes, blue: F.nunez, division: "peso-welter", result: { outcome: "red_win", method: "decision", decisionType: "majority" } },
         ],
       },
@@ -141,7 +141,7 @@ const PAST_EVENTS: SeedEvent[] = [
         name: "Cartelera estelar",
         time: "21:30",
         bouts: [
-          { red: F.perez, blue: F.araya, division: "peso-ligero", title: true, rounds: 5, result: { outcome: "red_win", method: "ko_tko", koTkoType: "ko", endRound: 2, endTimeSeconds: 123, bonuses: ["ko_of_night"] } },
+          { red: F.soto, blue: F.araya, division: "peso-ligero", rounds: 5, result: { outcome: "red_win", method: "ko_tko", koTkoType: "ko", endRound: 2, endTimeSeconds: 123, bonuses: ["ko_of_night"] } },
           { red: F.andrade, blue: F.fuentes, division: "peso-welter", result: { outcome: "red_win", method: "submission", technique: "Americana", submissionType: "tap", endRound: 1, endTimeSeconds: 252, bonuses: ["sub_of_night"] } },
         ],
       },

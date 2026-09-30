@@ -79,13 +79,14 @@ describe("getPublicEventBySlug", () => {
     const main = event.segments[0]!.bouts[0]!;
     expect(main.status).toBe("completed");
     expect(main.result).toMatchObject({ outcome: "red_win", method: "ko_tko", endRound: 2, endTimeSeconds: 123 });
-    expect(main.result!.line).toBe("Pérez vence a Araya · KO · R2 2:03");
+    expect(main.result!.line).toBe("Soto vence a Araya · KO · R2 2:03");
   });
 
   it("names the submission technique in the result line", async () => {
     const event = (await getPublicEventBySlug(db, "guerra-campal-3"))!;
     const submission = event.segments[0]!.bouts[0]!;
-    expect(submission.result!.line).toBe("Soto vence a Araya · Sumisión (Triángulo) · R2 3:42");
+    expect(submission.result!.line).toBe("Araya vence a Lagos · Sumisión (Triángulo) · R2 3:42");
+    expect(submission).toMatchObject({ catchweightKg: 68, division: null });
     expect(submission.result!.techniqueName).toBe("Triángulo");
   });
 
@@ -106,7 +107,8 @@ describe("getPublicEventBySlug", () => {
 
 describe("getPublicEventRef", () => {
   it("answers only for events that are public right now", async () => {
-    expect(await getPublicEventRef(db, "guerra-campal-5")).toMatchObject({ id: expect.any(String) });
+    expect(await getPublicEventRef(db, "guerra-campal-5")).toMatchObject({ id: expect.any(String), eventStatus: "scheduled" });
+    expect(await getPublicEventRef(db, "evento-en-vivo")).toMatchObject({ eventStatus: "live" });
     expect(await getPublicEventRef(db, "evento-borrador")).toBeNull();
     expect(await getPublicEventRef(db, "evento-papelera")).toBeNull();
     expect(await getPublicEventRef(db, "evento-programado")).toBeNull();

@@ -1,7 +1,7 @@
 import type { SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { eventGallery, events } from "@/db/schema/events";
-import { fighters } from "@/db/schema/fighters";
+import { fighterGallery, fighters } from "@/db/schema/fighters";
 
 /**
  * Quién usa una imagen. Una imagen está en uso mientras alguna fila la referencia; el cron
@@ -17,6 +17,7 @@ export type MediaReference = { label: string; column: AnyPgColumn } | { label: s
 export const MEDIA_REFERENCES: MediaReference[] = [
   { label: "Foto de cuerpo del peleador", column: fighters.bodyMediaId },
   { label: "Foto de rostro del peleador", column: fighters.headshotMediaId },
+  { label: "Galería del peleador", column: fighterGallery.mediaId },
   { label: "Portada del evento", column: events.heroMediaId },
   { label: "Portada móvil del evento", column: events.heroMobileMediaId },
   { label: "Afiche del evento", column: events.posterMediaId },

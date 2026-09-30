@@ -13,6 +13,11 @@ import { getNextEvent, getPublicEventBySlug, getPublicEventRef, listPublicEvents
 // paso de «próximo» a «pasado».
 const REVALIDATE_SECONDS = 300;
 
+// Un evento en vivo se cachea por muy poco: si una petición ya en curso termina *después* de que una action expiró la
+// etiqueta, escribe en la caché los datos de antes de guardar el resultado; con 300 s la página en vivo quedaría vieja
+// minutos aunque la persona que la mira se refresque cada 20 s. Con 10 s el desfase máximo es ese más el refresco.
+const LIVE_REVALIDATE_SECONDS = 10;
+
 // Las tarjetas y la cartelera muestran nombre, foto, bandera y récord de los peleadores: una edición de peleador
 // (`fighters`) o de imagen (`media`) las refresca.
 const LIST_TAGS = [EVENTS_LIST_TAG, FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, TECHNIQUES_TAG];
@@ -41,6 +46,6 @@ export async function getCachedPublicEvent(slug: string) {
   const mediaTags = [ref.heroMediaId, ref.heroMobileMediaId, ref.posterMediaId].flatMap((id) => (id ? [mediaCacheTag(id)] : []));
   return unstable_cache(() => getPublicEventBySlug(db, slug), ["event-page", ref.id, slug], {
     tags: [eventCacheTag(ref.id), FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, TECHNIQUES_TAG, ...mediaTags],
-    revalidate: REVALIDATE_SECONDS,
+    revalidate: ref.eventStatus === "live" ? LIVE_REVALIDATE_SECONDS : REVALIDATE_SECONDS,
   })();
 }

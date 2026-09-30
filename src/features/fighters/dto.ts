@@ -34,6 +34,8 @@ export type FighterProfileDTO = FighterCardDTO & {
   proRecord: ManualRecord;
   amateurRecord: ManualRecord;
   headshotMedia: MediaDTO | null;
+  /** Galería de fotos, en orden. */
+  gallery: MediaDTO[];
 };
 
 export type AdminFighterRow = {

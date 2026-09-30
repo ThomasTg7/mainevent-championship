@@ -42,14 +42,27 @@ async function loadMedia(db: Db, ids: (string | null)[]): Promise<Map<string, Me
 
 /**
  * Lectura mínima (una fila por índice único) para saber si el evento es público *ahora* y qué imágenes lleva
- * (sus etiquetas de caché). Va antes de la lectura cacheada: un borrador o uno en la papelera nunca sale de la caché.
+ * (sus etiquetas de caché) y en qué estado está (uno en vivo se cachea por poco tiempo). Va antes de la lectura
+ * cacheada: un borrador o uno en la papelera nunca sale de la caché.
  */
 export async function getPublicEventRef(
   db: Db,
   slug: string,
-): Promise<{ id: string; heroMediaId: string | null; heroMobileMediaId: string | null; posterMediaId: string | null } | null> {
+): Promise<{
+  id: string;
+  eventStatus: Event["eventStatus"];
+  heroMediaId: string | null;
+  heroMobileMediaId: string | null;
+  posterMediaId: string | null;
+} | null> {
   const [row] = await db
-    .select({ id: events.id, heroMediaId: events.heroMediaId, heroMobileMediaId: events.heroMobileMediaId, posterMediaId: events.posterMediaId })
+    .select({
+      id: events.id,
+      eventStatus: events.eventStatus,
+      heroMediaId: events.heroMediaId,
+      heroMobileMediaId: events.heroMobileMediaId,
+      posterMediaId: events.posterMediaId,
+    })
     .from(events)
     .where(and(eq(events.slug, slug), publicScope(events)))
     .limit(1);

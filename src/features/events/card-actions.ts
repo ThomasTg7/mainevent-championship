@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { db } from "@/db";
 import { zodFieldErrors, type FormActionState } from "@/lib/form-errors";
-import { listAdminFighters } from "@/features/fighters/queries";
+import { listAdminFighters } from "@/features/fighters/admin-queries";
 import { requireAdmin } from "@/lib/require-admin";
 import { runFormAction } from "@/lib/run-form-action";
 import { getBoutEventId, getSegmentEventId } from "./admin-queries";
