@@ -16,7 +16,11 @@ export type E2eCard = { eventId: string; slug: string; boutIds: string[] };
  * cartelera (el primero es el estelar): `{ "Cartelera estelar": [["uno", "dos"]], "Preliminares": [["tres", "cuatro"]] }`.
  * La esquina roja es la primera de cada par.
  */
-export async function createE2eCard(name: string, layout: Record<string, [CardFighter, CardFighter][]>): Promise<E2eCard> {
+export async function createE2eCard(
+  name: string,
+  layout: Record<string, [CardFighter, CardFighter][]>,
+  options: { status?: "draft" | "published"; startsDate?: string } = {},
+): Promise<E2eCard> {
   const slugs = [...new Set(Object.values(layout).flatMap((pairs) => pairs.flatMap((pair) => pair.map((last) => `cartel-${last}`))))];
   const rows = slugs.length === 0 ? [] : await db.select({ id: fighters.id, slug: fighters.slug }).from(fighters).where(inArray(fighters.slug, slugs));
   const fighterId = new Map(rows.map((row) => [row.slug, row.id]));
@@ -25,7 +29,7 @@ export async function createE2eCard(name: string, layout: Record<string, [CardFi
 
   const event = await createEvent(
     db,
-    { name, startsDate: "2031-09-20", startsTime: "21:00", venueName: "Arena Santiago", venueAddress: "Av. Ejemplo 1234", venueCity: "Santiago", status: "published" },
+    { name, startsDate: options.startsDate ?? "2031-09-20", startsTime: "21:00", venueName: "Arena Santiago", venueAddress: "Av. Ejemplo 1234", venueCity: "Santiago", status: options.status ?? "published" },
     "e2e",
   );
 

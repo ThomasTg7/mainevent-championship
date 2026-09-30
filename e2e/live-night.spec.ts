@@ -76,6 +76,16 @@ test("noche de pelea en el celular: abre el evento en vivo, guarda tres resultad
   await expect(page.getByRole("main").getByText("Uno y Dos empatan · Decisión dividida")).toBeVisible();
   await expectNoHorizontalScroll(page);
 
+  // El sitio público muestra los tres resultados (las peleas de cada bloque, en su pestaña) y el evento ya es «Pasado».
+  const visitor = await browser.newContext();
+  const site = await visitor.newPage();
+  await site.goto(`/eventos/${card.slug}`);
+  await expect(site.getByRole("main").getByText("Uno y Dos empatan · Decisión dividida")).toBeVisible();
+  await site.getByRole("tab", { name: "Preliminares" }).click();
+  await expect(site.getByRole("main").getByText("Cuatro vence a Tres · KO · R2 1:42")).toBeVisible();
+  await expect(site.getByRole("main").getByText("Cinco vence a Seis · Decisión unánime · R3 5:00")).toBeVisible();
+  await visitor.close();
+
   // Corregir desde la lista: abre el formulario completo con lo guardado.
   await page.getByRole("button", { name: "Corregir el resultado de Uno vs Dos" }).click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: /Corregir resultado/ })).toBeVisible();
