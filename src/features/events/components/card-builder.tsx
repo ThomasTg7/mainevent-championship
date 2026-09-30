@@ -3,7 +3,7 @@
 import { DndContext, KeyboardSensor, PointerSensor, closestCorners, pointerWithin, useSensor, useSensors, type CollisionDetection, type DragEndEvent } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
-import { useOptimistic, useState, useTransition } from "react";
+import { useId, useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Division } from "@/db/schema/divisions";
@@ -54,6 +54,8 @@ export function CardBuilder({ eventId, segments, divisions, techniques }: CardBu
   // Refleja el orden al instante; si la action falla, React vuelve a la cartelera del servidor.
   const [optimistic, applyOptimistic] = useOptimistic(segments, applyChange);
 
+  // Un id estable evita que el servidor y el cliente numeren distinto las descripciones de accesibilidad de dnd-kit.
+  const dndId = useId();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   const allBouts = optimistic.flatMap((segment) => segment.bouts);
   const fighterIdsInCard = allBouts.filter((bout) => bout.status !== "cancelled").flatMap((bout) => [bout.red.id, bout.blue.id]);
@@ -123,7 +125,7 @@ export function CardBuilder({ eventId, segments, divisions, techniques }: CardBu
           La cartelera está vacía. Agrega un bloque (por ejemplo «Cartelera estelar») y luego sus peleas.
         </p>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={detectCollisions} onDragEnd={handleDragEnd}>
+        <DndContext id={dndId} sensors={sensors} collisionDetection={detectCollisions} onDragEnd={handleDragEnd}>
           <div className="grid items-start gap-4 lg:grid-cols-2">
             {optimistic.map((segment, position) => (
               <SegmentColumn
