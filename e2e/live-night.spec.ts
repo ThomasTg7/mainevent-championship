@@ -16,6 +16,13 @@ async function save(page: Page, label: string) {
   await done;
 }
 
+/** Abre la noche con el botón y espera a que el servidor ponga el evento en vivo (recargar antes lo cancelaría). */
+async function openNight(page: Page) {
+  const started = page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/en-vivo"));
+  await page.getByRole("button", { name: "Abrir la noche de pelea" }).click();
+  await started;
+}
+
 test("noche de pelea en el celular: abre el evento en vivo, guarda tres resultados seguidos y avanza sola", async ({ browser }) => {
   test.setTimeout(120_000);
   const card = await createE2eCard("Noche E2E Vivo", {
@@ -29,7 +36,15 @@ test("noche de pelea en el celular: abre el evento en vivo, guarda tres resultad
   const page = await context.newPage();
   await signInAsAdmin(page);
 
+  // El evento es dentro de años: abrir la consola no lo pone en vivo, hay que abrir la noche a propósito.
   await page.goto(adminUrl(`/eventos/${card.eventId}/en-vivo`));
+  await expect(page.getByRole("button", { name: "Abrir la noche de pelea" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Pelea actual" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Abrir la noche de pelea" })).toBeVisible();
+  await expectNoHorizontalScroll(page);
+
+  await openNight(page);
   await expect(page.getByRole("main").getByText("● EN VIVO")).toBeVisible();
   await expect(page.getByRole("main").getByText("Pelea 1 de 3")).toBeVisible();
   // Las preliminares se pelean primero (la última de la lista antes que la anterior) y la estelar cierra la noche.
@@ -102,6 +117,7 @@ test("noche de pelea: una pelea cancelada se salta y un evento sin peleas lo dic
   await signInAsAdmin(page);
 
   await page.goto(adminUrl(`/eventos/${empty.eventId}/en-vivo`));
+  await openNight(page);
   await expect(page.getByRole("main").getByText("No hay peleas en la cartelera")).toBeVisible();
 
   // Cancelar la única pelea desde el armador: la consola ya no tiene qué pelear.
@@ -112,6 +128,7 @@ test("noche de pelea: una pelea cancelada se salta y un evento sin peleas lo dic
   await expect(page.getByRole("main").getByText("Cancelada", { exact: false }).first()).toBeVisible();
 
   await page.goto(adminUrl(`/eventos/${card.eventId}/en-vivo`));
+  await openNight(page);
   await expect(page.getByRole("main").getByText("Canceladas: Siete vs Ocho.")).toBeVisible();
   await expect(page.getByRole("region", { name: "Pelea actual" })).toHaveCount(0);
   await context.close();

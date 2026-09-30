@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminPage } from "@/components/admin/admin-page";
 import { db } from "@/db";
+import { isEventNight } from "@/domain/event-night";
 import { getAdminCard } from "@/features/events/admin-card-queries";
 import { listTechniques } from "@/features/events/admin-queries";
 import { eventIdSchema } from "@/features/events/schema";
 import { LiveConsole } from "@/features/results/components/live-console";
 import { splitNightBouts } from "@/features/results/night-order";
+import { formatLongDate, formatTime } from "@/lib/format-date";
 import { requireAdmin } from "@/lib/require-admin";
 import { adminPath, publicUrl } from "@/lib/site-urls";
 
@@ -29,6 +31,7 @@ export default async function AdminEnVivoPage({ params }: PageProps<"/admin/even
     );
   }
 
+  const startsAt = new Date(card.event.startsAt);
   const { pending, finished, cancelled } = splitNightBouts(card.segments.map((segment) => ({ name: segment.name, bouts: segment.bouts })));
 
   return (
@@ -37,6 +40,8 @@ export default async function AdminEnVivoPage({ params }: PageProps<"/admin/even
         eventId={card.event.id}
         eventName={card.event.name}
         eventStatus={card.event.eventStatus}
+        isNight={isEventNight(startsAt, new Date())}
+        startsLabel={`${formatLongDate(startsAt)}, ${formatTime(startsAt)}`}
         pending={pending}
         finished={finished}
         cancelled={cancelled}

@@ -11,11 +11,15 @@ import { EVENT_STATUS_LABELS } from "@/domain/bout-enums";
 import { startLiveEventAction, type RecordResultState } from "../actions";
 import { BoutResultDialog } from "./bout-result-dialog";
 import { LiveCurrentBout, type LiveBout } from "./live-current-bout";
+import { LiveNightGate } from "./live-night-gate";
 
 type LiveConsoleProps = {
   eventId: string;
   eventName: string;
   eventStatus: EventStatus;
+  /** ¿Ya es la noche del evento (desde 12 h antes del inicio)? Solo entonces abrir la consola lo pone en vivo. */
+  isNight: boolean;
+  startsLabel: string;
   /** Las peleas por pelear, en el orden de la noche (la primera es la de ahora). */
   pending: LiveBout[];
   /** Las ya peleadas, la más reciente primero. */
@@ -27,19 +31,24 @@ type LiveConsoleProps = {
 };
 
 /**
- * Noche de pelea: pantalla de celular para cargar resultados en vivo. Abrirla pone el evento «en vivo»; cada resultado
- * guardado se ve en el sitio en el siguiente refresco (≤ 30 s) y la consola pasa sola a la pelea siguiente.
+ * Noche de pelea: pantalla de celular para cargar resultados en vivo. Abrirla la noche del evento lo pone «en vivo» (antes,
+ * con un botón); cada resultado guardado se ve en el sitio en el siguiente refresco (≤ 30 s) y la consola pasa sola a la
+ * pelea siguiente.
  */
-export function LiveConsole({ eventId, eventName, eventStatus, pending, finished, cancelled, techniques, cardHref, publicHref }: LiveConsoleProps) {
+export function LiveConsole({ eventId, eventName, eventStatus, isNight, startsLabel, pending, finished, cancelled, techniques, cardHref, publicHref }: LiveConsoleProps) {
   // Ids guardados en esta sesión: se ocultan al instante, sin esperar a que el servidor devuelva la lista nueva.
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [correcting, setCorrecting] = useState<string | null>(null);
-  // Abrir la pantalla pone el evento en vivo: se muestra ya así, sin esperar la respuesta del servidor.
-  const status: EventStatus = eventStatus === "scheduled" ? "live" : eventStatus;
+  const [opened, setOpened] = useState(false);
+  // La noche del evento (o el botón) lo pone en vivo: se muestra ya así, sin esperar la respuesta del servidor.
+  const startsLive = eventStatus === "scheduled" && (isNight || opened);
+  const status: EventStatus = startsLive ? "live" : eventStatus;
 
   useEffect(() => {
-    if (eventStatus === "scheduled") void startLiveEventAction(eventId);
-  }, [eventId, eventStatus]);
+    if (startsLive) void startLiveEventAction(eventId);
+  }, [eventId, startsLive]);
+
+  if (eventStatus === "scheduled" && !startsLive) return <LiveNightGate eventName={eventName} startsLabel={startsLabel} onOpen={() => setOpened(true)} />;
 
   const remaining = pending.filter((bout) => !saved.has(bout.id));
   const current = remaining[0];

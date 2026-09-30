@@ -160,10 +160,11 @@ test("mientras el evento está en vivo la página pública muestra cada resultad
   const admin = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
   const panel = await admin.newPage();
   await signInAsAdmin(panel);
-  // Abrir la consola pone el evento en vivo con una action: se espera su respuesta (la insignia «EN VIVO» de la consola se
-  // muestra antes, sin esperar al servidor) para que la página pública ya cargue con el evento en vivo.
-  const started = panel.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/en-vivo"));
+  // Un evento lejano no se pone en vivo por abrir la consola: se abre la noche con el botón y se espera la respuesta de la
+  // action (la insignia «EN VIVO» de la consola se muestra antes, sin esperar al servidor) para que el sitio ya cargue en vivo.
   await panel.goto(adminUrl(`/eventos/${card.eventId}/en-vivo`));
+  const started = panel.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/en-vivo"));
+  await panel.getByRole("button", { name: "Abrir la noche de pelea" }).click();
   await started;
   await expect(panel.getByRole("main").getByText("● EN VIVO")).toBeVisible();
 

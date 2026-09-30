@@ -27,7 +27,8 @@ export function BoutResultDialog({ bout, techniques, onClose }: BoutResultDialog
 
 function Content({ bout, techniques, onClose }: { bout: AdminBout; techniques: { id: string; name: string }[]; onClose: () => void }) {
   const [isPending, startTransition] = useTransition();
-  const [overturning, setOverturning] = useState(false);
+  // Borrar y anular piden confirmar en el mismo diálogo; solo una de las dos a la vez.
+  const [confirming, setConfirming] = useState<"clear" | "overturn" | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const redName = bout.red.lastName;
@@ -67,11 +68,11 @@ function Content({ bout, techniques, onClose }: { bout: AdminBout; techniques: {
         actions={
           bout.result ? (
             <>
-              <Button type="button" variant="outline" disabled={isPending} onClick={() => run(() => clearBoutResultAction(bout.id))}>
+              <Button type="button" variant="outline" disabled={isPending} onClick={() => setConfirming((current) => (current === "clear" ? null : "clear"))} aria-expanded={confirming === "clear"}>
                 Borrar resultado
               </Button>
               {isOverturned ? null : (
-                <Button type="button" variant="outline" disabled={isPending} onClick={() => setOverturning((current) => !current)} aria-expanded={overturning}>
+                <Button type="button" variant="outline" disabled={isPending} onClick={() => setConfirming((current) => (current === "overturn" ? null : "overturn"))} aria-expanded={confirming === "overturn"}>
                   Anular resultado
                 </Button>
               )}
@@ -80,7 +81,17 @@ function Content({ bout, techniques, onClose }: { bout: AdminBout; techniques: {
         }
       />
 
-      {overturning ? (
+      {confirming === "clear" ? (
+        <div role="group" aria-label="Confirmar el borrado" className="flex flex-col gap-2 border border-border p-3">
+          <p className="text-sm">La pelea vuelve a quedar pendiente y este resultado deja de contar en los récords. Se pierde lo escrito (método, tiempo y tarjetas).</p>
+          <div>
+            <Button type="button" variant="destructive" disabled={isPending} onClick={() => run(() => clearBoutResultAction(bout.id))}>
+              Sí, borrar el resultado
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {confirming === "overturn" ? (
         <div className="flex flex-col gap-2 border border-border p-3">
           <label htmlFor="overturn-note" className="text-sm font-medium">
             ¿Por qué se anula? (queda como «sin resultado» y se conserva el original)
