@@ -115,6 +115,20 @@ describe("updateEvent", () => {
     expect((await findEvent(id)).status).toBe("draft");
   });
 
+  it("keeps the status the night console set when the form was opened before it and the admin did not touch the status", async () => {
+    const { id } = await createEvent(db, validEventInput({ name: "Form viejo" }), "admin-1");
+    await db.update(events).set({ eventStatus: "completed" }).where(eq(events.id, id));
+    await updateEvent(db, id, validEventInput({ name: "Form viejo", eventStatus: "scheduled", eventStatusBefore: "scheduled" }), "admin-1");
+    expect((await findEvent(id)).eventStatus).toBe("completed");
+  });
+
+  it("applies the status the admin changed in the form, whatever the event has now", async () => {
+    const { id } = await createEvent(db, validEventInput({ name: "Cancelado a mano" }), "admin-1");
+    await db.update(events).set({ eventStatus: "live" }).where(eq(events.id, id));
+    await updateEvent(db, id, validEventInput({ name: "Cancelado a mano", eventStatus: "cancelled", eventStatusBefore: "scheduled" }), "admin-1");
+    expect((await findEvent(id)).eventStatus).toBe("cancelled");
+  });
+
   it("rewrites the gallery, sets the event status and rejects a missing event", async () => {
     const { id } = await createEvent(db, validEventInput({ name: "Galería" }), "admin-1");
     const [a, b] = [await insertMedia(db, "gallery"), await insertMedia(db, "gallery")];

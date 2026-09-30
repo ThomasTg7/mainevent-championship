@@ -80,6 +80,8 @@ export type EventData = {
   ticketPoints: string | null;
   streamUrl: string | null;
   eventStatus: (typeof EVENT_STATUSES)[number] | undefined;
+  /** El estado que tenía el evento cuando se abrió el formulario: `eventStatus` solo se aplica si el admin lo cambió. */
+  eventStatusBefore: (typeof EVENT_STATUSES)[number] | undefined;
   status?: "draft" | "scheduled" | "published";
   publishAt: Date | null;
 };
@@ -114,6 +116,7 @@ export const eventInputSchema = z
     ticketPoints: optionalText(600, "Los puntos de venta"),
     streamUrl: optionalHttpUrl("El enlace de la transmisión"),
     eventStatus,
+    eventStatusBefore: eventStatus,
     ...publicationShape,
   })
   .superRefine(requireScheduleDate)

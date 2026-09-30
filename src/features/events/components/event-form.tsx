@@ -85,6 +85,8 @@ export function EventForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+      {/* El estado con que se abrió el formulario: el servidor solo aplica el «Estado del evento» si el admin lo cambió. */}
+      <input type="hidden" name="eventStatusBefore" value={defaults.eventStatus ?? ""} />
       <FormFieldsProvider value={{ defaults, errors, idPrefix: "event" }}>
         <Tabs value={tab} onValueChange={(value) => setTab(value as EventTab)}>
           <TabsList variant="line" className="h-auto w-full flex-wrap group-data-horizontal/tabs:h-auto justify-start gap-x-1 gap-y-1.5 pb-2">

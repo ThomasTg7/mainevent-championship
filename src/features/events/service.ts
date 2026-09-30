@@ -111,7 +111,8 @@ export async function createEvent(db: Db, input: EventRawInput, actorId: string)
 
 /**
  * Edita el evento. El slug publicado no cambia al renombrarlo: solo si `input.slug` trae uno distinto.
- * La publicación solo cambia si `input.status` viene informado.
+ * La publicación solo cambia si `input.status` viene informado. El estado del evento solo cambia si `eventStatus` difiere
+ * de `eventStatusBefore` (lo que el formulario mostraba al abrirse) o, sin él, de lo que el evento tiene ahora.
  */
 export async function updateEvent(db: Db, id: string, input: EventRawInput, actorId: string): Promise<{ slug: string }> {
   const data = parseEvent(input);
@@ -121,13 +122,16 @@ export async function updateEvent(db: Db, id: string, input: EventRawInput, acto
   const slug = data.slug ?? current.slug;
   if (slug !== current.slug && (await slugTaken(db, slug, id))) throw new UserFacingError("Ese enlace ya lo usa otro evento");
 
+  // «En vivo» y «Finalizado» los pone la noche de pelea: un formulario abierto antes no debe devolver el evento a como estaba.
+  const statusChanged = data.eventStatus !== undefined && data.eventStatus !== (data.eventStatusBefore ?? current.eventStatus);
+
   await db.transaction(async (tx) => {
     await tx
       .update(events)
       .set({
         ...editableColumns(data),
         slug,
-        ...(data.eventStatus ? { eventStatus: data.eventStatus } : {}),
+        ...(statusChanged ? { eventStatus: data.eventStatus } : {}),
         ...(data.status ? { status: data.status, publishAt: normalizePublishAt({ status: data.status, publishAt: data.publishAt }) } : {}),
       })
       .where(eq(events.id, id));
