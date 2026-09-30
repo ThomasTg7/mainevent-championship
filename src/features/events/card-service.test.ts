@@ -263,6 +263,24 @@ describe("cancelBout, reinstateBout and deleteBout", () => {
     await expect(addBout(db, prelim, versus(a, c), "admin-1")).resolves.toBeDefined();
   });
 
+  it("does not reinstate a cancelled fight whose fighter was booked in another fight meanwhile", async () => {
+    const { estelar, prelim, a, b, c } = await scenario();
+    const { id: old } = await addBout(db, estelar, versus(a, b), "admin-1");
+    await cancelBout(db, old, "Lesión", "admin-1");
+    await addBout(db, prelim, versus(a, c), "admin-1");
+
+    await expect(reinstateBout(db, old, "admin-1")).rejects.toThrow("ya tiene una pelea en este evento");
+    expect((await db.select().from(bouts).where(eq(bouts.id, old)))[0]).toMatchObject({ boutStatus: "cancelled" });
+    expect(await auditActions(old)).toEqual(["create", "update"]);
+  });
+
+  it("does not audit reinstating a fight that is not cancelled", async () => {
+    const { estelar, a, b } = await scenario();
+    const { id } = await addBout(db, estelar, versus(a, b), "admin-1");
+    await reinstateBout(db, id, "admin-1");
+    expect(await auditActions(id)).toEqual(["create"]);
+  });
+
   it("asks to clear the result before cancelling or deleting a finished fight", async () => {
     const { estelar, a, b } = await scenario();
     const { id } = await addBout(db, estelar, versus(a, b), "admin-1");
@@ -284,6 +302,56 @@ describe("cancelBout, reinstateBout and deleteBout", () => {
     expect(await sortOrders(estelar)).toEqual([0, 1]);
     expect(await auditActions(ids[0]!)).toEqual(["create", "delete"]);
     await expect(deleteBout(db, ids[0]!, "admin-1")).rejects.toThrow("No se encontró la pelea");
+  });
+});
+
+describe("closing the night", () => {
+  /** Un evento en vivo con una pelea ya peleada y otra pendiente. */
+  async function liveNightWithOnePending(eventStatus: "live" | "scheduled" = "live") {
+    const night = await scenario();
+    const finished = (await addBout(db, night.prelim, versus(night.a, night.b), "admin-1")).id;
+    const pending = (await addBout(db, night.estelar, versus(night.c, night.d), "admin-1")).id;
+    await db.update(bouts).set({ boutStatus: "completed", outcome: "red_win", method: "decision", endRound: 3, endTimeSeconds: 300 }).where(eq(bouts.id, finished));
+    await db.update(events).set({ eventStatus }).where(eq(events.id, night.eventId));
+    return { ...night, finished, pending };
+  }
+
+  const eventStatusOf = async (eventId: string) => (await db.select({ eventStatus: events.eventStatus }).from(events).where(eq(events.id, eventId)))[0]!.eventStatus;
+
+  it("finishes the event when the last pending fight is cancelled", async () => {
+    const night = await liveNightWithOnePending();
+    await cancelBout(db, night.pending, "Lesión", "admin-1");
+    expect(await eventStatusOf(night.eventId)).toBe("completed");
+    expect(await auditActions(night.eventId)).toContain("update");
+  });
+
+  it("finishes the event when the last pending fight is deleted", async () => {
+    const night = await liveNightWithOnePending("scheduled");
+    await deleteBout(db, night.pending, "admin-1");
+    expect(await eventStatusOf(night.eventId)).toBe("completed");
+  });
+
+  it("keeps the event open while another fight is still pending", async () => {
+    const night = await liveNightWithOnePending();
+    const extra = await Promise.all([newFighter("G"), newFighter("H")]);
+    await addBout(db, night.estelar, versus(extra[0]!, extra[1]!), "admin-1");
+    await cancelBout(db, night.pending, null, "admin-1");
+    expect(await eventStatusOf(night.eventId)).toBe("live");
+  });
+
+  it("does not finish an event where no fight was ever fought", async () => {
+    const { eventId, estelar, a, b } = await scenario();
+    await db.update(events).set({ eventStatus: "live" }).where(eq(events.id, eventId));
+    const { id } = await addBout(db, estelar, versus(a, b), "admin-1");
+    await cancelBout(db, id, null, "admin-1");
+    expect(await eventStatusOf(eventId)).toBe("live");
+  });
+
+  it("does not reopen or touch a cancelled event", async () => {
+    const night = await liveNightWithOnePending();
+    await db.update(events).set({ eventStatus: "cancelled" }).where(eq(events.id, night.eventId));
+    await cancelBout(db, night.pending, null, "admin-1");
+    expect(await eventStatusOf(night.eventId)).toBe("cancelled");
   });
 });
 

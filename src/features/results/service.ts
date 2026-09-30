@@ -8,6 +8,7 @@ import type { BoutLevel, ScheduledRounds } from "@/domain/bout-enums";
 import { formatResultLine, validateBoutResult, type BoutResultInput, type NormalizedResult } from "@/domain/bout-result";
 import { logAudit } from "@/features/audit/log";
 import { UserFacingError } from "@/lib/user-facing-error";
+import { completeEventIfDone } from "./completion";
 import { getNextPendingBoutId } from "./night-order";
 
 const EVENT_NOT_FOUND = "No se encontró el evento";
@@ -64,14 +65,14 @@ const NO_RESULT_COLUMNS = {
   overturnedFrom: null,
 };
 
-type LoadedBout = { bout: Bout; label: string; eventName: string; eventStatus: string };
+type LoadedBout = { bout: Bout; label: string; eventName: string };
 
 /** La pelea y sus nombres para los mensajes; no se toca la de un evento en la papelera. */
 async function loadBout(db: Executor, boutId: string): Promise<LoadedBout> {
   const red = alias(fighters, "red_fighter");
   const blue = alias(fighters, "blue_fighter");
   const [row] = await db
-    .select({ bout: bouts, redName: red.lastName, blueName: blue.lastName, eventName: events.name, eventStatus: events.eventStatus, eventDeletedAt: events.deletedAt })
+    .select({ bout: bouts, redName: red.lastName, blueName: blue.lastName, eventName: events.name, eventDeletedAt: events.deletedAt })
     .from(bouts)
     .innerJoin(events, eq(events.id, bouts.eventId))
     .innerJoin(red, eq(red.id, bouts.redFighterId))
@@ -80,7 +81,7 @@ async function loadBout(db: Executor, boutId: string): Promise<LoadedBout> {
     .limit(1);
   if (!row) throw new UserFacingError(BOUT_NOT_FOUND);
   if (row.eventDeletedAt) throw new UserFacingError(EVENT_NOT_FOUND);
-  return { bout: row.bout, label: `${row.redName} vs ${row.blueName}`, eventName: row.eventName, eventStatus: row.eventStatus };
+  return { bout: row.bout, label: `${row.redName} vs ${row.blueName}`, eventName: row.eventName };
 }
 
 const hasResult = (bout: Bout) => bout.boutStatus === "completed" || bout.outcome !== null;
@@ -113,7 +114,7 @@ async function techniqueName(db: Executor, id: string): Promise<string | null> {
  * siguiente pelea de la noche y, si el retador ganó una pelea por el título, el posible cambio de campeón.
  */
 export async function recordBoutResult(db: Db, boutId: string, input: BoutResultInput, actorId: string): Promise<RecordResultOutcome> {
-  const { bout, label, eventName, eventStatus } = await loadBout(db, boutId);
+  const { bout, label, eventName } = await loadBout(db, boutId);
   if (bout.boutStatus === "cancelled") throw new UserFacingError("Esta pelea está cancelada: repónla antes de registrar el resultado");
 
   const validated = validateBoutResult(input, { scheduledRounds: bout.scheduledRounds as ScheduledRounds, roundSeconds: bout.roundSeconds });
@@ -143,10 +144,7 @@ export async function recordBoutResult(db: Db, boutId: string, input: BoutResult
     });
 
     const nextBoutId = await getNextPendingBoutId(tx, bout.eventId);
-    if (nextBoutId === null && (eventStatus === "scheduled" || eventStatus === "live")) {
-      await tx.update(events).set({ eventStatus: "completed" }).where(eq(events.id, bout.eventId));
-      await logAudit(tx, { actorId, action: "update", entityType: "event", entityId: bout.eventId, summary: `Finalizó el evento ${eventName}: todas las peleas tienen resultado` });
-    }
+    if (nextBoutId === null) await completeEventIfDone(tx, bout.eventId, actorId);
 
     const titleChange: TitleChangeCandidate | null =
       bout.isTitleFight && value.outcome === "blue_win" && bout.divisionId

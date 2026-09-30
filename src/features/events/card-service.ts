@@ -6,6 +6,7 @@ import { bouts, cardSegments, events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import type { Executor } from "@/db/types";
 import { logAudit } from "@/features/audit/log";
+import { completeEventIfDone } from "@/features/results/completion";
 import { fromSantiagoInputs, toSantiagoInputs } from "@/lib/santiago-time";
 import { UserFacingError } from "@/lib/user-facing-error";
 import { boutInputSchema, cancelReasonSchema, segmentInputSchema, type BoutData, type BoutRawInput, type SegmentRawInput } from "./card-schema";
@@ -49,7 +50,19 @@ async function findSegment(db: Executor, segmentId: string): Promise<{ id: strin
   return row;
 }
 
-type BoutSummary = { id: string; eventId: string; segmentId: string; hasResult: boolean; label: string; eventName: string };
+/** Quién pelea y en qué división: lo que se valida al armar (o reponer) una pelea. */
+type BoutMatchup = Pick<BoutData, "redFighterId" | "blueFighterId" | "divisionId">;
+
+type BoutSummary = {
+  id: string;
+  eventId: string;
+  segmentId: string;
+  hasResult: boolean;
+  isCancelled: boolean;
+  label: string;
+  eventName: string;
+  matchup: BoutMatchup;
+};
 
 /** La pelea, si su evento no está en la papelera, con «Pérez vs Soto» para los mensajes de auditoría. */
 async function findBout(db: Executor, boutId: string): Promise<BoutSummary> {
@@ -62,6 +75,9 @@ async function findBout(db: Executor, boutId: string): Promise<BoutSummary> {
       segmentId: bouts.segmentId,
       boutStatus: bouts.boutStatus,
       outcome: bouts.outcome,
+      redFighterId: bouts.redFighterId,
+      blueFighterId: bouts.blueFighterId,
+      divisionId: bouts.divisionId,
       redLastName: red.lastName,
       blueLastName: blue.lastName,
       eventName: events.name,
@@ -80,8 +96,10 @@ async function findBout(db: Executor, boutId: string): Promise<BoutSummary> {
     eventId: row.eventId,
     segmentId: row.segmentId,
     hasResult: row.boutStatus === "completed" || row.outcome !== null,
+    isCancelled: row.boutStatus === "cancelled",
     label: `${row.redLastName} vs ${row.blueLastName}`,
     eventName: row.eventName,
+    matchup: { redFighterId: row.redFighterId, blueFighterId: row.blueFighterId, divisionId: row.divisionId },
   };
 }
 
@@ -191,7 +209,7 @@ function boutColumns(data: BoutData) {
  * Reglas de una pelea: dos peleadores distintos, existentes y fuera de la papelera (un borrador sí puede pelear),
  * ninguno con otra pelea vigente en el mismo evento, y una división que exista. Devuelve los nombres para la auditoría.
  */
-async function assertBoutSetup(db: Executor, eventId: string, data: BoutData, exceptBoutId?: string): Promise<string> {
+async function assertBoutSetup(db: Executor, eventId: string, data: BoutMatchup, exceptBoutId?: string): Promise<string> {
   if (data.redFighterId === data.blueFighterId) throw new UserFacingError("Un peleador no puede estar en ambas esquinas");
 
   const ids = [data.redFighterId, data.blueFighterId];
@@ -289,15 +307,23 @@ export async function cancelBout(db: Db, boutId: string, reason: string | null, 
   const bout = await findBout(db, boutId);
   if (bout.hasResult) throw new UserFacingError(CLEAR_RESULT_FIRST);
 
-  await db.update(bouts).set({ boutStatus: "cancelled", cancelReason: parsedReason.data }).where(eq(bouts.id, boutId));
-  await logAudit(db, { actorId, action: "update", entityType: "bout", entityId: boutId, summary: `Canceló la pelea ${bout.label} de ${bout.eventName}` });
+  await db.transaction(async (tx) => {
+    await tx.update(bouts).set({ boutStatus: "cancelled", cancelReason: parsedReason.data }).where(eq(bouts.id, boutId));
+    await logAudit(tx, { actorId, action: "update", entityType: "bout", entityId: boutId, summary: `Canceló la pelea ${bout.label} de ${bout.eventName}` });
+    await completeEventIfDone(tx, bout.eventId, actorId);
+  });
 }
 
-/** Devuelve a la cartelera una pelea cancelada. */
+/** Devuelve a la cartelera una pelea cancelada, si sus peleadores no pelean ya en otra pelea del evento. */
 export async function reinstateBout(db: Db, boutId: string, actorId: string): Promise<void> {
-  const bout = await findBout(db, boutId);
-  await db.update(bouts).set({ boutStatus: "scheduled", cancelReason: null }).where(and(eq(bouts.id, boutId), eq(bouts.boutStatus, "cancelled")));
-  await logAudit(db, { actorId, action: "update", entityType: "bout", entityId: boutId, summary: `Repuso la pelea ${bout.label} de ${bout.eventName}` });
+  await db.transaction(async (tx) => {
+    const bout = await findBout(tx, boutId);
+    if (!bout.isCancelled) return;
+    await assertBoutSetup(tx, bout.eventId, bout.matchup, boutId);
+
+    await tx.update(bouts).set({ boutStatus: "scheduled", cancelReason: null }).where(eq(bouts.id, boutId));
+    await logAudit(tx, { actorId, action: "update", entityType: "bout", entityId: boutId, summary: `Repuso la pelea ${bout.label} de ${bout.eventName}` });
+  });
 }
 
 /** Elimina la pelea y deja contiguo el orden del bloque. Con resultado, se borra primero. */
@@ -309,5 +335,6 @@ export async function deleteBout(db: Db, boutId: string, actorId: string): Promi
     await tx.delete(bouts).where(eq(bouts.id, boutId));
     await writeBoutOrder(tx, bout.segmentId, await orderedBoutIds(tx, bout.segmentId));
     await logAudit(tx, { actorId, action: "delete", entityType: "bout", entityId: boutId, summary: `Eliminó la pelea ${bout.label} de ${bout.eventName}` });
+    await completeEventIfDone(tx, bout.eventId, actorId);
   });
 }
