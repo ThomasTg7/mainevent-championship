@@ -6,6 +6,7 @@ import { HeroParallax } from "@/features/fighters/components/hero-parallax";
 import type { MediaDTO } from "@/features/media/dto";
 import { formatShortDate, formatTime } from "@/lib/format-date";
 import type { BoutFighterDTO, EventPageDTO } from "../dto";
+import { pickMainBout } from "../main-bout";
 import { boutMeasure } from "../public-format";
 import { Countdown } from "./countdown";
 
@@ -71,7 +72,7 @@ const STATUS_TAG = { live: { tone: "red", label: "● En vivo" }, completed: { t
 
 /** Portada del evento: careo espejado del combate estelar (o la imagen de portada), título, fecha, cuenta regresiva y entradas. */
 export function EventHero({ event, ticketHref, ticketExternal = false, showCountdown }: EventHeroProps) {
-  const main = event.segments.find((segment) => segment.bouts.length > 0)?.bouts[0] ?? null;
+  const main = pickMainBout(event.segments.flatMap((segment) => segment.bouts), (bout) => bout.status === "cancelled");
   const start = new Date(event.startsAt);
   const measure = main ? boutMeasure(main) : "";
   const status = event.eventStatus === "scheduled" ? null : STATUS_TAG[event.eventStatus];

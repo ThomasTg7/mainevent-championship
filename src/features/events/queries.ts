@@ -7,6 +7,7 @@ import { getMediaByIds } from "@/features/media/queries";
 import { boutMediaIds, selectBoutRows, toBoutDTO, type BoutRow } from "./bout-rows";
 import type { EventCardDTO, EventPageDTO, SegmentDTO } from "./dto";
 import { upcomingEvents } from "./event-scope";
+import { pickMainBout } from "./main-bout";
 
 const PUBLIC_PAGE_SIZE = 12;
 
@@ -86,7 +87,10 @@ export async function getPublicEventBySlug(db: Db, slug: string, { preview = fal
 
   const boutsBySegment = new Map<string, BoutRow[]>();
   for (const row of boutRows) boutsBySegment.set(row.segmentId, [...(boutsBySegment.get(row.segmentId) ?? []), row]);
-  const mainBoutId = boutsBySegment.get(segmentRows[0]?.id ?? "")?.[0]?.id;
+  const mainBoutId = pickMainBout(
+    segmentRows.flatMap((segment) => boutsBySegment.get(segment.id) ?? []),
+    isCancelledRow,
+  )?.id;
 
   const mediaById = await loadMedia(db, [
     ...eventImageIds(event),
@@ -113,23 +117,31 @@ export async function getPublicEventBySlug(db: Db, slug: string, { preview = fal
   };
 }
 
-/** La pelea estelar (primera pelea del primer bloque) de cada evento, en dos consultas para toda la página. */
+const isCancelledRow = (row: BoutRow) => row.boutStatus === "cancelled";
+
+/** La pelea estelar de cada evento, en dos consultas para toda la página (peleas de todos los eventos y su orden de bloques). */
 async function loadMainBouts(db: Db, eventIds: string[]): Promise<Map<string, BoutRow>> {
   if (eventIds.length === 0) return new Map();
-  const segmentRows = await db
-    .select({ id: cardSegments.id, eventId: cardSegments.eventId })
-    .from(cardSegments)
-    .where(inArray(cardSegments.eventId, eventIds))
-    .orderBy(asc(cardSegments.eventId), asc(cardSegments.sortOrder), asc(cardSegments.id));
+  const [segmentRows, boutRows] = await Promise.all([
+    db
+      .select({ id: cardSegments.id })
+      .from(cardSegments)
+      .where(inArray(cardSegments.eventId, eventIds))
+      .orderBy(asc(cardSegments.sortOrder), asc(cardSegments.id)),
+    selectBoutRows(db, inArray(bouts.eventId, eventIds)),
+  ]);
 
-  const firstSegmentByEvent = new Map<string, string>();
-  for (const segment of segmentRows) if (!firstSegmentByEvent.has(segment.eventId)) firstSegmentByEvent.set(segment.eventId, segment.id);
-  const firstSegments = [...firstSegmentByEvent.values()];
-  if (firstSegments.length === 0) return new Map();
+  // Las filas ya vienen por `sort_order` de pelea: ordenar (de forma estable) por el lugar de su bloque deja el orden de cartelera.
+  const segmentRank = new Map(segmentRows.map((segment, index) => [segment.id, index]));
+  const inCardOrder = [...boutRows].sort((a, b) => (segmentRank.get(a.segmentId) ?? 0) - (segmentRank.get(b.segmentId) ?? 0));
+
+  const boutsByEvent = new Map<string, BoutRow[]>();
+  for (const row of inCardOrder) boutsByEvent.set(row.eventId, [...(boutsByEvent.get(row.eventId) ?? []), row]);
 
   const mainByEvent = new Map<string, BoutRow>();
-  for (const row of await selectBoutRows(db, inArray(bouts.segmentId, firstSegments))) {
-    if (!mainByEvent.has(row.eventId)) mainByEvent.set(row.eventId, row);
+  for (const [eventId, eventBouts] of boutsByEvent) {
+    const main = pickMainBout(eventBouts, isCancelledRow);
+    if (main) mainByEvent.set(eventId, main);
   }
   return mainByEvent;
 }

@@ -166,3 +166,28 @@ describe("getNextEvent", () => {
     expect((await getNextEvent(db))?.name).toBe("Evento en vivo");
   });
 });
+
+describe("the main event of a card whose headliner was cancelled", () => {
+  it("is the next bout of the card, in the events list", async () => {
+    const event = await insertEvent(db, { name: "Evento sin estelar", slug: "evento-sin-estelar", startsAt: daysFromNow(6) });
+    const [perez, soto, munoz, ibarra] = await Promise.all(["matias-perez", "diego-soto", "javiera-munoz", "nicolas-ibarra"].map((slug) => fighterIdBySlug(db, slug)));
+    const estelar = await insertSegment(db, event.id, "Cartelera estelar", 0);
+    const prelim = await insertSegment(db, event.id, "Preliminares", 1);
+    await insertBout(db, { eventId: event.id, segmentId: estelar, redFighterId: perez!, blueFighterId: soto!, sortOrder: 0, boutStatus: "cancelled" });
+    await insertBout(db, { eventId: event.id, segmentId: estelar, redFighterId: munoz!, blueFighterId: ibarra!, sortOrder: 1 });
+    await insertBout(db, { eventId: event.id, segmentId: prelim, redFighterId: perez!, blueFighterId: ibarra!, sortOrder: 0 });
+
+    const card = (await listPublicEvents(db, { when: "upcoming" })).items.find((item) => item.slug === "evento-sin-estelar")!;
+    expect(card.mainBout?.red.lastName).toBe("Muñoz");
+  });
+
+  it("is the first bout of the first block that has bouts when the top block is empty", async () => {
+    const event = await insertEvent(db, { name: "Evento estelar vacío", slug: "evento-estelar-vacio", startsAt: daysFromNow(7) });
+    const [perez, soto] = await Promise.all(["matias-perez", "diego-soto"].map((slug) => fighterIdBySlug(db, slug)));
+    await insertSegment(db, event.id, "Cartelera estelar", 0);
+    await insertBout(db, { eventId: event.id, segmentId: await insertSegment(db, event.id, "Preliminares", 1), redFighterId: perez!, blueFighterId: soto! });
+
+    const card = (await listPublicEvents(db, { when: "upcoming" })).items.find((item) => item.slug === "evento-estelar-vacio")!;
+    expect(card.mainBout?.red.lastName).toBe("Pérez");
+  });
+});

@@ -14,6 +14,7 @@ import { FightCardTabs } from "@/features/events/components/fight-card-tabs";
 import { LiveRefresher } from "@/features/events/components/live-refresher";
 import { VenueMap } from "@/features/events/components/venue-map";
 import { getPublicEventBySlug } from "@/features/events/queries";
+import { pickMainBout } from "@/features/events/main-bout";
 import { showsCountdown } from "@/features/events/public-format";
 import { PreviewBanner } from "@/features/fighters/components/preview-banner";
 import { verifyPreviewToken } from "@/features/publication/preview";
@@ -43,7 +44,7 @@ export async function generateMetadata({ params, searchParams }: PageProps<"/eve
   const { event, isPreview } = await loadEvent(slug, previewParam(query.preview));
   if (!event) return { title: "Evento no encontrado | Guerra Campal" };
 
-  const main = event.segments.find((segment) => segment.bouts.length > 0)?.bouts[0];
+  const main = pickMainBout(event.segments.flatMap((segment) => segment.bouts), (bout) => bout.status === "cancelled");
   const start = new Date(event.startsAt);
   const versus = main ? `${main.red.firstName} ${main.red.lastName} vs ${main.blue.firstName} ${main.blue.lastName}. ` : "";
   return {
