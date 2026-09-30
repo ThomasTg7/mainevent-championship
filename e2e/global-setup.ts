@@ -12,6 +12,7 @@ import { divisions } from "@/db/schema/divisions";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } from "./fixtures/admin";
+import { createE2eCard } from "./fixtures/events";
 
 async function waitForPostgres(): Promise<void> {
   for (let attempt = 0; attempt < 30; attempt += 1) {
@@ -49,7 +50,28 @@ export default async function globalSetup(): Promise<void> {
   await seedEvents(db);
   await seedHiddenFighters();
   await seedCardFighters();
+  await seedSoldOutTicketsEvent();
   await createAdminWithPassword(auth, db, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
+}
+
+/**
+ * Un próximo evento con un tramo agotado, para `/entradas`. Va aquí (antes de la primera visita) y no dentro del spec: la
+ * lista de próximos está en caché 5 min y un evento creado directo en la base, sin pasar por una action, no la invalida.
+ */
+async function seedSoldOutTicketsEvent(): Promise<void> {
+  await createE2eCard(
+    "Evento E2E Entradas Agotadas",
+    { "Cartelera estelar": [["uno", "dos"]] },
+    {
+      startsDate: "2031-10-04",
+      ticketUrl: "https://tickets.example.cl/agotadas",
+      ticketTiers: [
+        { name: "General", description: "Galería", priceClp: 12000, soldOut: false },
+        { name: "VIP", description: "Palco", priceClp: 90000, soldOut: true },
+      ],
+      ticketPoints: "Solo en la ticketera",
+    },
+  );
 }
 
 /** Un borrador y uno en la papelera: las pruebas del sitio público comprueban que nunca se ven. */
