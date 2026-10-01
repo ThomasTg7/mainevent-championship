@@ -531,3 +531,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** seguridad del cuerpo (sin HTML crudo ni atributos ajenos), privacidad (sin terceros antes del clic) y una sola fuente de verdad para lo permitido.
 - **Impacto:** Task 5 monta `PostEditor` con `next/dynamic`; Task 6 usa `PostBody`.
 - **Estado:** aplicado
+
+## [Plan 04 · Task 5] Panel de noticias: pestañas, buscadores y categorías con orden — 2026-10-01
+- **Qué:** (1) `PostForm` sigue el patrón de `EventForm` con cinco pestañas (Datos, Texto, Galería, Relacionados, Publicación); el cuerpo viaja en un campo oculto `body` (JSON) y el editor se carga con `next/dynamic` (`post-editor-field.tsx`). (2) Peleadores y eventos relacionados usan un `RelatedPicker` genérico (chips removibles de 44 px, buscador de hasta 10 resultados por action); el de peleadores reutiliza `searchFightersForBoutAction`. (3) Los paneles de «Enlace» y «Publicación de una red» del editor **no son `<form>`** (van dentro del formulario de la noticia: un `<form>` anidado enviaba la noticia entera al pulsar «Insertar», lo encontró el e2e); Enter hace lo mismo que el botón. (4) `/noticias/categorias`: agregar, renombrar, subir/bajar y eliminar (deshabilitado si tiene noticias). (5) El listado trae filtros por título, publicación y categoría, tarjetas en celular y «Ver en el sitio» solo en noticias ya públicas. (6) `e2e/global-setup.ts` siembra las noticias y vacía `posts`/`post_categories`.
+- **Por qué:** patrón ya probado de los planes 02–03; menos clics para lo frecuente (publicar y enviar a la papelera desde la fila).
+- **Impacto:** Task 6 reutiliza las noticias sembradas para sus e2e; Plan 07 (`noindex` en vista previa ya cubierto por `PreviewBanner`).
+- **Estado:** aplicado

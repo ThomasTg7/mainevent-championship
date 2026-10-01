@@ -1,7 +1,7 @@
 "use client";
 
 import type { Editor } from "@tiptap/react";
-import { useState, type FormEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { parseEmbedUrl } from "@/domain/embed";
@@ -14,14 +14,23 @@ function withProtocol(text: string): string {
 
 type PanelProps = { editor: Editor; onClose: () => void };
 
+/**
+ * Estos paneles van dentro del formulario de la noticia: no pueden ser un `<form>` (no se anidan, y el envío guardaría
+ * la noticia). Enter hace lo mismo que el botón principal.
+ */
+function submitOnEnter(event: KeyboardEvent<HTMLInputElement>, submit: () => void) {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  submit();
+}
+
 /** Poner o quitar el enlace del texto seleccionado. */
 export function LinkPanel({ editor, onClose }: PanelProps) {
   const [url, setUrl] = useState(() => (editor.getAttributes("link").href as string | undefined) ?? "");
   const [error, setError] = useState<string | null>(null);
   const hasLink = editor.isActive("link");
 
-  function apply(event: FormEvent) {
-    event.preventDefault();
+  function apply() {
     const href = withProtocol(url.trim());
     if (!url.trim() || !isSafeHref(href)) {
       setError("Escribe un enlace válido (https://…).");
@@ -37,7 +46,7 @@ export function LinkPanel({ editor, onClose }: PanelProps) {
   }
 
   return (
-    <form onSubmit={apply} className="flex flex-col gap-2 border-b border-border bg-card p-3" aria-label="Enlace">
+    <div role="group" aria-label="Enlace" className="flex flex-col gap-2 border-b border-border bg-card p-3">
       <label htmlFor="post-link-url" className="text-sm font-medium">
         Enlace del texto seleccionado
       </label>
@@ -54,11 +63,14 @@ export function LinkPanel({ editor, onClose }: PanelProps) {
           placeholder="https://…"
           autoComplete="off"
           autoCapitalize="none"
+          onKeyDown={(event) => submitOnEnter(event, apply)}
           aria-invalid={error ? true : undefined}
           className="sm:flex-1"
         />
         <div className="flex gap-2">
-          <Button type="submit">Aplicar</Button>
+          <Button type="button" onClick={apply}>
+            Aplicar
+          </Button>
           {hasLink ? (
             <Button type="button" variant="outline" onClick={remove}>
               Quitar enlace
@@ -76,7 +88,7 @@ export function LinkPanel({ editor, onClose }: PanelProps) {
       ) : (
         <p className="text-xs text-muted-foreground">Selecciona primero el texto que será el enlace.</p>
       )}
-    </form>
+    </div>
   );
 }
 
@@ -85,8 +97,7 @@ export function EmbedPanel({ editor, onClose }: PanelProps) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function insert(event: FormEvent) {
-    event.preventDefault();
+  function insert() {
     const embed = parseEmbedUrl(url);
     if (!embed) {
       setError("Link no reconocido. Pega el link de una publicación de Instagram, YouTube o TikTok.");
@@ -97,7 +108,7 @@ export function EmbedPanel({ editor, onClose }: PanelProps) {
   }
 
   return (
-    <form onSubmit={insert} className="flex flex-col gap-2 border-b border-border bg-card p-3" aria-label="Publicación de una red social">
+    <div role="group" aria-label="Publicación de una red social" className="flex flex-col gap-2 border-b border-border bg-card p-3">
       <label htmlFor="post-embed-url" className="text-sm font-medium">
         Link de Instagram, YouTube o TikTok
       </label>
@@ -114,11 +125,14 @@ export function EmbedPanel({ editor, onClose }: PanelProps) {
           placeholder="https://www.youtube.com/watch?v=…"
           autoComplete="off"
           autoCapitalize="none"
+          onKeyDown={(event) => submitOnEnter(event, insert)}
           aria-invalid={error ? true : undefined}
           className="sm:flex-1"
         />
         <div className="flex gap-2">
-          <Button type="submit">Insertar</Button>
+          <Button type="button" onClick={insert}>
+            Insertar
+          </Button>
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancelar
           </Button>
@@ -131,6 +145,6 @@ export function EmbedPanel({ editor, onClose }: PanelProps) {
       ) : (
         <p className="text-xs text-muted-foreground">También puedes pegar el link solo en una línea vacía del texto.</p>
       )}
-    </form>
+    </div>
   );
 }

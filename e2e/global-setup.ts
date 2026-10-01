@@ -8,6 +8,7 @@ import { seedDivisions } from "@/features/divisions/seed";
 import { seedEvents } from "@/features/events/seed";
 import { createFighter, deleteFighter } from "@/features/fighters/service";
 import { seedFighters } from "@/features/fighters/seed";
+import { seedPosts } from "@/features/posts/seed";
 import { divisions } from "@/db/schema/divisions";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
@@ -44,10 +45,11 @@ export default async function globalSetup(): Promise<void> {
   ensureE2eDatabase();
   execSync("pnpm db:migrate", { stdio: "inherit" });
 
-  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions, fighters, events, submission_techniques CASCADE`);
+  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions, fighters, events, submission_techniques, posts, post_categories CASCADE`);
   await seedDivisions(db);
   await seedFighters(db);
   await seedEvents(db);
+  await seedPosts(db);
   await seedHiddenFighters();
   await seedCardFighters();
   await seedSoldOutTicketsEvent();
