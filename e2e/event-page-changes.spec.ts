@@ -7,6 +7,14 @@ async function expectNoHorizontalScroll(page: Page) {
   expect(overflow).toBeLessThanOrEqual(0);
 }
 
+/** Espera a que React haya enganchado la cartelera: un clic antes de hidratar no hace nada (con el servidor cargado pasa). */
+async function waitForHydratedCard(page: Page) {
+  await page.waitForFunction(() => {
+    const button = document.querySelector("[data-bout] button");
+    return button !== null && Object.keys(button).some((key) => key.startsWith("__reactProps"));
+  });
+}
+
 const top = (locator: ReturnType<Page["locator"]>) => locator.evaluate((element) => Math.round(element.getBoundingClientRect().top));
 
 test("«Ver cartelera» se desliza hasta la cartelera en vez de saltar", async ({ page }) => {
@@ -36,6 +44,7 @@ test("las pestañas de bloque son doradas y la activa cambia de color", async ({
 
 test("tocar una pelea despliega los datos de los dos; abrir otra cierra la anterior; un enlace no la abre", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-5");
+  await waitForHydratedCard(page);
   const bouts = page.getByRole("tabpanel").locator("[data-bout]");
   const first = bouts.first();
   await expect(first).toHaveAttribute("data-open", "false");
@@ -71,6 +80,7 @@ test("tocar una pelea despliega los datos de los dos; abrir otra cierra la anter
 
 test("el panel de datos se anima: pasa por alturas intermedias al abrirse y al cerrarse", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-5");
+  await waitForHydratedCard(page);
   const first = page.getByRole("tabpanel").locator("[data-bout]").first();
   const panel = first.locator('[id]:has([data-slot="bout-comparison"])');
   const height = () => panel.evaluate((element) => element.getBoundingClientRect().height);
@@ -186,14 +196,18 @@ test("al editar un evento se pega un enlace de Google Maps y el mapa de la pági
   await expect(page.getByTitle("Mapa de Arena Santiago")).toHaveCount(0);
 });
 
-test("la portada de la ficha cabe entera en la pantalla (nombre, peso, cifras)", async ({ page }) => {
+test("la portada de la ficha ocupa justo la pantalla: ni corta ni larga", async ({ page }) => {
   for (const [width, height] of [[375, 667], [393, 780], [1280, 720], [1440, 900]] as const) {
     await page.setViewportSize({ width, height });
     await page.goto("/peleadores/diego-soto");
     const hero = page.locator('section[aria-labelledby="fighter-name"]');
     await expect(hero.getByRole("heading", { level: 1 })).toBeVisible();
     const box = (await hero.boundingBox())!;
-    expect(box.y + box.height, `portada a ${width}×${height}`).toBeLessThanOrEqual(height + 1);
+    expect(Math.abs(box.height - height), `alto de la portada a ${width}×${height}`).toBeLessThanOrEqual(1);
+    expect(Math.abs(box.y)).toBeLessThanOrEqual(1);
+    // Nada queda cortado: las cifras (lo último de los datos) terminan dentro de la pantalla.
+    const figures = (await hero.getByRole("term").last().boundingBox())!;
+    expect(figures.y + figures.height).toBeLessThanOrEqual(height);
   }
 });
 

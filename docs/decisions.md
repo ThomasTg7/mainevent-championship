@@ -497,3 +497,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** pedido del usuario tras revisar.
 - **Impacto:** Plan 06 puede reutilizar `Countdown` en la home.
 - **Estado:** aplicado
+
+## [Plan 03 · Tercera ronda de ajustes] La portada de la ficha ocupa justo la pantalla — 2026-10-01
+- **Qué:** `FighterHero` mide exactamente `100svh` (antes dependía de su contenido y dejaba un hueco): en celular la foto toma el alto que dejan los datos (mínimo 180 px) y en escritorio ocupa la columna derecha completa; el parallax de la foto sigue solo en escritorio. El e2e comprueba alto = pantalla, inicio en 0 y que las cifras no queden cortadas a 375×667, 393×780, 1280×720 y 1440×900. En pantallas muy bajas, donde los datos no caben, la portada crece en vez de cortar texto. Los e2e del desplegable de la cartelera esperan a que React hidrate antes de tocar (con el servidor cargado el clic caía antes).
+- **Por qué:** pedido del usuario: que la portada llene la pantalla al entrar y el resto se vea al desplazarse.
+- **Impacto:** el Plan 05 agrega las etiquetas de campeón/ranking dentro de `data-slot="fighter-tags"` (ya está en la portada); como suma una línea, el alto lo absorbe la foto.
+- **Estado:** aplicado
