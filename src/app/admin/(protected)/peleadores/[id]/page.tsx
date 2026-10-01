@@ -7,7 +7,7 @@ import { listDivisions } from "@/features/divisions/queries";
 import { createFighterPreviewLinkAction, updateFighterAction } from "@/features/fighters/actions";
 import { FighterForm } from "@/features/fighters/components/fighter-form";
 import { fighterToFormValues } from "@/features/fighters/form-values";
-import { getFighterForEdit } from "@/features/fighters/queries";
+import { getFighterForEdit } from "@/features/fighters/admin-queries";
 import { fighterIdSchema } from "@/features/fighters/schema";
 import { requireAdmin } from "@/lib/require-admin";
 
@@ -20,7 +20,7 @@ export default async function AdminEditarPeleadorPage({ params, searchParams }: 
   const [edit, divisions, query] = await Promise.all([getFighterForEdit(db, id), listDivisions(db), searchParams]);
   if (!edit) notFound();
 
-  const { fighter, bodyMedia, headshotMedia } = edit;
+  const { fighter, bodyMedia, headshotMedia, gallery } = edit;
   return (
     <AdminPage title={`${fighter.firstName} ${fighter.lastName}`}>
       <FighterForm
@@ -30,6 +30,7 @@ export default async function AdminEditarPeleadorPage({ params, searchParams }: 
         countries={listCountries()}
         bodyMedia={bodyMedia}
         headshotMedia={headshotMedia}
+        gallery={gallery}
         publication={{ status: fighter.status, publishAt: fighter.publishAt }}
         previewHref={createFighterPreviewLinkAction.bind(null, fighter.id)}
         isEdit

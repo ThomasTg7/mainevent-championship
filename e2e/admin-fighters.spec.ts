@@ -75,6 +75,8 @@ test("crear a Tomás Vera con foto, publicarlo, enviarlo a la papelera y restaur
 
   await page.goto(adminUrl("/papelera"));
   await page.getByRole("listitem").or(page.getByRole("row")).filter({ hasText: "Tomás Vera" }).getByRole("button", { name: "Restaurar" }).click();
+  // Sin esperar el aviso, `goto` cancelaba la acción en curso cuando la máquina iba cargada.
+  await expect(page.getByText("Restauraste peleador «Tomás Vera»")).toBeVisible();
   await page.goto(adminUrl("/peleadores?q=vera"));
   await expect(page.getByRole("row").filter({ hasText: "Tomás Vera" })).toBeVisible();
   await page.goto("/peleadores?q=vera");

@@ -17,3 +17,22 @@ export function formatDate(date: Date): string {
 export function formatDateTime(date: Date): string {
   return dateTimeFormatter.format(date);
 }
+
+const timeFormatter = new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: TIME_ZONE });
+const shortDateFormatter = new Intl.DateTimeFormat("es-CL", { weekday: "short", day: "numeric", month: "short", timeZone: TIME_ZONE });
+const longDateFormatter = new Intl.DateTimeFormat("es-CL", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: TIME_ZONE });
+
+/** Hora de Chile: "21:00". */
+export function formatTime(date: Date): string {
+  return timeFormatter.format(date);
+}
+
+/** "sáb 24 oct" (día de Chile). */
+export function formatShortDate(date: Date): string {
+  return shortDateFormatter.format(date).replace(",", "");
+}
+
+/** "sábado 24 de octubre de 2026" (día de Chile). */
+export function formatLongDate(date: Date): string {
+  return longDateFormatter.format(date).replace(",", "");
+}

@@ -1,0 +1,107 @@
+import { describe, expect, it } from "vitest";
+import type { BoutContext } from "@/domain/bout-result";
+import { EMPTY_DRAFT, draftFromResult, draftToInput, methodsForOutcome, setOutcome, type ResultDraft } from "./result-draft";
+
+const FIVE_MINUTES: BoutContext = { scheduledRounds: 3, roundSeconds: 300 };
+const draft = (overrides: Partial<ResultDraft>): ResultDraft => ({ ...EMPTY_DRAFT, ...overrides });
+
+function errorsOf(input: ResultDraft, ctx = FIVE_MINUTES): Record<string, string> {
+  const result = draftToInput(input, ctx);
+  if (result.ok) throw new Error("expected errors");
+  return result.errors;
+}
+
+describe("methodsForOutcome and setOutcome", () => {
+  it("offers every method for a win, only decisions for a draw and no contest for a no contest", () => {
+    expect(methodsForOutcome("red_win")).toEqual(["ko_tko", "submission", "decision", "technical_decision", "disqualification"]);
+    expect(methodsForOutcome("blue_win")).toEqual(methodsForOutcome("red_win"));
+    expect(methodsForOutcome("draw")).toEqual(["decision", "technical_decision"]);
+    expect(methodsForOutcome("no_contest")).toEqual(["no_contest"]);
+  });
+
+  it("drops a method that does not fit the new outcome and picks the only one for a no contest", () => {
+    expect(setOutcome(draft({ outcome: "red_win", method: "ko_tko" }), "draw").method).toBe("");
+    expect(setOutcome(draft({ outcome: "red_win", method: "decision" }), "draw").method).toBe("decision");
+    expect(setOutcome(draft({ outcome: "red_win", method: "ko_tko" }), "no_contest").method).toBe("no_contest");
+    expect(setOutcome(draft({ outcome: "no_contest", method: "no_contest" }), "blue_win").method).toBe("");
+  });
+});
+
+describe("draftToInput", () => {
+  it("asks for the outcome and the method first", () => {
+    expect(errorsOf(EMPTY_DRAFT)).toEqual({ outcome: "Elige el resultado" });
+    expect(errorsOf(draft({ outcome: "red_win" }))).toEqual({ method: "Elige el método" });
+  });
+
+  it("reads m:ss and turns the strings of a knockout into a valid result", () => {
+    const result = draftToInput(draft({ outcome: "red_win", method: "ko_tko", koTkoType: "tko_strikes", endRound: "2", endTime: "3:42", referee: " Salas " }), FIVE_MINUTES);
+    expect(result).toMatchObject({ ok: true, value: { endRound: 2, endTimeSeconds: 222, koTkoType: "tko_strikes", referee: "Salas" } });
+  });
+
+  it("rejects 5:30 in a 5:00 round with the message of the domain", () => {
+    expect(errorsOf(draft({ outcome: "red_win", method: "ko_tko", koTkoType: "ko", endRound: "1", endTime: "5:30" })).endTimeSeconds).toBe("El tiempo no puede superar 5:00");
+  });
+
+  it("explains the time format when it is not m:ss", () => {
+    for (const written of ["342", "3.42", "3:60", "tres"]) {
+      expect(errorsOf(draft({ outcome: "red_win", method: "ko_tko", koTkoType: "ko", endRound: "1", endTime: written })).endTimeSeconds).toBe(
+        "Escribe el tiempo como m:ss, por ejemplo 3:42",
+      );
+    }
+  });
+
+  it("does not ask a decision for round and time", () => {
+    const result = draftToInput(draft({ outcome: "red_win", method: "decision", decisionType: "unanimous" }), FIVE_MINUTES);
+    expect(result).toMatchObject({ ok: true, value: { endRound: 3, endTimeSeconds: 300 } });
+  });
+
+  it("ignores a round and a time written earlier once the method is a decision (their fields are hidden)", () => {
+    const result = draftToInput(draft({ outcome: "red_win", method: "decision", decisionType: "unanimous", endRound: "2", endTime: "3:42" }), FIVE_MINUTES);
+    expect(result).toMatchObject({ ok: true, input: { endRound: null, endTimeSeconds: null }, value: { endRound: 3, endTimeSeconds: 300 } });
+  });
+
+  it("turns the scorecards into numbers, dropping the empty rows, and flags a bad score", () => {
+    const base = draft({ outcome: "red_win", method: "decision", decisionType: "split" });
+    const good = draftToInput({ ...base, scorecards: [{ judge: "Juez 1", red: "29", blue: "28" }, { judge: "", red: "", blue: "" }] }, FIVE_MINUTES);
+    expect(good).toMatchObject({ ok: true, value: { scorecards: [{ judge: "Juez 1", red: 29, blue: 28 }] } });
+    expect(errorsOf({ ...base, scorecards: [{ judge: "Juez 1", red: "veintinueve", blue: "28" }] }).scorecards).toBeDefined();
+    expect(errorsOf({ ...base, scorecards: [{ judge: "", red: "29", blue: "28" }] }).scorecards).toBe("Cada tarjeta necesita el nombre del juez");
+  });
+
+  it("keeps the details of the chosen method only", () => {
+    const result = draftToInput(
+      draft({ outcome: "no_contest", method: "no_contest", ncReason: "accidental_foul", endRound: "1", endTime: "1:15", koTkoType: "ko", dqReason: "x" }),
+      FIVE_MINUTES,
+    );
+    expect(result).toMatchObject({ ok: true, value: { ncReason: "accidental_foul", koTkoType: null, dqReason: null } });
+  });
+
+  it("passes the input for the server as numbers and nulls", () => {
+    const result = draftToInput(draft({ outcome: "blue_win", method: "submission", submissionTechniqueId: "t-1", submissionType: "tap", endRound: "2", endTime: "0:45", bonuses: ["sub_of_night"] }), FIVE_MINUTES);
+    expect(result).toMatchObject({ ok: true, input: { outcome: "blue_win", submissionTechniqueId: "t-1", endRound: 2, endTimeSeconds: 45, bonuses: ["sub_of_night"] } });
+  });
+});
+
+describe("draftFromResult", () => {
+  it("shows a saved result as text again, with the time as m:ss", () => {
+    const shown = draftFromResult({
+      outcome: "red_win",
+      method: "submission",
+      koTkoType: null,
+      submissionTechniqueId: "t-1",
+      submissionType: "tap",
+      decisionType: null,
+      dqReason: null,
+      ncReason: null,
+      ncNote: null,
+      endRound: 2,
+      endTimeSeconds: 222,
+      referee: "Salas",
+      scorecards: null,
+      bonuses: ["sub_of_night"],
+      videoUrl: null,
+      notes: "Buen combate",
+    });
+    expect(shown).toMatchObject({ outcome: "red_win", method: "submission", submissionTechniqueId: "t-1", endRound: "2", endTime: "3:42", referee: "Salas", koTkoType: "", notes: "Buen combate", scorecards: [] });
+  });
+});

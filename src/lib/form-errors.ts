@@ -33,3 +33,8 @@ export function formValues(formData: FormData): Record<string, string> {
   }
   return values;
 }
+
+/** Todos los valores de un campo repetido (p. ej. un id por foto de la galería, en el orden mostrado). */
+export function formList(formData: FormData, name: string): string[] {
+  return formData.getAll(name).filter((value): value is string => typeof value === "string");
+}

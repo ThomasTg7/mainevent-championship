@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Db } from "@/db";
 import * as mediaQueries from "@/features/media/queries";
 import { createTestDb } from "@/test/db";
-import { getFighterForEdit, getPublicFighterBySlug, listAdminFighters, getPublicFighterRef, listPublicFighters, listPublicFilterOptions } from "./queries";
+import { getPublicFighterBySlug, getPublicFighterRef, listPublicFighters, listPublicFilterOptions } from "./queries";
 import type { FighterFilters } from "./schema";
 import { createFighter, deleteFighter, setFighterPublication } from "./service";
 import { divisionIdBySlug, insertMedia, validFighterInput } from "./test-helpers";
@@ -136,35 +136,15 @@ describe("getPublicFighterBySlug", () => {
   });
 });
 
-describe("listAdminFighters", () => {
-  it("lists drafts too but not trashed fighters, paginated with hasMore", async () => {
-    const all = await listAdminFighters(db, {});
-    expect(all.items.map((fighter) => fighter.id)).toContain(ids.draft);
-    expect(all.items.map((fighter) => fighter.id)).not.toContain(ids.trashed);
-    expect(all.hasMore).toBe(false);
+describe("public profile gallery", () => {
+  it("carries the gallery in order, and an empty list when there are none", async () => {
+    expect((await getPublicFighterBySlug(db, "matias-perez"))?.gallery).toEqual([]);
 
-    const firstPage = await listAdminFighters(db, {}, { pageSize: 2 });
-    expect(firstPage.items).toHaveLength(2);
-    expect(firstPage.hasMore).toBe(true);
-    const secondPage = await listAdminFighters(db, {}, { page: 2, pageSize: 2 });
-    expect(secondPage.items.length).toBeGreaterThan(0);
-    expect(secondPage.items.map((fighter) => fighter.id)).not.toContain(firstPage.items[0]?.id);
-  });
-
-  it("filters by publication status and searches like the public list", async () => {
-    const drafts = await listAdminFighters(db, { publication: "draft" });
-    expect(drafts.items.every((fighter) => fighter.status === "draft")).toBe(true);
-    expect((await listAdminFighters(db, { q: "BORRADOR" })).items.map((fighter) => fighter.id)).toEqual([ids.draft]);
-  });
-});
-
-describe("getFighterForEdit", () => {
-  it("returns raw columns and both images, regardless of publication", async () => {
-    const edit = await getFighterForEdit(db, ids.matias);
-    expect(edit?.fighter.slug).toBe("matias-perez");
-    expect(edit?.bodyMedia?.id).toBe(bodyMediaId);
-    expect(await getFighterForEdit(db, ids.draft)).not.toBeNull();
-    expect(await getFighterForEdit(db, "00000000-0000-4000-8000-000000000000")).toBeNull();
+    const [first, second] = [await insertMedia(db, "gallery"), await insertMedia(db, "gallery")];
+    const ligero = await divisionIdBySlug(db, "peso-ligero");
+    const { id } = await createFighter(db, validFighterInput(ligero, { firstName: "Con", lastName: "Fotos", galleryMediaIds: [second, first] }), "admin-1");
+    await publish(id);
+    expect((await getPublicFighterBySlug(db, "con-fotos"))?.gallery.map((photo) => photo.id)).toEqual([second, first]);
   });
 });
 

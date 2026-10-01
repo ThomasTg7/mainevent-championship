@@ -1,6 +1,6 @@
 "use client";
 
-import { TextField } from "./fighter-fields";
+import { TextField } from "@/components/admin/form-fields";
 
 export function FighterSocialsTab() {
   return (

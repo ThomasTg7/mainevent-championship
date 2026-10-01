@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { formValues, zodFieldErrors, type FormActionState } from "@/lib/form-errors";
+import { formList, formValues, zodFieldErrors, type FormActionState } from "@/lib/form-errors";
 import { requireAdmin } from "@/lib/require-admin";
 import { adminPath, publicUrl } from "@/lib/site-urls";
-import { runUserFacing } from "@/lib/user-facing-error";
+import { runFormAction } from "@/lib/run-form-action";
 import { publicationInputSchema } from "@/features/publication/schema";
 import { createPreviewToken } from "@/features/publication/preview";
 import { revalidateFighter } from "./cache";
-import { getFighterSlug } from "./queries";
+import { getFighterSlug } from "./admin-queries";
 import { fighterIdSchema, fighterInputSchema } from "./schema";
 import { createFighter, deleteFighter, setFighterPublication, updateFighter } from "./service";
 
@@ -19,15 +19,16 @@ const NOT_FOUND: FormActionState = { error: "No se encontró al peleador" };
 
 const isFighterId = (id: unknown): id is string => fighterIdSchema.safeParse(id).success;
 
-async function run(task: () => Promise<FormActionState | void>, formData?: FormData): Promise<FormActionState> {
-  const result = await runUserFacing("Error en peleadores", task);
-  if ("value" in result) return result.value ?? {};
-  return { error: result.error, ...(formData ? { values: formValues(formData) } : {}) };
+const run = (task: () => Promise<FormActionState | void>, formData?: FormData) => runFormAction("Error en peleadores", task, formData);
+
+/** Lo escrito en el formulario; la galería llega como un campo repetido (un id por foto, en el orden mostrado). */
+function fighterValues(formData: FormData) {
+  return { ...formValues(formData), galleryMediaIds: formList(formData, "galleryMediaIds") };
 }
 
 /** Valida en el servidor para devolver un error por campo; el servicio vuelve a validar. */
 function invalidForm(formData: FormData): FormActionState | null {
-  const parsed = fighterInputSchema.safeParse(formValues(formData));
+  const parsed = fighterInputSchema.safeParse(fighterValues(formData));
   return parsed.success ? null : { fieldErrors: zodFieldErrors(parsed.error), values: formValues(formData) };
 }
 
@@ -38,7 +39,7 @@ export async function createFighterAction(_previous: FormActionState, formData: 
 
   let createdId: string | undefined;
   const result = await run(async () => {
-    const created = await createFighter(db, formValues(formData), admin.userId);
+    const created = await createFighter(db, fighterValues(formData), admin.userId);
     createdId = created.id;
     revalidateFighter(created.id);
     revalidatePath(ADMIN_PATH);
@@ -53,7 +54,7 @@ export async function updateFighterAction(id: string, _previous: FormActionState
   if (invalid) return invalid;
 
   return run(async () => {
-    await updateFighter(db, id, formValues(formData), admin.userId);
+    await updateFighter(db, id, fighterValues(formData), admin.userId);
     revalidateFighter(id);
     revalidatePath(ADMIN_PATH);
     return { success: "Cambios guardados" };

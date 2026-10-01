@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
 import { createTestDb } from "@/test/db";
-import { listAdminFighters, listPublicFighters } from "./queries";
+import { listAdminFighters } from "./admin-queries";
+import { listPublicFighters } from "./queries";
 import { seedFighters } from "./seed";
 
 let db: Db;

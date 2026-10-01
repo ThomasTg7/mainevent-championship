@@ -1,6 +1,9 @@
 import { unstable_cache } from "next/cache";
 import { db } from "@/db";
+import { computeRecord } from "@/domain/record";
 import { DIVISIONS_CACHE_TAG } from "@/features/divisions/cache";
+import { EVENTS_LIST_TAG, TECHNIQUES_TAG } from "@/features/events/cache";
+import { getFighterFightHistory, getFighterNextBout, listBoutsForRecord } from "@/features/events/fighter-queries";
 import { MEDIA_ANY_TAG, mediaCacheTag } from "@/features/media/cache";
 import { FIGHTERS_LIST_TAG, fighterCacheTag } from "./cache";
 import { getPublicFighterBySlug, getPublicFighterRef, listPublicFighters, listPublicFilterOptions } from "./queries";
@@ -42,7 +45,33 @@ export async function getCachedPublicFighter(slug: string) {
 
   const mediaTags = [ref.bodyMediaId, ref.headshotMediaId].flatMap((id) => (id ? [mediaCacheTag(id)] : []));
   return unstable_cache(() => getPublicFighterBySlug(db, slug), ["fighter-profile", ref.id, slug], {
-    tags: [fighterCacheTag(ref.id), DIVISIONS_CACHE_TAG, ...mediaTags],
+    // `MEDIA_ANY_TAG`: las fotos de la galería no se conocen antes de leer la ficha (como en los listados).
+    tags: [fighterCacheTag(ref.id), DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, ...mediaTags],
     revalidate: REVALIDATE_SECONDS,
   })();
+}
+
+/**
+ * Récord en la promotora, historial y próxima pelea del peleador. Solo cuentan las peleas de eventos públicos ahora, así
+ * que despublicar o enviar a la papelera un evento (`EVENTS_LIST_TAG`) cambia el historial. `computeRecord` corre
+ * **dentro** de la función cacheada: sus entradas llevan `Date`, que no sobrevive a la serialización JSON de la caché;
+ * lo que sale son números y texto (las fechas del historial van como ISO).
+ */
+export function getCachedFighterBouts(fighterId: string) {
+  return unstable_cache(
+    async () => {
+      const [record, history, nextBout] = await Promise.all([
+        listBoutsForRecord(db, fighterId),
+        getFighterFightHistory(db, fighterId),
+        getFighterNextBout(db, fighterId),
+      ]);
+      return {
+        computed: { pro: computeRecord(record, fighterId, "pro"), amateur: computeRecord(record, fighterId, "amateur") },
+        history,
+        nextBout,
+      };
+    },
+    ["fighter-bouts", fighterId],
+    { tags: [fighterCacheTag(fighterId), EVENTS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, TECHNIQUES_TAG], revalidate: REVALIDATE_SECONDS },
+  )();
 }

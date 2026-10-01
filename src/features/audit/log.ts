@@ -12,7 +12,8 @@ export type AuditEntry = {
   diff?: unknown;
 };
 
-export async function logAudit(db: Db, entry: AuditEntry): Promise<void> {
+/** Acepta la conexión o una transacción: la auditoría se puede escribir dentro de la misma transacción del cambio. */
+export async function logAudit(db: Pick<Db, "insert">, entry: AuditEntry): Promise<void> {
   await db.insert(auditLog).values({
     actorId: entry.actorId,
     action: entry.action,

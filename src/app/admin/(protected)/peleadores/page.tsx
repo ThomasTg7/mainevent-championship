@@ -9,7 +9,7 @@ import { db } from "@/db";
 import { listDivisions } from "@/features/divisions/queries";
 import { FightersAdminFilters } from "@/features/fighters/components/fighters-admin-filters";
 import { FightersAdminList } from "@/features/fighters/components/fighters-admin-list";
-import { listAdminFighters, type AdminFighterFilters } from "@/features/fighters/queries";
+import { listAdminFighters, type AdminFighterFilters } from "@/features/fighters/admin-queries";
 import { parsePageParam } from "@/lib/pagination";
 import { requireAdmin } from "@/lib/require-admin";
 

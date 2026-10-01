@@ -21,9 +21,9 @@ export function FighterHero({ fighter, figures }: FighterHeroProps) {
   const name = `${fighter.firstName} ${fighter.lastName}`;
 
   return (
-    <section className="relative overflow-hidden bg-black pt-[76px]" aria-labelledby="fighter-name">
-      <div className="mx-auto grid w-full max-w-[1320px] items-end px-[clamp(16px,4vw,64px)] lg:grid-cols-[1.15fr_.85fr] lg:gap-8">
-        <div className="relative z-10 order-2 pb-10 pt-2 lg:order-1 lg:pb-16 lg:pt-20">
+    <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-black pt-[76px]" aria-labelledby="fighter-name">
+      <div className="mx-auto flex w-full max-w-[1320px] flex-1 flex-col px-[clamp(16px,4vw,64px)] lg:grid lg:grid-cols-[1.15fr_.85fr] lg:gap-8">
+        <div className="relative z-10 order-2 pb-6 pt-2 lg:order-1 lg:self-end lg:pb-12 lg:pt-8">
           <div className="mb-5 flex flex-wrap gap-2" data-slot="fighter-tags">
             <Tag tone="yellow">{divisionTitle(fighter.division)}</Tag>
             <Tag tone="outline">{CAREER_STATUS_LABELS[fighter.careerStatus]}</Tag>
@@ -43,15 +43,15 @@ export function FighterHero({ fighter, figures }: FighterHeroProps) {
             {fighter.weightKg ? <span>{formatWeight(fighter.weightKg)}</span> : null}
           </p>
           {fighter.bio ? (
-            <p data-slot="fighter-bio" className="mt-5 line-clamp-5 max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-base">
+            <p data-slot="fighter-bio" className="mt-4 line-clamp-3 max-w-xl text-[15px] leading-relaxed text-white/85 sm:line-clamp-5 sm:text-base">
               {fighter.bio}
             </p>
           ) : null}
-          <CountFigures items={figures} className="mt-7 grid max-w-xl grid-cols-3 border-t border-border" valueClassName="text-[clamp(40px,6.5vw,72px)]" />
+          <CountFigures items={figures} className="mt-5 grid max-w-xl grid-cols-3 border-t border-border" valueClassName="text-[clamp(36px,5vw,64px)]" />
         </div>
 
-        {/* En celular la foto se limita a ~60 % de la pantalla: nombre y cifras quedan a la vista sin desplazarse. */}
-        <div className="relative order-1 mx-auto aspect-[3/4] max-h-[60svh] w-full max-w-[520px] overflow-hidden lg:order-2 lg:max-h-none lg:max-w-none">
+        {/* La portada ocupa justo la pantalla (100svh): la foto toma el alto que dejan los datos, en celular arriba y en escritorio a la derecha. */}
+        <div className="relative order-1 min-h-[180px] w-full flex-1 overflow-hidden lg:order-2 lg:min-h-0 lg:self-stretch">
           <HeroParallax className="absolute inset-0 will-change-transform">
             {fighter.bodyMedia ? (
               <MediaImage media={fighter.bodyMedia} sizes={FIGHTER_HERO_SIZES} priority className="size-full object-contain object-bottom" />

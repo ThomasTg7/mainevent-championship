@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
 import { auditLog } from "@/db/schema/audit";
-import { fighters } from "@/db/schema/fighters";
+import { fighterGallery, fighters } from "@/db/schema/fighters";
 import { divisions } from "@/db/schema/divisions";
 import { saveDivision, toggleDivision } from "@/features/divisions/service";
 import { createTestDb } from "@/test/db";
@@ -172,5 +172,50 @@ describe("division guard", () => {
     const moved = await saveDivision(db, { id: empty.id, name: "Vacía", gender: "female", limitKg: 50, rankingSlots: 5 }, "admin-1");
     expect(moved.gender).toBe("female");
     expect(moved.sortOrder).toBe(lastFemale + 1);
+  });
+});
+
+describe("fighter gallery", () => {
+  const galleryOf = async (fighterId: string) =>
+    (await db.select().from(fighterGallery).where(eq(fighterGallery.fighterId, fighterId)).orderBy(asc(fighterGallery.sortOrder))).map((row) => row.mediaId);
+
+  it("stores the photos in the order they are sent, when creating and when editing", async () => {
+    const [a, b, c] = [await insertMedia(db, "gallery"), await insertMedia(db, "gallery"), await insertMedia(db, "gallery")];
+    const { id } = await createFighter(db, validFighterInput(ligero, { firstName: "Gal", lastName: "Eria", galleryMediaIds: [b, a] }), "admin-1");
+    expect(await galleryOf(id)).toEqual([b, a]);
+
+    await updateFighter(db, id, validFighterInput(ligero, { firstName: "Gal", lastName: "Eria", galleryMediaIds: [c, a, b] }), "admin-1");
+    expect(await galleryOf(id)).toEqual([c, a, b]);
+    await updateFighter(db, id, validFighterInput(ligero, { firstName: "Gal", lastName: "Eria", galleryMediaIds: [a] }), "admin-1");
+    expect(await galleryOf(id)).toEqual([a]);
+  });
+
+  it("clears the gallery when the form sends no photos", async () => {
+    const photo = await insertMedia(db, "gallery");
+    const { id } = await createFighter(db, validFighterInput(ligero, { firstName: "Sin", lastName: "Fotos", galleryMediaIds: [photo] }), "admin-1");
+    await updateFighter(db, id, validFighterInput(ligero, { firstName: "Sin", lastName: "Fotos" }), "admin-1");
+    expect(await galleryOf(id)).toEqual([]);
+  });
+
+  it("does not repeat a photo, and rejects one that is missing or of another kind", async () => {
+    const photo = await insertMedia(db, "gallery");
+    const { id } = await createFighter(db, validFighterInput(ligero, { firstName: "Dup", lastName: "Foto", galleryMediaIds: [photo, photo] }), "admin-1");
+    expect(await galleryOf(id)).toEqual([photo]);
+
+    const body = await insertMedia(db, "fighter_body");
+    await expect(updateFighter(db, id, validFighterInput(ligero, { firstName: "Dup", lastName: "Foto", galleryMediaIds: [body] }), "admin-1")).rejects.toThrow(
+      "La imagen ya no está disponible",
+    );
+    await expect(
+      updateFighter(db, id, validFighterInput(ligero, { firstName: "Dup", lastName: "Foto", galleryMediaIds: ["00000000-0000-4000-8000-000000000000"] }), "admin-1"),
+    ).rejects.toThrow("La imagen ya no está disponible");
+    expect(await galleryOf(id)).toEqual([photo]);
+  });
+
+  it("does not let a photo be removed from the storage while a gallery uses it", async () => {
+    const photo = await insertMedia(db, "gallery");
+    await createFighter(db, validFighterInput(ligero, { firstName: "Foto", lastName: "Usada", galleryMediaIds: [photo] }), "admin-1");
+    const { media } = await import("@/db/schema/media");
+    await expect(db.delete(media).where(eq(media.id, photo))).rejects.toThrow();
   });
 });

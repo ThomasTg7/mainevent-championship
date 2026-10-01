@@ -6,18 +6,26 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 
-type FieldsContextValue = { defaults: Record<string, string>; errors: Record<string, string> };
+type FieldsContextValue = {
+  /** Valor inicial de cada campo, como texto. */
+  defaults: Record<string, string>;
+  /** Error del servidor por campo. */
+  errors: Record<string, string>;
+  /** Prefijo de los `id` (`fighter-firstName`): estable entre renders, único por formulario. */
+  idPrefix: string;
+};
 
-const FieldsContext = createContext<FieldsContextValue>({ defaults: {}, errors: {} });
+const FieldsContext = createContext<FieldsContextValue>({ defaults: {}, errors: {}, idPrefix: "field" });
 
-export const FighterFieldsProvider = FieldsContext.Provider;
+/** Campos de un formulario del panel (`TextField`, `TextAreaField`, `SelectField`) con valor inicial y error del servidor. */
+export const FormFieldsProvider = FieldsContext.Provider;
 
 type BaseProps = { name: string; label: string; hint?: string };
 
 /** Datos comunes de un campo: id estable, valor inicial y error del servidor junto al input. */
 function useField(name: string) {
-  const { defaults, errors } = useContext(FieldsContext);
-  const id = `fighter-${name}`;
+  const { defaults, errors, idPrefix } = useContext(FieldsContext);
+  const id = `${idPrefix}-${name}`;
   const error = errors[name];
   return {
     id,

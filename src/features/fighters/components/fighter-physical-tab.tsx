@@ -1,6 +1,6 @@
 "use client";
 
-import { SelectField, TextField } from "./fighter-fields";
+import { SelectField, TextField } from "@/components/admin/form-fields";
 
 export function FighterPhysicalTab() {
   return (
