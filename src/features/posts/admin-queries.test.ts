@@ -7,7 +7,7 @@ import { fighterIdBySlug, insertEvent } from "@/features/events/test-helpers";
 import { seedFighters } from "@/features/fighters/seed";
 import { insertMedia } from "@/features/fighters/test-helpers";
 import { createTestDb } from "@/test/db";
-import { getPostForEdit, listAdminPosts, listCategories } from "./admin-queries";
+import { getPostForEdit, getPostRelationIds, listAdminPosts, listCategories } from "./admin-queries";
 import { categoryIdBySlug, daysAgo, insertPost } from "./test-helpers";
 
 let db: Db;
@@ -106,5 +106,15 @@ describe("listCategories", () => {
     expect(rows.map((row) => row.name)).toEqual(["Anuncios", "Resultados", "Entrevistas", "Detrás de cámaras"]);
     expect(rows.find((row) => row.slug === "resultados")?.postCount).toBe(2);
     expect(rows.find((row) => row.slug === "anuncios")?.postCount).toBe(0);
+  });
+});
+
+describe("getPostRelationIds", () => {
+  it("lists every related fighter and event, public or not (their pages must refresh when the post changes)", async () => {
+    const perez = await fighterIdBySlug(db, "matias-perez");
+    const draftEvent = await insertEvent(db, { status: "draft" });
+    const { id } = await insertPost(db, { fighterIds: [perez], eventIds: [draftEvent.id] });
+    expect(await getPostRelationIds(db, id)).toEqual({ fighterIds: [perez], eventIds: [draftEvent.id] });
+    expect(await getPostRelationIds(db, "00000000-0000-4000-8000-000000000000")).toEqual({ fighterIds: [], eventIds: [] });
   });
 });

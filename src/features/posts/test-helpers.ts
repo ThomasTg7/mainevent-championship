@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import { postCategories, postEvents, postFighters, posts } from "@/db/schema/posts";
 import { seedPostCategories } from "./seed";
+import type { PostFormInput } from "./schema";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -39,4 +40,9 @@ export async function insertPost(
   if (fighterIds.length) await db.insert(postFighters).values(fighterIds.map((fighterId) => ({ postId: row!.id, fighterId })));
   if (eventIds.length) await db.insert(postEvents).values(eventIds.map((eventId) => ({ postId: row!.id, eventId })));
   return row!;
+}
+
+/** Noticia válida mínima para los tests del servicio; `overrides` pisa cualquier campo. */
+export function validPostInput(categoryId: string, overrides: Partial<PostFormInput> = {}): PostFormInput {
+  return { title: "Pérez defiende el cinturón", categoryId, ...overrides };
 }

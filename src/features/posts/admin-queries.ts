@@ -128,3 +128,12 @@ export async function listCategories(db: Db): Promise<CategoryRow[]> {
     .from(postCategories)
     .orderBy(asc(postCategories.sortOrder), asc(postCategories.name));
 }
+
+/** Peleadores y eventos relacionados con la noticia, sean públicos o no: sus páginas deben refrescarse cuando la noticia cambia. */
+export async function getPostRelationIds(db: Db, postId: string): Promise<{ fighterIds: string[]; eventIds: string[] }> {
+  const [fighterRows, eventRows] = await Promise.all([
+    db.select({ id: postFighters.fighterId }).from(postFighters).where(eq(postFighters.postId, postId)),
+    db.select({ id: postEvents.eventId }).from(postEvents).where(eq(postEvents.postId, postId)),
+  ]);
+  return { fighterIds: fighterRows.map((row) => row.id), eventIds: eventRows.map((row) => row.id) };
+}

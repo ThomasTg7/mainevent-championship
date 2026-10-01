@@ -1,13 +1,14 @@
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 import type { Db } from "@/db";
 import { bouts, cardSegments, eventGallery, events, submissionTechniques, type Event } from "@/db/schema/events";
 import type { MediaDTO } from "@/features/media/dto";
+import { escapeLike } from "@/features/fighters/query-helpers";
 import { getMediaByIds } from "@/features/media/queries";
 import type { AdminEventRow } from "./dto";
 
 const ADMIN_PAGE_SIZE = 50;
 
-export type AdminEventFilters = { publication?: "draft" | "scheduled" | "published" };
+export type AdminEventFilters = { publication?: "draft" | "scheduled" | "published"; /** Texto dentro del nombre (buscador de eventos relacionados). */ q?: string };
 
 /** Listado del panel: borradores y programados incluidos, la papelera no. Fecha más lejana primero. 50 por página. */
 export async function listAdminEvents(
@@ -17,6 +18,7 @@ export async function listAdminEvents(
 ): Promise<{ items: AdminEventRow[]; hasMore: boolean }> {
   const conditions = [isNull(events.deletedAt)];
   if (filters.publication) conditions.push(eq(events.status, filters.publication));
+  if (filters.q?.trim()) conditions.push(ilike(events.name, `%${escapeLike(filters.q.trim())}%`));
 
   const rows = await db
     .select({
