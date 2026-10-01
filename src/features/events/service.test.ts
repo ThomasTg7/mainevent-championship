@@ -194,3 +194,33 @@ describe("duplicateEvent", () => {
     await expect(duplicateEvent(db, MISSING, "admin-1")).rejects.toThrow("No se encontró el evento");
   });
 });
+
+describe("the Google Maps link of an event", () => {
+  const PLACE = "https://www.google.com/maps/place/Arena/@-33.44,-70.66,17z/data=!3d-33.4372!4d-70.6506";
+
+  it("saves the coordinates of the pasted link, on create and on update", async () => {
+    const { id } = await createEvent(db, validEventInput({ name: "Con mapa", mapsUrl: PLACE }), "admin-1");
+    expect(await findEvent(id)).toMatchObject({ lat: -33.4372, lng: -70.6506 });
+
+    await updateEvent(db, id, validEventInput({ name: "Con mapa", mapsUrl: "https://www.google.com/maps/@-33.1,-71.2,15z" }), "admin-1");
+    expect(await findEvent(id)).toMatchObject({ lat: -33.1, lng: -71.2 });
+  });
+
+  it("clears the map when the link is emptied", async () => {
+    const { id } = await createEvent(db, validEventInput({ name: "Sin mapa luego", mapsUrl: PLACE }), "admin-1");
+    await updateEvent(db, id, validEventInput({ name: "Sin mapa luego", mapsUrl: "" }), "admin-1");
+    expect(await findEvent(id)).toMatchObject({ lat: null, lng: null });
+  });
+
+  it("keeps working with explicit coordinates when no link comes", async () => {
+    const { id } = await createEvent(db, validEventInput({ name: "Coordenadas", lat: "-33.5", lng: "-70.5" }), "admin-1");
+    expect(await findEvent(id)).toMatchObject({ lat: -33.5, lng: -70.5 });
+  });
+
+  it("rejects a link that is not from Google Maps, and a Maps link that has no place in it", async () => {
+    await expect(createEvent(db, validEventInput({ name: "Otro sitio", mapsUrl: "https://example.com/maps" }), "admin-1")).rejects.toThrow("enlace de Google Maps");
+    await expect(createEvent(db, validEventInput({ name: "Sin lugar", mapsUrl: "https://www.google.com/maps/place/Arena+Santiago" }), "admin-1")).rejects.toThrow(
+      "No pudimos leer la ubicación",
+    );
+  });
+});

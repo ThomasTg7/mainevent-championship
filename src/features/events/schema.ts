@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { TicketTier } from "@/db/schema/events";
 import { EVENT_STATUSES } from "@/domain/bout-enums";
+import { isGoogleMapsLink } from "@/domain/maps-link";
 import { publicationShape, requireScheduleDate } from "@/features/publication/schema";
 import { addDaysToDate, fromSantiagoInputs } from "@/lib/santiago-time";
 import { IMAGE_UNAVAILABLE, optionalHttpUrl, optionalImageId, optionalNumber, optionalSlug, optionalText } from "@/lib/zod-fields";
@@ -70,6 +71,8 @@ export type EventData = {
   venueCity: string;
   lat: number | null;
   lng: number | null;
+  /** El enlace de Google Maps pegado en el formulario; el servicio saca de él `lat` y `lng`. */
+  mapsUrl: string | null;
   heroMediaId: string | null;
   heroMobileMediaId: string | null;
   posterMediaId: string | null;
@@ -102,6 +105,7 @@ export const eventInputSchema = z
     venueCity: z.string({ error: "La ciudad es obligatoria" }).trim().min(1, "La ciudad es obligatoria").max(80, "La ciudad es demasiado larga"),
     lat: optionalNumber("La latitud", { min: -90, max: 90 }),
     lng: optionalNumber("La longitud", { min: -180, max: 180 }),
+    mapsUrl: optionalHttpUrl("El enlace de Google Maps"),
     heroMediaId: optionalImageId(),
     heroMobileMediaId: optionalImageId(),
     posterMediaId: optionalImageId(),
@@ -120,6 +124,11 @@ export const eventInputSchema = z
     ...publicationShape,
   })
   .superRefine(requireScheduleDate)
+  .superRefine((value, ctx) => {
+    if (value.mapsUrl && !isGoogleMapsLink(value.mapsUrl)) {
+      ctx.addIssue({ code: "custom", path: ["mapsUrl"], message: "Pega un enlace de Google Maps (en Maps toca «Compartir» y copia el enlace)" });
+    }
+  })
   .superRefine((value, ctx) => {
     if ((value.lat === null) !== (value.lng === null)) {
       ctx.addIssue({ code: "custom", path: [value.lat === null ? "lat" : "lng"], message: "Indica latitud y longitud, o deja ambas vacías" });

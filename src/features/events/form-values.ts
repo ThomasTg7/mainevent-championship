@@ -18,8 +18,7 @@ export const EMPTY_EVENT_VALUES: EventFormValues = {
   venueName: "",
   venueAddress: "",
   venueCity: "",
-  lat: "",
-  lng: "",
+  mapsUrl: "",
   ticketUrl: "",
   ticketProvider: "",
   ticketPoints: "",
@@ -40,8 +39,7 @@ export function eventToFormValues(event: Event): EventFormValues {
     venueName: event.venueName,
     venueAddress: event.venueAddress,
     venueCity: event.venueCity,
-    lat: text(event.lat),
-    lng: text(event.lng),
+    mapsUrl: event.lat !== null && event.lng !== null ? `https://www.google.com/maps?q=${event.lat},${event.lng}` : "",
     ticketUrl: text(event.ticketUrl),
     ticketProvider: text(event.ticketProvider),
     ticketPoints: text(event.ticketPoints),
@@ -52,7 +50,7 @@ export function eventToFormValues(event: Event): EventFormValues {
 /** Pestaña donde vive cada campo: si falla la validación, el formulario abre la primera pestaña con error. */
 export const EVENT_FIELD_TABS = {
   data: ["name", "number", "slug", "eventStatus"],
-  place: ["startsDate", "startsTime", "doorsTime", "endsTime", "venueName", "venueAddress", "venueCity", "lat", "lng"],
+  place: ["startsDate", "startsTime", "doorsTime", "endsTime", "venueName", "venueAddress", "venueCity", "mapsUrl"],
   images: ["heroMediaId", "heroMobileMediaId", "posterMediaId", "galleryMediaIds"],
   tickets: ["ticketUrl", "ticketProvider", "ticketTiers", "ticketPoints", "streamUrl"],
   publication: ["status", "publishAt"],

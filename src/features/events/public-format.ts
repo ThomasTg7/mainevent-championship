@@ -1,4 +1,6 @@
 import { formatClock } from "@/domain/clock";
+import { countryName } from "@/domain/units";
+import type { ManualRecord } from "@/features/fighters/dto";
 import { divisionTitle } from "@/features/fighters/labels";
 
 // Textos y enlaces de la página pública del evento, sin React: se testean solos.
@@ -13,18 +15,6 @@ export function boutMeasure(bout: { catchweightKg: number | null; division: { na
 export function roundsLabel(bout: { scheduledRounds: number; roundSeconds: number }): string {
   const length = bout.roundSeconds % 60 === 0 ? String(bout.roundSeconds / 60) : formatClock(bout.roundSeconds);
   return `${bout.scheduledRounds} × ${length} MIN`;
-}
-
-/** Lo que falta hasta la hora del evento; `null` cuando ya llegó. */
-export function countdownParts(remainingMs: number): { days: number; hours: number; minutes: number; seconds: number } | null {
-  if (remainingMs <= 0) return null;
-  const totalSeconds = Math.floor(remainingMs / 1000);
-  return {
-    days: Math.floor(totalSeconds / 86_400),
-    hours: Math.floor((totalSeconds % 86_400) / 3600),
-    minutes: Math.floor((totalSeconds % 3600) / 60),
-    seconds: totalSeconds % 60,
-  };
 }
 
 const YOUTUBE_HOSTS = new Set(["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"]);
@@ -44,22 +34,51 @@ export function youtubeEmbedUrl(link: string): string | null {
   return id && YOUTUBE_ID.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : null;
 }
 
-const MAP_MARGIN_DEGREES = 0.01;
-
-/** Mapa de OpenStreetMap centrado en el recinto (sin clave de API). */
+/** Mapa de Google Maps centrado en el recinto (la inserción por coordenadas no pide clave de API). */
 export function mapEmbedUrl(lat: number, lng: number): string {
-  const box = [lng - MAP_MARGIN_DEGREES, lat - MAP_MARGIN_DEGREES, lng + MAP_MARGIN_DEGREES, lat + MAP_MARGIN_DEGREES].map((value) => value.toFixed(4)).join(",");
-  const query = new URLSearchParams({ bbox: box, layer: "mapnik", marker: `${lat},${lng}` });
-  return `https://www.openstreetmap.org/export/embed.html?${query.toString()}`;
+  return `https://www.google.com/maps?${new URLSearchParams({ q: `${lat},${lng}`, z: "16", output: "embed" }).toString()}`;
 }
 
-/** Enlace para abrir el recinto en el mapa completo. */
+/** Enlace para abrir el recinto en Google Maps (la aplicación en el celular). */
 export function mapLinkUrl(lat: number, lng: number): string {
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
+  return `https://www.google.com/maps/search/?${new URLSearchParams({ api: "1", query: `${lat},${lng}` }).toString()}`;
 }
 
-/** Si la página muestra la cuenta regresiva: un evento programado que aún no empieza, o uno en vivo (dirá «EN VIVO»). */
-export function showsCountdown(event: { eventStatus: "scheduled" | "live" | "completed" | "cancelled"; startsAt: string }, nowMs: number = Date.now()): boolean {
-  if (event.eventStatus === "live") return true;
-  return event.eventStatus === "scheduled" && new Date(event.startsAt).getTime() > nowMs;
+type EventStatus = "scheduled" | "live" | "completed" | "cancelled";
+
+/** La etiqueta del estado en la portada del evento: lo único que se dice del evento además de su nombre. */
+export function eventStatusTag(status: EventStatus): { tone: "yellow" | "red" | "outline"; label: string } {
+  switch (status) {
+    case "scheduled":
+      return { tone: "yellow", label: "Próximo" };
+    case "live":
+      return { tone: "red", label: "● En vivo" };
+    case "completed":
+      return { tone: "outline", label: "Finalizado" };
+    case "cancelled":
+      return { tone: "red", label: "Cancelado" };
+  }
+}
+
+type Comparable = { nationality: string; record: ManualRecord; heightCm: number | null; weightKg: number | null; reachCm: number | null };
+
+/**
+ * Las filas de «frente a frente» de una pelea: récord, país, altura, peso y alcance de cada esquina. Una medida que le
+ * falta a cualquiera de los dos no se muestra (comparar con un hueco no dice nada). El récord y el país siempre hay.
+ */
+export function fighterComparison(red: Comparable, blue: Comparable): { label: string; red: string; blue: string }[] {
+  const record = ({ wins, losses, draws }: ManualRecord) => `${wins}-${losses}-${draws}`;
+  const rows = [
+    { label: "Récord", red: record(red.record), blue: record(blue.record) },
+    { label: "País", red: countryName(red.nationality), blue: countryName(blue.nationality) },
+  ];
+  const measures = [
+    { label: "Altura", red: red.heightCm, blue: blue.heightCm, unit: "cm" },
+    { label: "Peso", red: red.weightKg, blue: blue.weightKg, unit: "kg" },
+    { label: "Alcance", red: red.reachCm, blue: blue.reachCm, unit: "cm" },
+  ];
+  for (const { label, red: redValue, blue: blueValue, unit } of measures) {
+    if (typeof redValue === "number" && typeof blueValue === "number") rows.push({ label, red: `${redValue} ${unit}`, blue: `${blueValue} ${unit}` });
+  }
+  return rows;
 }

@@ -9,13 +9,13 @@ import { EventGallery } from "@/features/events/components/event-gallery";
 import { EventSchedule } from "@/features/events/components/event-schedule";
 import { EventStickyBar } from "@/features/events/components/event-sticky-bar";
 import { EventVideo } from "@/features/events/components/event-video";
+import { BoutAccordion } from "@/features/events/components/bout-accordion";
 import { BoutRow } from "@/features/events/components/bout-row";
 import { FightCardTabs } from "@/features/events/components/fight-card-tabs";
 import { LiveRefresher } from "@/features/events/components/live-refresher";
 import { VenueMap } from "@/features/events/components/venue-map";
 import { getPublicEventBySlug } from "@/features/events/queries";
 import { pickMainBout } from "@/features/events/main-bout";
-import { showsCountdown } from "@/features/events/public-format";
 import { PreviewBanner } from "@/features/fighters/components/preview-banner";
 import { verifyPreviewToken } from "@/features/publication/preview";
 import { formatShortDate, formatTime } from "@/lib/format-date";
@@ -70,7 +70,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
   return (
     <>
       {event.eventStatus === "live" ? <LiveRefresher intervalMs={20_000} /> : null}
-      <EventHero event={event} ticketHref={ticketHref} ticketExternal={ticketExternal} showCountdown={showsCountdown(event)} />
+      <EventHero event={event} />
       <EventStickyBar
         heroId={EVENT_HERO_ID}
         name={event.name}
@@ -83,13 +83,15 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
         <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)]">
           <SectionHeading kicker={event.eventStatus === "completed" ? "Resultados" : "Cartelera"} title={<span id="cartelera-title">{event.eventStatus === "completed" ? "Cartelera y resultados" : "Cartelera"}</span>} tone="light" />
           {segments.length > 0 ? (
-            <FightCardTabs
-              segments={segments.map((segment) => ({
-                id: segment.id,
-                name: segment.name,
-                content: segment.bouts.map((bout) => <BoutRow key={bout.id} bout={bout} />),
-              }))}
-            />
+            <BoutAccordion>
+              <FightCardTabs
+                segments={segments.map((segment) => ({
+                  id: segment.id,
+                  name: segment.name,
+                  content: segment.bouts.map((bout) => <BoutRow key={bout.id} bout={bout} />),
+                }))}
+              />
+            </BoutAccordion>
           ) : (
             <p className="border border-dashed border-neutral-300 px-6 py-12 text-center font-cond text-lg font-semibold uppercase tracking-[.06em] text-neutral-600">
               Pronto anunciaremos la cartelera de {event.name}.

@@ -79,11 +79,11 @@ export default async function FighterPage({ params, searchParams }: PageProps<"/
     <>
       <FighterHero fighter={fighter} figures={heroFigures(computed.pro, proRecord)} />
       <NextBout nextBout={nextBout} lastFight={history[0] ?? null} />
+      <FighterInfo fighter={fighter} />
       <RecordSummary manual={{ pro: proRecord, amateur: fighter.amateurRecord }} computed={computed} />
       <div data-slot="fighter-history">
         <FightHistory rows={history} />
       </div>
-      <FighterInfo fighter={fighter} />
       <FighterGallery media={fighter.gallery} name={`${fighter.firstName} ${fighter.lastName}`} />
       {/* Hueco para las noticias relacionadas (Plan 04). */}
       <div data-slot="fighter-news" />

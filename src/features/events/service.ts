@@ -8,14 +8,16 @@ import { assertUsableMedia } from "@/features/media/service";
 import { normalizePublishAt, publicationInputSchema, type PublicationInput } from "@/features/publication/schema";
 import { softDelete } from "@/features/trash/trash";
 import { UserFacingError } from "@/lib/user-facing-error";
+import { withMapsLocation } from "./location";
 import { eventInputSchema, type EventData, type EventRawInput } from "./schema";
 
 const NOT_FOUND = "No se encontró el evento";
 
-function parseEvent(input: EventRawInput): EventData {
+/** Valida el formulario y saca la ubicación del enlace de Google Maps (si se siguió un enlace corto, con una consulta a Google). */
+async function parseEvent(input: EventRawInput): Promise<EventData> {
   const parsed = eventInputSchema.safeParse(input);
   if (!parsed.success) throw new UserFacingError(parsed.error.issues[0]?.message ?? "Datos inválidos");
-  return parsed.data;
+  return withMapsLocation(parsed.data);
 }
 
 /** Columnas editables (sin slug, galería ni publicación, que se resuelven aparte). */
@@ -78,7 +80,7 @@ async function findEditableEvent(db: Executor, id: string): Promise<Event> {
 }
 
 export async function createEvent(db: Db, input: EventRawInput, actorId: string): Promise<{ id: string; slug: string }> {
-  const data = parseEvent(input);
+  const data = await parseEvent(input);
   await assertUsableImages(db, data);
 
   let slug: string;
@@ -115,7 +117,7 @@ export async function createEvent(db: Db, input: EventRawInput, actorId: string)
  * de `eventStatusBefore` (lo que el formulario mostraba al abrirse) o, sin él, de lo que el evento tiene ahora.
  */
 export async function updateEvent(db: Db, id: string, input: EventRawInput, actorId: string): Promise<{ slug: string }> {
-  const data = parseEvent(input);
+  const data = await parseEvent(input);
   const current = await findEditableEvent(db, id);
   await assertUsableImages(db, data);
 

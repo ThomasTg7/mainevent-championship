@@ -152,15 +152,19 @@ describe("RecordSummary", () => {
     expect(container).not.toHaveTextContent("Sin peleas");
   });
 
-  it("shows the Guerra Campal record next to the total, with GC as the short label", () => {
+  it("stacks the Guerra Campal record under the total, labelled in full on every screen", () => {
     const { container } = render(
       <RecordSummary manual={{ pro: profile.proRecord, amateur: empty }} computed={{ pro: { ...emptyComputed, wins: 3, losses: 1 }, amateur: emptyComputed }} />,
     );
     const pro = container.querySelector('[data-level="pro"]')!;
-    expect(pro.querySelector('[data-record="gc"]')).toHaveTextContent("3-1-0");
-    expect(pro.querySelector('[data-record="total"]')).toHaveTextContent("12-2-0");
-    expect(pro).toHaveTextContent("GC");
-    expect(pro).toHaveTextContent("Guerra Campal");
+    const total = pro.querySelector('[data-record="total"]')!;
+    const gc = pro.querySelector('[data-record="gc"]')!;
+    expect(gc).toHaveTextContent("3-1-0");
+    expect(total).toHaveTextContent("12-2-0");
+    expect(total.compareDocumentPosition(gc) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(pro.querySelector("[data-record-list]")?.className).toContain("flex-col");
+    expect(gc).toHaveTextContent("Guerra Campal");
+    expect(pro).not.toHaveTextContent(/GC/);
   });
 
   it("shows the average fight time in the Guerra Campal column, only when there is one", () => {

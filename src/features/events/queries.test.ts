@@ -48,6 +48,14 @@ describe("getPublicEventBySlug", () => {
     expect(main.result).toBeNull();
   });
 
+  it("gives each fighter the body measures the card compares, null when the fighter has none", async () => {
+    const main = (await getPublicEventBySlug(db, "guerra-campal-5"))!.segments[0]!.bouts[0]!;
+    expect(main.red).toMatchObject({ heightCm: 180, reachCm: 184, weightKg: 70.3 });
+    expect(main.blue).toMatchObject({ heightCm: 178, reachCm: 181 });
+    const prelim = (await getPublicEventBySlug(db, "guerra-campal-5"))!.segments[1]!.bouts.flatMap((bout) => [bout.red, bout.blue]);
+    expect(prelim.some((fighter) => fighter.reachCm === null)).toBe(true);
+  });
+
   it("carries the event data as plain values that survive JSON caching", async () => {
     const event = (await getPublicEventBySlug(db, "guerra-campal-5"))!;
     expect(event.name).toBe("Guerra Campal 5");

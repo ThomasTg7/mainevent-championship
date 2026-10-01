@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boutMeasure, countdownParts, mapEmbedUrl, mapLinkUrl, roundsLabel, showsCountdown, youtubeEmbedUrl } from "./public-format";
+import { boutMeasure, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, youtubeEmbedUrl } from "./public-format";
 
 describe("boutMeasure", () => {
   it("writes the division like the rest of the site", () => {
@@ -28,18 +28,6 @@ describe("roundsLabel", () => {
   });
 });
 
-describe("countdownParts", () => {
-  it("splits the time left into days, hours, minutes and seconds", () => {
-    expect(countdownParts(((1 * 24 + 2) * 60 + 3) * 60 * 1000 + 4000)).toEqual({ days: 1, hours: 2, minutes: 3, seconds: 4 });
-    expect(countdownParts(59_000)).toEqual({ days: 0, hours: 0, minutes: 0, seconds: 59 });
-  });
-
-  it("is null once the time is up", () => {
-    expect(countdownParts(0)).toBeNull();
-    expect(countdownParts(-1)).toBeNull();
-  });
-});
-
 describe("youtubeEmbedUrl", () => {
   it("turns the usual YouTube links into a privacy-friendly embed", () => {
     const embed = "https://www.youtube-nocookie.com/embed/abc123XYZ_-";
@@ -59,25 +47,48 @@ describe("youtubeEmbedUrl", () => {
 });
 
 describe("map links", () => {
-  it("builds an OpenStreetMap embed around the point, and a link to open it", () => {
-    expect(mapEmbedUrl(-33.4489, -70.6693)).toBe(
-      "https://www.openstreetmap.org/export/embed.html?bbox=-70.6793%2C-33.4589%2C-70.6593%2C-33.4389&layer=mapnik&marker=-33.4489%2C-70.6693",
-    );
-    expect(mapLinkUrl(-33.4489, -70.6693)).toBe("https://www.openstreetmap.org/?mlat=-33.4489&mlon=-70.6693#map=17/-33.4489/-70.6693");
+  it("builds a Google Maps embed around the point, and a link to open it", () => {
+    expect(mapEmbedUrl(-33.4489, -70.6693)).toBe("https://www.google.com/maps?q=-33.4489%2C-70.6693&z=16&output=embed");
+    expect(mapLinkUrl(-33.4489, -70.6693)).toBe("https://www.google.com/maps/search/?api=1&query=-33.4489%2C-70.6693");
   });
 });
 
-describe("showsCountdown", () => {
-  const now = Date.parse("2026-10-23T00:00:00Z");
+describe("eventStatusTag", () => {
+  it("names each state the way the public reads it: upcoming, live, finished", () => {
+    expect(eventStatusTag("scheduled")).toEqual({ tone: "yellow", label: "Próximo" });
+    expect(eventStatusTag("live")).toEqual({ tone: "red", label: "● En vivo" });
+    expect(eventStatusTag("completed")).toEqual({ tone: "outline", label: "Finalizado" });
+    expect(eventStatusTag("cancelled")).toEqual({ tone: "red", label: "Cancelado" });
+  });
+});
 
-  it("shows the clock for a scheduled event that has not started, and for one that is live", () => {
-    expect(showsCountdown({ eventStatus: "scheduled", startsAt: "2026-10-24T00:00:00Z" }, now)).toBe(true);
-    expect(showsCountdown({ eventStatus: "live", startsAt: "2026-10-22T20:00:00Z" }, now)).toBe(true);
+describe("fighterComparison", () => {
+  const fighter = (overrides: Partial<Parameters<typeof fighterComparison>[0]> = {}) => ({
+    nationality: "CL",
+    record: { wins: 12, losses: 2, draws: 0, noContests: 0 },
+    heightCm: 180,
+    weightKg: 70.3,
+    reachCm: 184,
+    ...overrides,
   });
 
-  it("does not for finished or cancelled events, nor for a scheduled event whose time already passed", () => {
-    expect(showsCountdown({ eventStatus: "completed", startsAt: "2026-10-24T00:00:00Z" }, now)).toBe(false);
-    expect(showsCountdown({ eventStatus: "cancelled", startsAt: "2026-10-24T00:00:00Z" }, now)).toBe(false);
-    expect(showsCountdown({ eventStatus: "scheduled", startsAt: "2026-10-22T00:00:00Z" }, now)).toBe(false);
+  it("lists record, country, height, weight and reach side by side, in that order", () => {
+    const rows = fighterComparison(fighter(), fighter({ nationality: "AR", record: { wins: 10, losses: 1, draws: 0, noContests: 0 }, heightCm: 178, weightKg: 70, reachCm: 181 }));
+    expect(rows.map((row) => row.label)).toEqual(["Récord", "País", "Altura", "Peso", "Alcance"]);
+    expect(rows[0]).toMatchObject({ red: "12-2-0", blue: "10-1-0" });
+    expect(rows[1]).toMatchObject({ red: "Chile", blue: "Argentina" });
+    expect(rows[2]).toMatchObject({ red: "180 cm", blue: "178 cm" });
+    expect(rows[3]).toMatchObject({ red: "70.3 kg", blue: "70 kg" });
+    expect(rows[4]).toMatchObject({ red: "184 cm", blue: "181 cm" });
+  });
+
+  it("leaves out a measure when either fighter does not have it", () => {
+    const rows = fighterComparison(fighter({ reachCm: null }), fighter({ heightCm: null }));
+    expect(rows.map((row) => row.label)).toEqual(["Récord", "País", "Peso"]);
+  });
+
+  it("keeps the record even when it is 0-0-0", () => {
+    const empty = { wins: 0, losses: 0, draws: 0, noContests: 0 };
+    expect(fighterComparison(fighter({ record: empty }), fighter({ record: empty }))[0]).toMatchObject({ red: "0-0-0", blue: "0-0-0" });
   });
 });

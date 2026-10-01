@@ -51,8 +51,17 @@ export function EventPlaceTab() {
       <div className="md:col-span-2">
         <TextField name="venueAddress" label="Dirección" autoComplete="off" />
       </div>
-      <TextField name="lat" label="Latitud (opcional)" inputMode="decimal" hint="Para mostrar el mapa. Se copia de Google Maps: clic derecho sobre el lugar." autoComplete="off" />
-      <TextField name="lng" label="Longitud (opcional)" inputMode="decimal" autoComplete="off" />
+      <div className="md:col-span-2">
+        <TextField
+          name="mapsUrl"
+          label="Enlace de Google Maps (opcional)"
+          hint="En Google Maps busca el recinto, toca «Compartir», copia el enlace y pégalo aquí. Con él se muestra el mapa en la página del evento."
+          type="url"
+          inputMode="url"
+          autoComplete="off"
+          autoCapitalize="none"
+        />
+      </div>
     </div>
   );
 }

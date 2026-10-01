@@ -10,8 +10,9 @@ type FightCardTabsProps = {
 
 /**
  * Pestañas por bloque de la cartelera («Cartelera estelar», «Preliminares»…) sobre fondo blanco. Solo las pestañas son
- * interactivas; el contenido lo arma el servidor. La barra amarilla de la pestaña activa y la entrada del panel usan
- * solo `transform` y `opacity`, y se quedan quietas si la persona pidió menos movimiento. Con un solo bloque no hay pestañas.
+ * interactivas; el contenido lo arma el servidor. Cada pestaña es dorada con texto negro (legible sobre blanco) y la
+ * activa pasa a negro con texto dorado; la entrada del panel usa solo `transform` y `opacity` y se queda quieta si la
+ * persona pidió menos movimiento. Con un solo bloque no hay pestañas.
  */
 export function FightCardTabs({ segments }: FightCardTabsProps) {
   const [active, setActive] = useState(segments[0]?.id ?? "");
@@ -27,12 +28,12 @@ export function FightCardTabs({ segments }: FightCardTabsProps) {
 
   return (
     <Tabs value={active} onValueChange={setActive} className="gap-0">
-      <TabsList variant="line" className="h-auto w-full flex-wrap justify-start gap-0 border-b-2 border-neutral-200 p-0 group-data-horizontal/tabs:h-auto">
+      <TabsList variant="line" className="mb-2 h-auto w-full flex-wrap justify-start gap-2 p-0 group-data-horizontal/tabs:h-auto">
         {segments.map((segment) => (
           <TabsTrigger
             key={segment.id}
             value={segment.id}
-            className="relative h-auto flex-none rounded-none px-4 py-3.5 font-cond text-[15px] font-extrabold uppercase tracking-[.1em] text-neutral-500 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-1 after:origin-left after:scale-x-0 after:bg-yellow after:opacity-100 after:transition-transform after:duration-300 hover:text-neutral-800 data-active:text-black data-active:after:scale-x-100 motion-reduce:after:transition-none sm:px-[22px]"
+            className="h-auto min-h-11 flex-none rounded-none border-2 border-yellow bg-yellow! px-5 py-2.5 font-cond text-[15px] font-extrabold uppercase tracking-[.1em] text-black transition-colors duration-300 after:hidden hover:bg-black/85! hover:text-yellow data-active:bg-black! data-active:text-yellow motion-reduce:transition-none"
           >
             {segment.name}
           </TabsTrigger>

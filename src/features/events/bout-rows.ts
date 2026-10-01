@@ -33,6 +33,9 @@ function fighterSelection(table: typeof redFighter | typeof blueFighter) {
     amLosses: table.amLosses,
     amDraws: table.amDraws,
     amNoContests: table.amNoContests,
+    heightCm: table.heightCm,
+    weightKg: table.weightKg,
+    reachCm: table.reachCm,
     headshotMediaId: table.headshotMediaId,
     bodyMediaId: table.bodyMediaId,
   };
@@ -106,6 +109,9 @@ function toFighterDTO(fighter: FighterRow, level: BoutRow["level"], mediaById: M
     nationality: fighter.nationality,
     isPublic: fighter.isPublic,
     record: manualRecord(fighter, level),
+    heightCm: fighter.heightCm,
+    weightKg: fighter.weightKg,
+    reachCm: fighter.reachCm,
     headshotMedia: fighter.headshotMediaId ? (mediaById.get(fighter.headshotMediaId) ?? null) : null,
     bodyMedia: withBody && fighter.bodyMediaId ? (mediaById.get(fighter.bodyMediaId) ?? null) : null,
   };

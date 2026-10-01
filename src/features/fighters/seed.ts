@@ -16,14 +16,16 @@ type SeedFighter = {
   hometown: string;
   gym: string;
   heightCm: number;
+  /** Alcance (cm): lo traen solo algunos, para que la comparación de la cartelera omita el dato cuando falta. */
+  reachCm?: number;
   stance: "orthodox" | "southpaw";
   bio: string;
   birthDate: string;
 };
 
 const SEED_FIGHTERS: SeedFighter[] = [
-  { firstName: "Matías", lastName: "Pérez", nickname: "El Toro", nationality: "CL", divisionSlug: "peso-ligero", record: [12, 2, 0], hometown: "Rancagua", gym: "Team Toro", heightCm: 180, stance: "orthodox", bio: "Campeón peso ligero. Lucha aplastante y pegada de nocaut.", birthDate: "1994-03-12" },
-  { firstName: "Diego", lastName: "Soto", nickname: "La Sombra", nationality: "AR", divisionSlug: "peso-ligero", record: [10, 1, 0], hometown: "Mendoza", gym: "Andes MMA", heightCm: 178, stance: "southpaw", bio: "Zurdo veloz, especialista en contragolpes.", birthDate: "1996-07-21" },
+  { firstName: "Matías", lastName: "Pérez", nickname: "El Toro", nationality: "CL", divisionSlug: "peso-ligero", record: [12, 2, 0], hometown: "Rancagua", gym: "Team Toro", heightCm: 180, reachCm: 184, stance: "orthodox", bio: "Campeón peso ligero. Lucha aplastante y pegada de nocaut.", birthDate: "1994-03-12" },
+  { firstName: "Diego", lastName: "Soto", nickname: "La Sombra", nationality: "AR", divisionSlug: "peso-ligero", record: [10, 1, 0], hometown: "Mendoza", gym: "Andes MMA", heightCm: 178, reachCm: 181, stance: "southpaw", bio: "Zurdo veloz, especialista en contragolpes.", birthDate: "1996-07-21" },
   { firstName: "Felipe", lastName: "Araya", nickname: "Relámpago", nationality: "CL", divisionSlug: "peso-ligero", record: [7, 3, 0], hometown: "Antofagasta", gym: "Norte Fight", heightCm: 176, stance: "orthodox", bio: "Ritmo alto y cardio de sobra.", birthDate: "1998-11-02" },
   { firstName: "Ignacio", lastName: "Fuentes", nickname: "Martillo", nationality: "CL", divisionSlug: "peso-welter", record: [9, 3, 1], hometown: "Temuco", gym: "Sur Combat", heightCm: 183, stance: "orthodox", bio: "Golpeador de mano pesada.", birthDate: "1993-05-30" },
   { firstName: "Bruno", lastName: "Andrade", nickname: "Pitbull", nationality: "BR", divisionSlug: "peso-welter", record: [8, 2, 0], hometown: "São Paulo", gym: "Brava BJJ", heightCm: 181, stance: "southpaw", bio: "Cinturón negro de jiu-jitsu, no suelta la presa.", birthDate: "1995-09-14" },
@@ -62,6 +64,7 @@ export async function seedFighters(db: Db): Promise<void> {
           hometown: fighter.hometown,
           gym: fighter.gym,
           heightCm: fighter.heightCm,
+          reachCm: fighter.reachCm ?? null,
           stance: fighter.stance,
           bio: fighter.bio,
           careerStatus: fighter.careerStatus ?? "active",

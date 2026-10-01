@@ -3,7 +3,7 @@ import { mapEmbedUrl, mapLinkUrl } from "../public-format";
 
 type VenueMapProps = { name: string; address: string; city: string; lat: number | null; lng: number | null };
 
-/** El recinto con su mapa de OpenStreetMap (sin clave de API, cargado solo al acercarse). Sin coordenadas, solo la dirección. */
+/** El recinto con su mapa de Google Maps (inserción por coordenadas, sin clave de API, cargada solo al acercarse). Sin coordenadas, solo la dirección. */
 export function VenueMap({ name, address, city, lat, lng }: VenueMapProps) {
   const hasMap = lat !== null && lng !== null;
 

@@ -16,6 +16,10 @@ export type BoutFighterDTO = {
   isPublic: boolean;
   /** Récord cargado a mano del nivel de la pelea (profesional o amateur). */
   record: ManualRecord;
+  /** Estatura, peso y alcance para la comparación de la cartelera; `null` si la ficha no los tiene. */
+  heightCm: number | null;
+  weightKg: number | null;
+  reachCm: number | null;
   headshotMedia: MediaDTO | null;
   /** Solo en la pelea estelar (careo del hero). */
   bodyMedia: MediaDTO | null;

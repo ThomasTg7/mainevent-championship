@@ -33,9 +33,9 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
   const shown = filter === "all" ? rows : rows.filter((row) => row.level === filter);
 
   return (
-    <section aria-labelledby="fighter-history-heading" className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] py-12 lg:py-16">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <h2 id="fighter-history-heading" className="font-display text-[clamp(32px,5vw,56px)] uppercase leading-none text-white">
+    <section aria-labelledby="fighter-history-heading" className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] py-14 lg:py-20">
+      <div className="mb-10 flex flex-col items-center gap-6 text-center">
+        <h2 id="fighter-history-heading" className="font-display text-[clamp(40px,7vw,80px)] uppercase leading-none text-white">
           Historial de peleas
         </h2>
         {showFilter ? (
@@ -57,14 +57,14 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
         ) : null}
       </div>
 
-      <ul aria-label="Historial de peleas" className="flex flex-col">
+      <ul aria-label="Historial de peleas" className="mx-auto flex max-w-[1100px] flex-col">
         {shown.map((row) => {
           const opponentName = `${row.opponent.firstName} ${row.opponent.lastName}`;
           return (
             <li key={row.boutId} data-fight={row.boutId} data-level={row.level} data-result={row.fighterResult} className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 border-b border-border py-4 sm:grid-cols-[auto_120px_1fr_1fr_auto] sm:gap-x-6">
-              <div className="relative h-14 w-12 shrink-0 overflow-hidden bg-surface sm:h-16 sm:w-14">
+              <div className="relative h-16 w-14 shrink-0 overflow-hidden bg-surface sm:h-[72px] sm:w-16">
                 {row.opponent.headshotMedia ? (
-                  <MediaImage media={row.opponent.headshotMedia} sizes="56px" className="size-full object-cover" />
+                  <MediaImage media={row.opponent.headshotMedia} sizes="64px" className="size-full object-cover" />
                 ) : (
                   <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-yellow" />
                 )}
@@ -73,7 +73,7 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
                 {RESULT_LABEL[row.fighterResult]}
               </span>
               <div className="col-span-2 min-w-0 sm:col-span-1">
-                <p className="font-display text-2xl uppercase leading-none text-white">
+                <p className="font-display text-[28px] uppercase leading-none text-white">
                   {row.opponent.isPublic ? (
                     <Link href={`/peleadores/${row.opponent.slug}`} className="underline-offset-4 hover:underline focus-visible:underline">
                       {opponentName}
