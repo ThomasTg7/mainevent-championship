@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BOUT_LEVELS, DEFAULT_ROUND_SECONDS, MAX_ROUND_SECONDS, MIN_ROUND_SECONDS } from "@/domain/bout-enums";
+import { BOUT_CORNERS, BOUT_LEVELS, DEFAULT_ROUND_SECONDS, MAX_ROUND_SECONDS, MIN_ROUND_SECONDS } from "@/domain/bout-enums";
 import { optionalNumber, optionalText } from "@/lib/zod-fields";
 import { optionalTime } from "./schema";
 
@@ -40,6 +40,7 @@ export const boutInputSchema = z
       (value) => value ?? DEFAULT_ROUND_SECONDS,
     ),
     isTitleFight: booleanish,
+    championCorner: z.enum(BOUT_CORNERS, { error: "Elige la esquina del campeón" }).default("red"),
   })
   .superRefine((value, ctx) => {
     if (!value.divisionId && value.catchweightKg === null) {

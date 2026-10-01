@@ -12,6 +12,7 @@ export function adminBout(overrides: Partial<AdminBout> = {}): AdminBout {
     scheduledRounds: 3,
     roundSeconds: 300,
     isTitleFight: false,
+    championCorner: "red",
     status: "scheduled",
     cancelReason: null,
     divisionId: null,

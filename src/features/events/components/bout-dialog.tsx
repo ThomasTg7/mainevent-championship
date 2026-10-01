@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { Division } from "@/db/schema/divisions";
-import { BOUT_LEVEL_LABELS, BOUT_LEVELS, DEFAULT_ROUND_SECONDS, type BoutLevel } from "@/domain/bout-enums";
+import { BOUT_CORNER_LABELS, BOUT_CORNERS, BOUT_LEVEL_LABELS, BOUT_LEVELS, DEFAULT_ROUND_SECONDS, type BoutCorner, type BoutLevel } from "@/domain/bout-enums";
 import type { AdminBout } from "../admin-card-queries";
 import { addBoutAction, updateBoutAction } from "../card-actions";
 import { FighterPicker, type PickedFighter } from "./fighter-picker";
@@ -34,13 +34,14 @@ type Draft = {
   rounds: "3" | "5";
   roundMinutes: string;
   isTitleFight: boolean;
+  championCorner: BoutCorner;
 };
 
 const fullName = (fighter: AdminBout["red"]) => (fighter.nickname ? `${fighter.firstName} ${fighter.lastName} «${fighter.nickname}»` : `${fighter.firstName} ${fighter.lastName}`);
 
 function initialDraft(target: NonNullable<BoutDialogTarget>): Draft {
   if (target.mode === "add") {
-    return { red: null, blue: null, measure: "division", divisionId: "", catchweightKg: "", level: "pro", rounds: "3", roundMinutes: String(DEFAULT_ROUND_SECONDS / 60), isTitleFight: false };
+    return { red: null, blue: null, measure: "division", divisionId: "", catchweightKg: "", level: "pro", rounds: "3", roundMinutes: String(DEFAULT_ROUND_SECONDS / 60), isTitleFight: false, championCorner: "red" };
   }
   const { bout } = target;
   return {
@@ -53,6 +54,7 @@ function initialDraft(target: NonNullable<BoutDialogTarget>): Draft {
     rounds: bout.scheduledRounds === 5 ? "5" : "3",
     roundMinutes: String(bout.roundSeconds / 60),
     isTitleFight: bout.isTitleFight,
+    championCorner: bout.championCorner,
   };
 }
 
@@ -98,6 +100,7 @@ function BoutForm({ target, divisions, fighterIdsInCard, onClose }: { target: No
       scheduledRounds: draft.rounds,
       roundSeconds: Math.round(Number(draft.roundMinutes) * 60),
       isTitleFight: draft.isTitleFight,
+      championCorner: draft.championCorner,
     };
     startTransition(async () => {
       const result = target.mode === "add" ? await addBoutAction(target.segmentId, input) : await updateBoutAction(target.bout.id, input);
@@ -182,9 +185,25 @@ function BoutForm({ target, divisions, fighterIdsInCard, onClose }: { target: No
         <input type="checkbox" checked={draft.isTitleFight} onChange={(event) => change({ isTitleFight: event.target.checked })} className="size-5 accent-[#FFB400]" />
         <span>
           <span className="font-medium">Pelea por el título</span>
-          <span className="block text-xs text-muted-foreground">La esquina roja es la del campeón; si gana el retador (azul), el panel sugerirá el cambio de campeón.</span>
+          <span className="block text-xs text-muted-foreground">Si gana el retador, el panel sugerirá el cambio de campeón.</span>
         </span>
       </label>
+
+      {draft.isTitleFight ? (
+        <FormField id="bout-champion" label="¿En qué esquina está el campeón?" error={errors.championCorner}>
+          <NativeSelect id="bout-champion" value={draft.championCorner} onChange={(event) => change({ championCorner: event.target.value as BoutCorner })}>
+            {BOUT_CORNERS.map((corner) => {
+              const fighter = corner === "red" ? draft.red : draft.blue;
+              return (
+                <option key={corner} value={corner}>
+                  {BOUT_CORNER_LABELS[corner]}
+                  {fighter ? ` · ${fighter.label}` : ""}
+                </option>
+              );
+            })}
+          </NativeSelect>
+        </FormField>
+      ) : null}
 
       {generalError ? (
         <p role="alert" className="text-sm text-destructive">

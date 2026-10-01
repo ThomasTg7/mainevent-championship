@@ -191,11 +191,11 @@ describe("the event and the next fight", () => {
 });
 
 describe("title fights", () => {
-  async function titleBout(overrides: { divisionId?: string | null; catchweightKg?: number; level?: "pro" | "amateur" } = {}) {
+  async function titleBout(overrides: { divisionId?: string | null; catchweightKg?: number; level?: "pro" | "amateur"; championCorner?: "red" | "blue" } = {}) {
     const { main, fighters } = await scenario(1);
     await db
       .update(bouts)
-      .set({ isTitleFight: true, level: overrides.level ?? "pro", divisionId: overrides.divisionId === undefined ? paja : overrides.divisionId, catchweightKg: overrides.catchweightKg ?? null })
+      .set({ isTitleFight: true, championCorner: overrides.championCorner ?? "red", level: overrides.level ?? "pro", divisionId: overrides.divisionId === undefined ? paja : overrides.divisionId, catchweightKg: overrides.catchweightKg ?? null })
       .where(eq(bouts.id, main[0]!));
     return { boutId: main[0]!, red: fighters[0]!, blue: fighters[1]! };
   }
@@ -204,6 +204,18 @@ describe("title fights", () => {
     const { boutId, blue } = await titleBout({ level: "amateur" });
     const result = await record(boutId, { outcome: "blue_win", method: "ko_tko", koTkoType: "ko", endRound: 2, endTimeSeconds: 100 });
     expect(result.titleChange).toEqual({ divisionId: paja, level: "amateur", newChampionId: blue });
+  });
+
+  it("follows the champion's corner: with the champion in the blue corner, the red corner is the challenger", async () => {
+    const redChallenger = await titleBout({ championCorner: "blue" });
+    const won = await record(redChallenger.boutId, { outcome: "red_win", method: "ko_tko", koTkoType: "ko", endRound: 1, endTimeSeconds: 40 });
+    expect(won.titleChange).toEqual({ divisionId: paja, level: "pro", newChampionId: redChallenger.red });
+
+    const blueChampion = await titleBout({ championCorner: "blue" });
+    expect((await record(blueChampion.boutId, { outcome: "blue_win", method: "decision", decisionType: "unanimous" })).titleChange).toBeNull();
+
+    const redChampion = await titleBout({ championCorner: "red" });
+    expect((await record(redChampion.boutId, { outcome: "red_win", method: "decision", decisionType: "unanimous" })).titleChange).toBeNull();
   });
 
   it("proposes nothing when the champion wins, on a draw or a no contest, or without a division", async () => {

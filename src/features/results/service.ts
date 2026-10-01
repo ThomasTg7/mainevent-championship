@@ -15,7 +15,7 @@ const EVENT_NOT_FOUND = "No se encontró el evento";
 const BOUT_NOT_FOUND = "No se encontró la pelea";
 const NO_RESULT = "Esta pelea no tiene resultado";
 
-/** Un retador (esquina azul) que gana una pelea por el título: el Plan 05 lo confirma y actualiza el campeón. */
+/** El retador (la esquina contraria a la del campeón) que gana una pelea por el título: el Plan 05 lo confirma y actualiza el campeón. */
 export type TitleChangeCandidate = { divisionId: string; level: BoutLevel; newChampionId: string };
 
 export type RecordResultOutcome =
@@ -146,9 +146,11 @@ export async function recordBoutResult(db: Db, boutId: string, input: BoutResult
     const nextBoutId = await getNextPendingBoutId(tx, bout.eventId);
     if (nextBoutId === null) await completeEventIfDone(tx, bout.eventId, actorId);
 
+    // El retador es la esquina contraria a la del campeón: si él gana una pelea por el título con división, es el candidato.
+    const challengerWins = value.outcome === (bout.championCorner === "red" ? "blue_win" : "red_win");
     const titleChange: TitleChangeCandidate | null =
-      bout.isTitleFight && value.outcome === "blue_win" && bout.divisionId
-        ? { divisionId: bout.divisionId, level: bout.level, newChampionId: bout.blueFighterId }
+      bout.isTitleFight && challengerWins && bout.divisionId
+        ? { divisionId: bout.divisionId, level: bout.level, newChampionId: bout.championCorner === "red" ? bout.blueFighterId : bout.redFighterId }
         : null;
     return { ok: true as const, titleChange, nextBoutId };
   });

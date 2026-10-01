@@ -503,3 +503,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** pedido del usuario: que la portada llene la pantalla al entrar y el resto se vea al desplazarse.
 - **Impacto:** el Plan 05 agrega las etiquetas de campeón/ranking dentro de `data-slot="fighter-tags"` (ya está en la portada); como suma una línea, el alto lo absorbe la foto.
 - **Estado:** aplicado
+
+## [Plan 03 · Cuarta ronda de ajustes] La esquina del campeón se elige — 2026-10-01
+- **Qué:** nueva columna `bouts.champion_corner` (`red` por defecto; migración 0010, aditiva) y selector «¿En qué esquina está el campeón?» en el diálogo de la pelea cuando es por el título. `recordBoutResult` toma como retador a la esquina contraria a la del campeón: si gana (pelea con división) devuelve `titleChange` con él como candidato; si gana el campeón, hay empate o sin resultado, nada. Reemplaza la convención «la esquina roja es el campeón» de la Task 4. La tarjeta del armador muestra «★ Por el título · campeón: <apellido>».
+- **Por qué:** pedido del usuario: muchas veces el campeón está en la esquina roja, pero no siempre.
+- **Impacto:** Plan 05 usa `championCorner` para saber quién defiende; un título vacante (sin campeón en ninguna esquina) sigue sin modelarse.
+- **Estado:** aplicado

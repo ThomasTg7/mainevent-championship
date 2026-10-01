@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { boolean, check, index, integer, jsonb, numeric, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import {
   BONUSES,
+  BOUT_CORNERS,
   BOUT_LEVELS,
   BOUT_STATUSES,
   DECISION_TYPES,
@@ -21,6 +22,7 @@ import { media } from "./media";
 export const eventStatus = pgEnum("event_status", EVENT_STATUSES);
 export const boutStatus = pgEnum("bout_status", BOUT_STATUSES);
 export const boutLevel = pgEnum("bout_level", BOUT_LEVELS);
+export const boutCorner = pgEnum("bout_corner", BOUT_CORNERS);
 export const boutOutcome = pgEnum("outcome", OUTCOMES);
 export const boutMethod = pgEnum("method", METHODS);
 export const koTkoType = pgEnum("ko_tko_type", KO_TKO_TYPES);
@@ -133,6 +135,8 @@ export const bouts = pgTable(
     scheduledRounds: integer("scheduled_rounds").notNull().default(3),
     roundSeconds: integer("round_seconds").notNull().default(300),
     isTitleFight: boolean("is_title_fight").notNull().default(false),
+    // En una pelea por el título, la esquina del campeón (el retador es la otra); por defecto la roja.
+    championCorner: boutCorner("champion_corner").notNull().default("red"),
     boutStatus: boutStatus("bout_status").notNull().default("scheduled"),
     cancelReason: text("cancel_reason"),
     outcome: boutOutcome("outcome"),

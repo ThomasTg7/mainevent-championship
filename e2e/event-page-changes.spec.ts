@@ -228,3 +228,34 @@ test("«Récord profesional» va en una línea sobre el récord, y Historial tie
     await expectNoHorizontalScroll(page);
   }
 });
+
+test("en una pelea por el título se elige en qué esquina está el campeón", async ({ page }) => {
+  test.setTimeout(90_000);
+  const card = await createE2eCard("Evento E2E Campeón", { "Cartelera estelar": [["uno", "dos"]] });
+  await signInAsAdmin(page);
+  await page.goto(adminUrl(`/eventos/${card.eventId}/cartelera`));
+
+  const edit = async () => {
+    await page.getByRole("button", { name: /Editar la pelea/ }).first().click();
+    return page.getByRole("dialog");
+  };
+  let dialog = await edit();
+  // Sin marcar la pelea por el título no se pregunta por el campeón.
+  await expect(dialog.getByLabel("¿En qué esquina está el campeón?")).toHaveCount(0);
+  await dialog.getByRole("checkbox", { name: /Pelea por el título/ }).check();
+  const corner = dialog.getByLabel("¿En qué esquina está el campeón?");
+  await expect(corner).toHaveValue("red");
+  await expect(corner.locator("option")).toHaveText([/Esquina roja · Cartel Uno/, /Esquina azul · Cartel Dos/]);
+  await corner.selectOption("blue");
+  await dialog.getByRole("button", { name: "Guardar pelea" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByText("★ Por el título · campeón: Dos")).toBeVisible();
+
+  // Al volver a abrir queda como se guardó, y se puede devolver a la roja.
+  dialog = await edit();
+  await expect(dialog.getByLabel("¿En qué esquina está el campeón?")).toHaveValue("blue");
+  await dialog.getByLabel("¿En qué esquina está el campeón?").selectOption("red");
+  await dialog.getByRole("button", { name: "Guardar pelea" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByText("★ Por el título · campeón: Uno")).toBeVisible();
+});

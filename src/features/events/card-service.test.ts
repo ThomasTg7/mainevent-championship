@@ -305,6 +305,29 @@ describe("cancelBout, reinstateBout and deleteBout", () => {
   });
 });
 
+describe("the champion's corner", () => {
+  const cornerOf = async (id: string) => (await db.select({ championCorner: bouts.championCorner }).from(bouts).where(eq(bouts.id, id)))[0]!.championCorner;
+
+  it("is the red corner by default and can be set to the blue one when adding or editing a title fight", async () => {
+    const { estelar, a, b, c, d } = await scenario();
+    const { id } = await addBout(db, estelar, { ...versus(a, b), isTitleFight: true }, "admin-1");
+    expect(await cornerOf(id)).toBe("red");
+
+    const blueChampion = await addBout(db, estelar, { ...versus(c, d), isTitleFight: true, championCorner: "blue" }, "admin-1");
+    expect(await cornerOf(blueChampion.id)).toBe("blue");
+
+    await updateBout(db, id, { ...versus(a, b), isTitleFight: true, championCorner: "blue" }, "admin-1");
+    expect(await cornerOf(id)).toBe("blue");
+    await updateBout(db, id, { ...versus(a, b), isTitleFight: true }, "admin-1");
+    expect(await cornerOf(id)).toBe("red");
+  });
+
+  it("rejects a corner that does not exist", async () => {
+    const { estelar, a, b } = await scenario();
+    await expect(addBout(db, estelar, { ...versus(a, b), championCorner: "verde" as never }, "admin-1")).rejects.toThrow("esquina del campeón");
+  });
+});
+
 describe("closing the night", () => {
   /** Un evento en vivo con una pelea ya peleada y otra pendiente. */
   async function liveNightWithOnePending(eventStatus: "live" | "scheduled" = "live") {

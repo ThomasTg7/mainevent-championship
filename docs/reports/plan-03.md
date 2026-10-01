@@ -42,7 +42,7 @@ Listados con detalle en `docs/decisions.md` → «[Plan 03 · Revisión final] P
 - Las horas de inicio de cada bloque no se reanclan al cambiar la fecha del evento o duplicarlo.
 - `dnd-kit` importado de forma estática en el armador (CLAUDE.md pide diferirlo); `card-service.ts` ~330 líneas.
 - Detalles menores de accesibilidad y pruebas débiles (ver la entrada).
-- **Plan 05:** confirmar el cambio de título comparando con el campeón guardado (`titleChange` nace solo si gana la esquina azul y una corrección posterior no lo retira); llenar `data-slot="bout-rank"` y `fighter-tags`. **Plan 06:** FAQ en `data-slot="tickets-faq"`; `getNextEvent` puede devolver un evento cancelado con fecha futura. **Plan 04:** `fighter-news`.
+- **Plan 05:** confirmar el cambio de título comparando con el campeón guardado (`titleChange` nace solo si gana el retador —la esquina contraria a `championCorner`— y una corrección posterior no lo retira); llenar `data-slot="bout-rank"` y `fighter-tags`. **Plan 06:** FAQ en `data-slot="tickets-faq"`; `getNextEvent` puede devolver un evento cancelado con fecha futura. **Plan 04:** `fighter-news`.
 - Los 44 px táctiles se revisaron a mano (Playwright no emula `pointer: coarse`), no en el e2e.
 - El e2e del refresco en vivo espera hasta 60 s: con el servidor de desarrollo muy cargado puede tardar.
 

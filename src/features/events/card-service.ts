@@ -202,6 +202,7 @@ function boutColumns(data: BoutData) {
     scheduledRounds: data.scheduledRounds,
     roundSeconds: data.roundSeconds,
     isTitleFight: data.isTitleFight,
+    championCorner: data.championCorner,
   };
 }
 

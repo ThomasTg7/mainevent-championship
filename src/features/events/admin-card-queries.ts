@@ -4,7 +4,7 @@ import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
 import { bouts, cardSegments, events, submissionTechniques } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
-import type { BoutLevel, BoutStatus, EventStatus } from "@/domain/bout-enums";
+import type { BoutCorner, BoutLevel, BoutStatus, EventStatus } from "@/domain/bout-enums";
 import { formatResultLine } from "@/domain/bout-result";
 import type { MediaDTO } from "@/features/media/dto";
 import { getMediaByIds } from "@/features/media/queries";
@@ -23,6 +23,8 @@ export type AdminBout = {
   scheduledRounds: number;
   roundSeconds: number;
   isTitleFight: boolean;
+  /** La esquina del campeón en una pelea por el título. */
+  championCorner: BoutCorner;
   status: BoutStatus;
   cancelReason: string | null;
   divisionId: string | null;
@@ -101,6 +103,7 @@ export async function getAdminCard(db: Db, eventId: string): Promise<AdminCard |
       scheduledRounds: bout.scheduledRounds,
       roundSeconds: bout.roundSeconds,
       isTitleFight: bout.isTitleFight,
+      championCorner: bout.championCorner,
       status: bout.boutStatus,
       cancelReason: bout.cancelReason,
       divisionId: bout.divisionId,

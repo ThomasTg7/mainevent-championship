@@ -82,7 +82,7 @@ export function BoutCard({ bout, position, total, otherSegments, disabled, onEdi
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
         <span>{boutSummary(bout)}</span>
         {bout.level === "amateur" ? <Badge variant="outline">{BOUT_LEVEL_LABELS.amateur}</Badge> : null}
-        {bout.isTitleFight ? <Badge>★ Por el título</Badge> : null}
+        {bout.isTitleFight ? <Badge>★ Por el título · campeón: {bout.championCorner === "red" ? bout.red.lastName : bout.blue.lastName}</Badge> : null}
         {cancelled ? <Badge variant="destructive">Cancelada{bout.cancelReason ? ` · ${bout.cancelReason}` : ""}</Badge> : null}
       </div>
 

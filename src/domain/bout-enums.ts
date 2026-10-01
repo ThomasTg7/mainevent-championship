@@ -6,6 +6,11 @@ export type EventStatus = (typeof EVENT_STATUSES)[number];
 export const BOUT_LEVELS = ["pro", "amateur"] as const;
 export type BoutLevel = (typeof BOUT_LEVELS)[number];
 
+/** Esquinas de una pelea: la roja se anuncia primero; en una pelea por el título el campeón puede estar en cualquiera. */
+export const BOUT_CORNERS = ["red", "blue"] as const;
+export type BoutCorner = (typeof BOUT_CORNERS)[number];
+export const BOUT_CORNER_LABELS: Record<BoutCorner, string> = { red: "Esquina roja", blue: "Esquina azul" };
+
 export const BOUT_STATUSES = ["scheduled", "completed", "cancelled"] as const;
 export type BoutStatus = (typeof BOUT_STATUSES)[number];
 
