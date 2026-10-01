@@ -33,8 +33,14 @@ async function uploadCover(page: Page) {
 
 async function pickRelated(page: Page, label: string, search: string, option: RegExp | string) {
   const field = page.getByRole("group", { name: label });
-  await field.getByRole("searchbox").fill(search);
-  await field.getByRole("button", { name: option }).first().click();
+  const result = field.getByRole("button", { name: option }).first();
+  // Si se escribe antes de que React hidrate el formulario, el texto se pierde: se reintenta hasta que aparezca el resultado.
+  await expect(async () => {
+    await field.getByRole("searchbox").fill("");
+    await field.getByRole("searchbox").fill(search);
+    await expect(result).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 60_000 });
+  await result.click();
 }
 
 /** El enlace de la noticia (se ve en la pestaña Datos al editar). */

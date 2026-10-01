@@ -66,8 +66,14 @@ test("relacionar y quitar un peleador desde el panel actualiza su ficha al insta
   await page.getByLabel("Categoría").selectOption({ label: "Anuncios" });
   await page.getByRole("tab", { name: "Relacionados" }).click();
   const fighters = page.getByRole("group", { name: "Peleadores relacionados" });
-  await fighters.getByRole("searchbox").fill("Núñez");
-  await fighters.getByRole("button", { name: /Joaquín Núñez/ }).first().click();
+  const result = fighters.getByRole("button", { name: /Joaquín Núñez/ }).first();
+  // Si se escribe antes de que React hidrate el formulario, el texto se pierde: se reintenta hasta que aparezca el resultado.
+  await expect(async () => {
+    await fighters.getByRole("searchbox").fill("");
+    await fighters.getByRole("searchbox").fill("Núñez");
+    await expect(result).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 60_000 });
+  await result.click();
   await page.getByRole("tab", { name: "Publicación" }).click();
   await page.getByRole("radio", { name: "Publicado" }).check();
   await page.getByRole("button", { name: "Crear noticia" }).click();
