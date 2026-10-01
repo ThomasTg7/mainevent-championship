@@ -14,6 +14,8 @@ import { PreviewBanner } from "@/features/fighters/components/preview-banner";
 import { RecordSummary } from "@/features/fighters/components/record-summary";
 import { divisionTitle } from "@/features/fighters/labels";
 import { getPublicFighterBySlug } from "@/features/fighters/queries";
+import { getCachedPostsForFighter } from "@/features/posts/cached-queries";
+import { RelatedNewsRail } from "@/features/posts/components/related-news-rail";
 import { verifyPreviewToken } from "@/features/publication/preview";
 
 /**
@@ -74,7 +76,7 @@ export default async function FighterPage({ params, searchParams }: PageProps<"/
   if (!fighter) notFound();
 
   const { proRecord } = fighter;
-  const { computed, history, nextBout } = await getCachedFighterBouts(fighter.id);
+  const [{ computed, history, nextBout }, news] = await Promise.all([getCachedFighterBouts(fighter.id), getCachedPostsForFighter(fighter.id)]);
   return (
     <>
       <FighterHero fighter={fighter} figures={heroFigures(computed.pro, proRecord)} />
@@ -85,8 +87,9 @@ export default async function FighterPage({ params, searchParams }: PageProps<"/
         <FightHistory rows={history} />
       </div>
       <FighterGallery media={fighter.gallery} name={`${fighter.firstName} ${fighter.lastName}`} />
-      {/* Hueco para las noticias relacionadas (Plan 04). */}
-      <div data-slot="fighter-news" />
+      <div data-slot="fighter-news">
+        <RelatedNewsRail posts={news} />
+      </div>
       {isPreview ? <PreviewBanner /> : null}
     </>
   );

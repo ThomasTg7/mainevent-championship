@@ -1,10 +1,10 @@
 import { unstable_cache } from "next/cache";
 import { db } from "@/db";
-import { EVENTS_LIST_TAG } from "@/features/events/cache";
-import { FIGHTERS_LIST_TAG } from "@/features/fighters/cache";
+import { EVENTS_LIST_TAG, eventCacheTag } from "@/features/events/cache";
+import { FIGHTERS_LIST_TAG, fighterCacheTag } from "@/features/fighters/cache";
 import { MEDIA_ANY_TAG, mediaCacheTag } from "@/features/media/cache";
 import { POSTS_LIST_TAG, postCacheTag } from "./cache";
-import { getHomeNews, getPublicPostBySlug, getPublicPostRef, listPublicPostCategories, listPublicPosts } from "./queries";
+import { getHomeNews, getPublicPostBySlug, getPublicPostRef, listPostsForEvent, listPostsForFighter, listPublicPostCategories, listPublicPosts } from "./queries";
 
 // Lecturas del sitio público, cacheadas con etiquetas para invalidarlas desde la action que escribe.
 // La vista previa nunca pasa por aquí: la página lee el borrador directo de la base.
@@ -17,6 +17,25 @@ const REVALIDATE_SECONDS = 300;
 export function getCachedPublicPosts(category: string | undefined, page: number) {
   return unstable_cache(() => listPublicPosts(db, { category }, { page }), ["posts-list", category ?? "", String(page)], {
     tags: [POSTS_LIST_TAG, MEDIA_ANY_TAG],
+    revalidate: REVALIDATE_SECONDS,
+  })();
+}
+
+/**
+ * Noticias de la ficha de un peleador. Lleva `fighter:<id>` (las actions de noticias lo expiran antes y después de cambiar
+ * una relación), la lista de noticias (títulos y categorías) y las imágenes (portadas).
+ */
+export function getCachedPostsForFighter(fighterId: string) {
+  return unstable_cache(() => listPostsForFighter(db, fighterId), ["posts-for-fighter", fighterId], {
+    tags: [fighterCacheTag(fighterId), POSTS_LIST_TAG, MEDIA_ANY_TAG],
+    revalidate: REVALIDATE_SECONDS,
+  })();
+}
+
+/** Noticias de la página de un evento; igual que la del peleador, con `event:<id>`. */
+export function getCachedPostsForEvent(eventId: string) {
+  return unstable_cache(() => listPostsForEvent(db, eventId), ["posts-for-event", eventId], {
+    tags: [eventCacheTag(eventId), POSTS_LIST_TAG, MEDIA_ANY_TAG],
     revalidate: REVALIDATE_SECONDS,
   })();
 }

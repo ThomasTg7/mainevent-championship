@@ -18,6 +18,8 @@ import { getPublicEventBySlug } from "@/features/events/queries";
 import { pickMainBout } from "@/features/events/main-bout";
 import { showsCountdown } from "@/features/events/public-format";
 import { PreviewBanner } from "@/features/fighters/components/preview-banner";
+import { getCachedPostsForEvent } from "@/features/posts/cached-queries";
+import { RelatedNewsRail } from "@/features/posts/components/related-news-rail";
 import { verifyPreviewToken } from "@/features/publication/preview";
 import { formatShortDate, formatTime } from "@/lib/format-date";
 
@@ -67,6 +69,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
   const ticketHref = canBuy ? (event.ticketUrl ?? "/entradas") : undefined;
   const ticketExternal = Boolean(canBuy && event.ticketUrl);
   const segments = event.segments.filter((segment) => segment.bouts.length > 0);
+  const news = await getCachedPostsForEvent(event.id);
 
   return (
     <>
@@ -128,6 +131,8 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
           </div>
         </section>
       ) : null}
+
+      <RelatedNewsRail posts={news} />
 
       {isPreview ? <PreviewBanner subject="este evento" /> : null}
     </>
