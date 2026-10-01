@@ -87,3 +87,16 @@ export function embedCanonicalUrl(embed: Embed): string {
       return `https://www.tiktok.com/@/video/${embed.id}`;
   }
 }
+
+/**
+ * Lee los atributos de un nodo `embed` guardado (`{ provider, id }`). Solo vale si el id sobrevive al ida y vuelta por el
+ * enlace público de su red: así no puede traer nada más que el id (ni una ruta, ni otro sitio).
+ */
+export function embedFromAttrs(attrs: unknown): Embed | null {
+  if (typeof attrs !== "object" || attrs === null) return null;
+  const { provider, id } = attrs as Record<string, unknown>;
+  if (typeof provider !== "string" || typeof id !== "string" || !(EMBED_PROVIDERS as readonly string[]).includes(provider)) return null;
+  const embed = { provider, id } as Embed;
+  const parsed = parseEmbedUrl(embedCanonicalUrl(embed));
+  return parsed && parsed.provider === embed.provider && parsed.id === embed.id ? embed : null;
+}

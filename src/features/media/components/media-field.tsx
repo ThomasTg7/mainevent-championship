@@ -16,7 +16,8 @@ type MediaFieldProps = {
   name: string;
   /** Imagen ya guardada (la carga el servidor con `getMedia`). */
   media?: MediaDTO | null;
-  onChange?: (mediaId: string | null) => void;
+  /** Al guardar una imagen (con su `MediaDTO`, para mostrarla sin pedirla de nuevo) o al quitarla (`null`, `null`). */
+  onChange?: (mediaId: string | null, media: MediaDTO | null) => void;
 };
 
 export function MediaField({ kind, name, media: initialMedia = null, onChange }: MediaFieldProps) {
@@ -27,7 +28,7 @@ export function MediaField({ kind, name, media: initialMedia = null, onChange }:
   const handleSaved = useCallback(
     (saved: MediaDTO) => {
       setMedia(saved);
-      onChange?.(saved.id);
+      onChange?.(saved.id, saved);
     },
     [onChange],
   );
@@ -36,7 +37,7 @@ export function MediaField({ kind, name, media: initialMedia = null, onChange }:
 
   function remove() {
     setMedia(null);
-    onChange?.(null);
+    onChange?.(null, null);
   }
 
   return (

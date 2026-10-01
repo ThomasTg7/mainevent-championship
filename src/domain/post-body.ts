@@ -1,4 +1,4 @@
-import { embedCanonicalUrl, EMBED_PROVIDERS, parseEmbedUrl } from "./embed";
+import { embedFromAttrs } from "./embed";
 
 // Cuerpo de una noticia: JSON de Tiptap restringido a los nodos que el sitio sabe mostrar (spec §4.8). Esta lista es
 // la única fuente: el editor solo ofrece estos nodos, la action rechaza lo demás y el renderer ignora lo desconocido.
@@ -44,15 +44,6 @@ export function isSafeHref(href: unknown): href is string {
   }
 }
 
-function isValidEmbed(attrs: unknown): boolean {
-  if (!isRecord(attrs)) return false;
-  const { provider, id } = attrs;
-  if (typeof provider !== "string" || typeof id !== "string" || !(EMBED_PROVIDERS as readonly string[]).includes(provider)) return false;
-  // El id debe sobrevivir al ida y vuelta por el enlace público: así no puede traer nada más que el id.
-  const parsed = parseEmbedUrl(embedCanonicalUrl({ provider: provider as (typeof EMBED_PROVIDERS)[number], id }));
-  return parsed !== null && parsed.provider === provider && parsed.id === id;
-}
-
 function isValidMarks(marks: unknown): boolean {
   if (marks === undefined) return true;
   if (!Array.isArray(marks)) return false;
@@ -66,7 +57,7 @@ function isValidAttrs(node: Record<string, unknown>): boolean {
     case "image":
       return isRecord(node.attrs) && typeof node.attrs.mediaId === "string" && UUID.test(node.attrs.mediaId);
     case "embed":
-      return isValidEmbed(node.attrs);
+      return embedFromAttrs(node.attrs) !== null;
     default:
       return true;
   }

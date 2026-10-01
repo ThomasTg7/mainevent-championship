@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { embedCanonicalUrl, embedSrc, parseEmbedUrl } from "./embed";
+import { embedCanonicalUrl, embedFromAttrs, embedSrc, parseEmbedUrl } from "./embed";
 
 describe("parseEmbedUrl", () => {
   it("recognizes an Instagram post with tracking parameters", () => {
@@ -71,5 +71,17 @@ describe("embedCanonicalUrl", () => {
     expect(embedCanonicalUrl({ provider: "youtube", id: "dQw4w9WgXcQ" })).toBe("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
     expect(embedCanonicalUrl({ provider: "instagram", id: "C8abc123" })).toBe("https://www.instagram.com/p/C8abc123/");
     expect(embedCanonicalUrl({ provider: "tiktok", id: "7412345678901234567" })).toBe("https://www.tiktok.com/@/video/7412345678901234567");
+  });
+});
+
+describe("embedFromAttrs", () => {
+  it("accepts the attributes of a stored embed node and nothing that is not exactly a network and an id", () => {
+    expect(embedFromAttrs({ provider: "youtube", id: "dQw4w9WgXcQ" })).toEqual({ provider: "youtube", id: "dQw4w9WgXcQ" });
+    expect(embedFromAttrs({ provider: "tiktok", id: "7412345678901234567", extra: "ignorado" })).toEqual({ provider: "tiktok", id: "7412345678901234567" });
+    expect(embedFromAttrs({ provider: "facebook", id: "123" })).toBeNull();
+    expect(embedFromAttrs({ provider: "youtube", id: "dQw4w9WgXcQ/../x" })).toBeNull();
+    expect(embedFromAttrs({ provider: "youtube" })).toBeNull();
+    expect(embedFromAttrs(null)).toBeNull();
+    expect(embedFromAttrs("youtube")).toBeNull();
   });
 });
