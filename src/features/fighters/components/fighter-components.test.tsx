@@ -167,6 +167,19 @@ describe("RecordSummary", () => {
     expect(pro).not.toHaveTextContent(/GC/);
   });
 
+  it("titles each level «Récord profesional» / «Récord amateur» on one line, the amateur one in orange, with no «Récord total» label", () => {
+    const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: { ...empty, wins: 4 } }} computed={noFights} />);
+    const pro = container.querySelector('[data-level="pro"] h3')!;
+    const amateur = container.querySelector('[data-level="amateur"] h3')!;
+    expect(pro).toHaveTextContent("Récord profesional");
+    expect(amateur).toHaveTextContent("Récord amateur");
+    expect(pro.className).toContain("whitespace-nowrap");
+    expect(amateur.className).toContain("whitespace-nowrap");
+    expect(amateur.className).toContain("text-[#FF7A1A]");
+    expect(pro.className).not.toContain("text-[#FF7A1A]");
+    expect(container).not.toHaveTextContent("Récord total");
+  });
+
   it("shows the average fight time in the Guerra Campal column, only when there is one", () => {
     const withTime = { ...emptyComputed, wins: 2, losses: 1, avgFightSeconds: 522 };
     const { container } = render(<RecordSummary manual={{ pro: profile.proRecord, amateur: empty }} computed={{ pro: withTime, amateur: emptyComputed }} />);

@@ -36,16 +36,20 @@ test("/eventos separa Próximos y Pasados y no desborda", async ({ page }) => {
   }
 });
 
-test("/eventos/guerra-campal-5: portada con nombre y estado, cartelera por bloques, horarios y barra fija", async ({ page }) => {
+test("/eventos/guerra-campal-5: careo, cartelera por bloques, horarios y barra fija", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-5");
-  // La portada solo dice el nombre y el estado del evento.
-  const hero = page.locator("#event-hero");
-  await expect(hero.getByRole("heading", { name: "Guerra Campal 5", level: 1 })).toBeVisible();
-  await expect(hero.getByText("Próximo", { exact: true })).toBeVisible();
-  await expect(hero.getByRole("link", { name: "Ver cartelera" })).toHaveAttribute("href", "#cartelera");
-  await expect(hero.getByText("21:00 hrs")).toHaveCount(0);
-  await expect(hero.getByRole("link", { name: /Comprar entradas/ })).toHaveCount(0);
-  await expect(page.locator("[data-countdown]")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /Pérez\s*VS\s*Soto/, level: 1 })).toBeVisible();
+  await expect(page.getByText("21:00 hrs").first()).toBeVisible();
+  await expect(page.getByText("Pelea por el título").first()).toBeVisible();
+
+  // Arriba del título solo van el nombre del evento y su estado.
+  const tags = page.locator("#event-hero [class*='tracking-[.1em]']");
+  await expect(tags).toHaveText(["Guerra Campal 5", "Próximo"]);
+
+  // La cuenta regresiva se arma al hidratar (el servidor no conoce la hora del navegador).
+  const cells = page.locator("[data-countdown]");
+  await expect(cells).toHaveCount(4);
+  await expect(cells.first()).toHaveText(/^\d{2}$/);
 
   // Cartelera: pestañas por bloque, la estelar primero, con la pelea de peso pactado en Preliminares.
   const tabs = page.getByRole("tab");
@@ -56,7 +60,6 @@ test("/eventos/guerra-campal-5: portada con nombre y estado, cartelera por bloqu
   await expect(main).toContainText("Diego Soto");
   await expect(main).toContainText("5 × 5 MIN");
   await expect(main).toContainText("Peso Ligero");
-  await expect(main).toContainText("Pelea por el título");
   // Pelea sin resultado todavía: sin etiqueta de victoria ni línea de resultado.
   await expect(main.locator("[data-result-line]")).toHaveCount(0);
   await tabs.nth(1).click();
@@ -65,10 +68,8 @@ test("/eventos/guerra-campal-5: portada con nombre y estado, cartelera por bloqu
   // Los peleadores públicos llevan a su ficha.
   await expect(page.getByRole("tabpanel").getByRole("link", { name: "Felipe Araya" })).toHaveAttribute("href", "/peleadores/felipe-araya");
 
-  // Horarios y lugar: la fecha ya no va en la portada sino aquí.
+  // Horarios y lugar.
   const schedule = page.locator('[data-slot="event-schedule"]');
-  await expect(schedule).toContainText("Fecha");
-  await expect(schedule).toContainText("21:00 hrs");
   await expect(schedule).toContainText("Apertura de puertas");
   await expect(schedule).toContainText("19:30 hrs");
   await expect(schedule).toContainText("Cartelera estelar");
@@ -91,9 +92,9 @@ test("/eventos/guerra-campal-5: portada con nombre y estado, cartelera por bloqu
 
 test("un evento pasado muestra los resultados de cada pelea, sin cuenta regresiva ni entradas", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-4");
-  await expect(page.locator("#event-hero").getByRole("heading", { name: "Guerra Campal 4", level: 1 })).toBeVisible();
-  await expect(page.locator("#event-hero").getByText("Finalizado", { exact: true })).toBeVisible();
-  await expect(page.locator("#event-hero").getByRole("link", { name: "Ver cartelera y resultados" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Soto\s*VS\s*Araya/, level: 1 })).toBeVisible();
+  await expect(page.locator("#event-hero [class*='tracking-[.1em]']")).toHaveText(["Guerra Campal 4", "Finalizado"]);
+  await expect(page.locator("[data-countdown]")).toHaveCount(0);
   await expect(page.getByRole("main").getByRole("link", { name: "Comprar entradas" })).toHaveCount(0);
 
   const main = page.getByRole("tabpanel").locator("[data-bout]").first();
@@ -135,7 +136,7 @@ test("un evento que no existe, uno en borrador y uno en la papelera no se ven; l
   // Vista previa: con la firma correcta se ve (avisando y sin indexar); con la de otro evento no.
   const token = createPreviewToken("event", draft.eventId);
   await page.goto(`/eventos/${draft.slug}?preview=${token}`);
-  await expect(page.getByRole("heading", { name: "Evento E2E Borrador Público", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Uno\s*VS\s*Dos/, level: 1 })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Vista previa" })).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   await page.goto(`/eventos/${draft.slug}?preview=${createPreviewToken("event", "00000000-0000-4000-8000-000000000000")}`);
@@ -145,7 +146,7 @@ test("un evento que no existe, uno en borrador y uno en la papelera no se ven; l
 
   const trashed = await createE2eCard("Evento E2E Papelera Público", { "Cartelera estelar": [["tres", "cuatro"]] });
   await page.goto(`/eventos/${trashed.slug}`);
-  await expect(page.getByRole("heading", { name: "Evento E2E Papelera Público", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Tres\s*VS\s*Cuatro/, level: 1 })).toBeVisible();
   // Enviarlo a la papelera desde el panel lo saca del sitio al instante (la caché se invalida en la action).
   await signInAsAdmin(page);
   await page.goto(adminUrl("/eventos?publicacion=published"));

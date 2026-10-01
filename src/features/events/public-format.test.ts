@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boutMeasure, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, youtubeEmbedUrl } from "./public-format";
+import { boutMeasure, countdownParts, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, showsCountdown, youtubeEmbedUrl } from "./public-format";
 
 describe("boutMeasure", () => {
   it("writes the division like the rest of the site", () => {
@@ -25,6 +25,18 @@ describe("roundsLabel", () => {
 
   it("keeps the seconds of a round that is not a whole number of minutes", () => {
     expect(roundsLabel({ scheduledRounds: 3, roundSeconds: 90 })).toBe("3 × 1:30 MIN");
+  });
+});
+
+describe("countdownParts", () => {
+  it("splits the time left into days, hours, minutes and seconds", () => {
+    expect(countdownParts(((1 * 24 + 2) * 60 + 3) * 60 * 1000 + 4000)).toEqual({ days: 1, hours: 2, minutes: 3, seconds: 4 });
+    expect(countdownParts(59_000)).toEqual({ days: 0, hours: 0, minutes: 0, seconds: 59 });
+  });
+
+  it("is null once the time is up", () => {
+    expect(countdownParts(0)).toBeNull();
+    expect(countdownParts(-1)).toBeNull();
   });
 });
 
@@ -90,5 +102,20 @@ describe("fighterComparison", () => {
   it("keeps the record even when it is 0-0-0", () => {
     const empty = { wins: 0, losses: 0, draws: 0, noContests: 0 };
     expect(fighterComparison(fighter({ record: empty }), fighter({ record: empty }))[0]).toMatchObject({ red: "0-0-0", blue: "0-0-0" });
+  });
+});
+
+describe("showsCountdown", () => {
+  const now = Date.parse("2026-10-23T00:00:00Z");
+
+  it("shows the clock for a scheduled event that has not started, and for one that is live", () => {
+    expect(showsCountdown({ eventStatus: "scheduled", startsAt: "2026-10-24T00:00:00Z" }, now)).toBe(true);
+    expect(showsCountdown({ eventStatus: "live", startsAt: "2026-10-22T20:00:00Z" }, now)).toBe(true);
+  });
+
+  it("does not for finished or cancelled events, nor for a scheduled event whose time already passed", () => {
+    expect(showsCountdown({ eventStatus: "completed", startsAt: "2026-10-24T00:00:00Z" }, now)).toBe(false);
+    expect(showsCountdown({ eventStatus: "cancelled", startsAt: "2026-10-24T00:00:00Z" }, now)).toBe(false);
+    expect(showsCountdown({ eventStatus: "scheduled", startsAt: "2026-10-22T00:00:00Z" }, now)).toBe(false);
   });
 });

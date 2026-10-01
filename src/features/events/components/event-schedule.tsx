@@ -1,12 +1,11 @@
-import { formatLongDate, formatTime } from "@/lib/format-date";
+import { formatTime } from "@/lib/format-date";
 import type { EventPageDTO } from "../dto";
 
 type ScheduleItem = { label: string; value: string };
 
-/** Fecha, horarios de la velada (puertas, cada bloque con hora, término estimado) y el recinto, con el estilo de `card-meta` de la maqueta. */
+/** Horarios de la velada (puertas, cada bloque con hora, término estimado) y el recinto, con el estilo de `card-meta` de la maqueta. */
 export function EventSchedule({ event }: { event: EventPageDTO }) {
-  const start = new Date(event.startsAt);
-  const items: ScheduleItem[] = [{ label: "Fecha", value: `${formatLongDate(start)} · ${formatTime(start)} hrs` }];
+  const items: ScheduleItem[] = [];
   if (event.doorsAt) items.push({ label: "Apertura de puertas", value: `${formatTime(new Date(event.doorsAt))} hrs` });
   const timed = event.segments.filter((segment) => segment.startsAt !== null).sort((a, b) => new Date(a.startsAt!).getTime() - new Date(b.startsAt!).getTime());
   for (const segment of timed) items.push({ label: segment.name, value: `${formatTime(new Date(segment.startsAt!))} hrs` });

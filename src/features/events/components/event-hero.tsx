@@ -1,17 +1,26 @@
+import { SmoothAnchor } from "@/components/motion/smooth-anchor";
 import { MediaImage } from "@/components/media/media-image";
 import { Button } from "@/components/ui-gc/button";
 import { Tag } from "@/components/ui-gc/tag";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import { HeroParallax } from "@/features/fighters/components/hero-parallax";
 import type { MediaDTO } from "@/features/media/dto";
-import { SmoothAnchor } from "@/components/motion/smooth-anchor";
+import { formatShortDate, formatTime } from "@/lib/format-date";
 import type { BoutFighterDTO, EventPageDTO } from "../dto";
 import { pickMainBout } from "../main-bout";
 import { eventStatusTag } from "../public-format";
+import { Countdown } from "./countdown";
 
 export const EVENT_HERO_ID = "event-hero";
 
-type EventHeroProps = { event: EventPageDTO };
+type EventHeroProps = {
+  event: EventPageDTO;
+  /** Adónde lleva «Comprar entradas»; sin él no hay botón (evento pasado o cancelado). */
+  ticketHref?: string;
+  ticketExternal?: boolean;
+  /** Si aún falta para la hora del evento (lo decide el servidor al armar la página). */
+  showCountdown: boolean;
+};
 
 function srcSet(media: MediaDTO): string | undefined {
   return media.variants.length > 0 ? media.variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ") : undefined;
@@ -61,15 +70,25 @@ function FighterFigure({ fighter, side, priority }: { fighter: BoutFighterDTO; s
 }
 
 /**
- * Portada del evento: el careo espejado del combate estelar (o la imagen de portada), el nombre y su estado (próximo,
- * en vivo o finalizado). Fecha, horarios y lugar van en la sección de la cartelera; las entradas, en la barra fija.
+ * Portada del evento: careo espejado del combate estelar (o la imagen de portada), título con los peleadores, fecha,
+ * cuenta regresiva y entradas. Arriba solo van el nombre del evento y su estado (próximo, en vivo, finalizado).
  */
-export function EventHero({ event }: EventHeroProps) {
+export function EventHero({ event, ticketHref, ticketExternal = false, showCountdown }: EventHeroProps) {
   const main = pickMainBout(event.segments.flatMap((segment) => segment.bouts), (bout) => bout.status === "cancelled");
+  const start = new Date(event.startsAt);
   const status = eventStatusTag(event.eventStatus);
+  const title = main ? (
+    <>
+      <span data-slot="hero-red">{main.red.lastName}</span>{" "}
+      <span className="text-[.38em] text-yellow">VS</span>{" "}
+      <span data-slot="hero-blue">{main.blue.lastName}</span>
+    </>
+  ) : (
+    event.name
+  );
 
   return (
-    <section id={EVENT_HERO_ID} aria-labelledby="event-title" className="relative isolate flex min-h-[max(560px,88svh)] flex-col justify-end overflow-hidden bg-black pt-[76px]">
+    <section id={EVENT_HERO_ID} aria-labelledby="event-title" className="relative isolate flex min-h-[max(640px,100svh)] flex-col justify-end overflow-hidden bg-black pt-[76px]">
       <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_55%_at_50%_38%,#2a1f06_0%,#0b0b0b_55%,#000_100%)]" />
       {event.heroMedia ? <HeroPicture desktop={event.heroMedia} mobile={event.heroMobileMedia} /> : null}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[12%] -z-[7] select-none text-center font-display text-[24vw] leading-[.85] whitespace-nowrap text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,.07)]">
@@ -83,14 +102,40 @@ export function EventHero({ event }: EventHeroProps) {
       ) : null}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[62%] bg-gradient-to-t from-black from-10% via-black/70 to-transparent" />
 
-      <div className="relative z-[4] mx-auto flex w-full max-w-[1320px] flex-col items-center gap-5 px-[clamp(16px,4vw,64px)] pb-12 text-center sm:pb-16">
-        <Tag tone={status.tone}>{status.label}</Tag>
-        <h1 id="event-title" className="font-display text-[clamp(44px,9vw,132px)] uppercase leading-[.95] text-balance text-white [text-shadow:0_2px_24px_rgba(0,0,0,.6)]">
-          {event.name}
+      <div className="relative z-[4] mx-auto flex w-full max-w-[1320px] flex-col items-center px-[clamp(16px,4vw,64px)] pb-10 text-center sm:pb-14">
+        <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
+          <Tag tone="yellow">{event.name}</Tag>
+          <Tag tone={status.tone}>{status.label}</Tag>
+        </div>
+        <h1
+          id="event-title"
+          className="flex flex-wrap items-center justify-center gap-x-[clamp(12px,3vw,40px)] font-display text-[clamp(46px,11vw,168px)] uppercase leading-[.95] text-white [text-shadow:0_2px_24px_rgba(0,0,0,.6)]"
+        >
+          {title}
         </h1>
-        <Button variant="ghost" asChild>
-          <SmoothAnchor href="#cartelera">{event.eventStatus === "completed" ? "Ver cartelera y resultados" : "Ver cartelera"}</SmoothAnchor>
-        </Button>
+        <p className="mt-3 font-cond text-[clamp(14px,1.4vw,18px)] font-semibold uppercase tracking-[.12em] text-white/90">
+          {formatShortDate(start)} · <b className="font-bold text-yellow">{formatTime(start)} hrs</b> · {event.venue.name}
+          {event.venue.city ? `, ${event.venue.city}` : ""}
+        </p>
+        {showCountdown ? <Countdown target={event.startsAt} live={event.eventStatus === "live"} className="my-6" /> : <div className="h-6" />}
+        <div className="flex flex-wrap justify-center gap-3">
+          {ticketHref ? (
+            <Button variant="primary" asChild>
+              {ticketExternal ? (
+                <a href={ticketHref} target="_blank" rel="noopener noreferrer">
+                  Comprar entradas <span aria-hidden>→</span>
+                </a>
+              ) : (
+                <a href={ticketHref}>
+                  Comprar entradas <span aria-hidden>→</span>
+                </a>
+              )}
+            </Button>
+          ) : null}
+          <Button variant="ghost" asChild>
+            <SmoothAnchor href="#cartelera">{event.eventStatus === "completed" ? "Ver cartelera y resultados" : "Ver cartelera completa"}</SmoothAnchor>
+          </Button>
+        </div>
       </div>
     </section>
   );

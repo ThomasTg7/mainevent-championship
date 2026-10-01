@@ -8,6 +8,7 @@ import { formatClock } from "@/domain/clock";
 import type { FightHistoryRow } from "@/features/events/dto";
 import { formatDate } from "@/lib/format-date";
 import { FighterSilhouette } from "./fighter-silhouette";
+import { SectionTitle } from "./section-title";
 
 const RESULT_LABEL = { win: "Victoria", loss: "Derrota", draw: "Empate", no_contest: "Sin resultado" } as const;
 const RESULT_CLASS = {
@@ -35,9 +36,7 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
   return (
     <section aria-labelledby="fighter-history-heading" className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] py-14 lg:py-20">
       <div className="mb-10 flex flex-col items-center gap-6 text-center">
-        <h2 id="fighter-history-heading" className="font-display text-[clamp(40px,7vw,80px)] uppercase leading-none text-white">
-          Historial de peleas
-        </h2>
+        <SectionTitle id="fighter-history-heading">Historial de peleas</SectionTitle>
         {showFilter ? (
           <div role="group" aria-label="Filtrar por nivel" className="flex border border-border">
             {(["all", "pro", "amateur"] as const).map((option) => (

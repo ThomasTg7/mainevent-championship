@@ -1,6 +1,7 @@
 import { formatClock } from "@/domain/clock";
 import type { ComputedRecord } from "@/domain/record";
 import type { ManualRecord } from "../dto";
+import { SectionTitle } from "./section-title";
 
 type Levels<T> = { pro: T; amateur: T };
 
@@ -95,8 +96,8 @@ const labelClass = "mb-2 font-cond text-[13px] font-bold uppercase tracking-[.16
 export function RecordSummary({ manual, computed }: RecordSummaryProps) {
   const levels = (
     [
-      { key: "pro", title: "Profesional" },
-      { key: "amateur", title: "Amateur" },
+      { key: "pro", title: "Profesional", titleClass: "text-yellow" },
+      { key: "amateur", title: "Amateur", titleClass: "text-[#FF7A1A]" },
     ] as const
   )
     .map((level) => ({ ...level, showTotal: !isEmpty(manual[level.key]), showGc: hasFights(computed[level.key]) }))
@@ -107,17 +108,16 @@ export function RecordSummary({ manual, computed }: RecordSummaryProps) {
   return (
     <section aria-labelledby="fighter-record-heading" className="border-y border-border bg-[#0a0a0a]">
       <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] py-14 text-center lg:py-20">
-        <h2 id="fighter-record-heading" className="mb-12 font-display text-[clamp(40px,7vw,80px)] uppercase leading-none text-white">
-          Récord
-        </h2>
+        <div className="mb-12">
+          <SectionTitle id="fighter-record-heading">Récord</SectionTitle>
+        </div>
         <div className={`mx-auto grid max-w-4xl gap-14 ${levels.length > 1 ? "md:grid-cols-2" : ""}`}>
-          {levels.map(({ key, title, showTotal, showGc }) => (
+          {levels.map(({ key, title, titleClass, showTotal, showGc }) => (
             <div key={key} data-level={key}>
-              <h3 className="mb-6 font-cond text-[15px] font-extrabold uppercase tracking-[.2em] text-yellow">{title}</h3>
+              <h3 className={`mb-4 font-cond text-[clamp(15px,4.4vw,22px)] font-extrabold uppercase tracking-[.16em] whitespace-nowrap ${titleClass}`}>Récord {title.toLowerCase()}</h3>
               <div data-record-list className="flex flex-col items-center gap-8">
                 {showTotal ? (
                   <div data-record="total">
-                    <p className={labelClass}>Récord total</p>
                     <TotalRecord record={manual[key]} title={title} />
                   </div>
                 ) : null}

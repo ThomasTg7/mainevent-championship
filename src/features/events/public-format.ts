@@ -17,6 +17,18 @@ export function roundsLabel(bout: { scheduledRounds: number; roundSeconds: numbe
   return `${bout.scheduledRounds} × ${length} MIN`;
 }
 
+/** Lo que falta hasta la hora del evento; `null` cuando ya llegó. */
+export function countdownParts(remainingMs: number): { days: number; hours: number; minutes: number; seconds: number } | null {
+  if (remainingMs <= 0) return null;
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  return {
+    days: Math.floor(totalSeconds / 86_400),
+    hours: Math.floor((totalSeconds % 86_400) / 3600),
+    minutes: Math.floor((totalSeconds % 3600) / 60),
+    seconds: totalSeconds % 60,
+  };
+}
+
 const YOUTUBE_HOSTS = new Set(["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"]);
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{6,20}$/;
 
@@ -42,6 +54,12 @@ export function mapEmbedUrl(lat: number, lng: number): string {
 /** Enlace para abrir el recinto en Google Maps (la aplicación en el celular). */
 export function mapLinkUrl(lat: number, lng: number): string {
   return `https://www.google.com/maps/search/?${new URLSearchParams({ api: "1", query: `${lat},${lng}` }).toString()}`;
+}
+
+/** Si la página muestra la cuenta regresiva: un evento programado que aún no empieza, o uno en vivo (dirá «EN VIVO»). */
+export function showsCountdown(event: { eventStatus: "scheduled" | "live" | "completed" | "cancelled"; startsAt: string }, nowMs: number = Date.now()): boolean {
+  if (event.eventStatus === "live") return true;
+  return event.eventStatus === "scheduled" && new Date(event.startsAt).getTime() > nowMs;
 }
 
 type EventStatus = "scheduled" | "live" | "completed" | "cancelled";

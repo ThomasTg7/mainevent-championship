@@ -13,9 +13,9 @@ const RESULT_CLASS = { win: "bg-yellow text-black", loss: "bg-neutral-700 text-w
 
 function OpponentPhoto({ opponent }: { opponent: OpponentDTO }) {
   const photo = (
-    <div className="relative h-[168px] w-[134px] overflow-hidden border-b-4 border-yellow bg-surface sm:h-[210px] sm:w-[168px]">
+    <div className="relative h-[104px] w-[84px] overflow-hidden border-b-4 border-yellow bg-surface sm:h-[132px] sm:w-[106px]">
       {opponent.headshotMedia ? (
-        <MediaImage media={opponent.headshotMedia} sizes="(min-width: 640px) 168px, 134px" className="size-full object-cover" />
+        <MediaImage media={opponent.headshotMedia} sizes="(min-width: 640px) 106px, 84px" className="size-full object-cover" />
       ) : (
         <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-yellow" />
       )}
@@ -50,19 +50,19 @@ const chipClass = "inline-flex items-center border border-border px-2.5 py-1 fon
 /** Una pelea (próxima o última): la foto del rival, su nombre con los datos de la pelea y, al lado, el evento. */
 function BoutCard({ kicker, opponent, chips, event }: { kicker: string; opponent: OpponentDTO; chips: React.ReactNode; event: React.ReactNode }) {
   return (
-    <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:gap-10 sm:text-left">
+    <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
       <OpponentPhoto opponent={opponent} />
       <div className="min-w-0 flex-1">
         <h2 id="fighter-next-bout-heading" className="font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow">
           {kicker}
         </h2>
-        <p className="mt-2 font-display text-[clamp(30px,5vw,56px)] uppercase leading-none text-white">
+        <p className="mt-1.5 font-display text-[clamp(26px,4vw,40px)] uppercase leading-none text-white">
           <span className="mr-2 text-[.5em] text-muted-foreground">vs</span>
           <OpponentName opponent={opponent} />
         </p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">{chips}</div>
+        <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">{chips}</div>
       </div>
-      <div className="font-cond text-base font-bold uppercase tracking-[.08em] text-white sm:max-w-[280px] sm:border-l sm:border-border sm:pl-8 sm:text-left">{event}</div>
+      <div className="font-cond text-base font-bold uppercase tracking-[.08em] text-white sm:max-w-[260px] sm:border-l sm:border-border sm:pl-6 sm:text-left">{event}</div>
     </div>
   );
 }
@@ -89,7 +89,7 @@ export function NextBout({ nextBout, lastFight }: NextBoutProps) {
         ))}
         event={
           <>
-            <Link href={`/eventos/${nextBout.event.slug}`} className="block text-xl underline-offset-4 hover:underline focus-visible:underline">
+            <Link href={`/eventos/${nextBout.event.slug}`} className="block text-lg underline-offset-4 hover:underline focus-visible:underline">
               {nextBout.event.name}
             </Link>
             <span className="mt-1 block text-sm font-semibold text-muted-foreground">{formatLongDate(start)}</span>
@@ -116,7 +116,7 @@ export function NextBout({ nextBout, lastFight }: NextBoutProps) {
         }
         event={
           <>
-            <Link href={`/eventos/${lastFight.eventSlug}`} className="block text-xl underline-offset-4 hover:underline focus-visible:underline">
+            <Link href={`/eventos/${lastFight.eventSlug}`} className="block text-lg underline-offset-4 hover:underline focus-visible:underline">
               {lastFight.eventName}
             </Link>
             <span className="mt-1 block text-sm font-semibold text-muted-foreground">{formatDate(new Date(lastFight.date))}</span>
@@ -128,7 +128,7 @@ export function NextBout({ nextBout, lastFight }: NextBoutProps) {
 
   return (
     <section aria-labelledby="fighter-next-bout-heading" data-slot="fighter-next-bout" className="border-y border-border bg-[#0f0f0f]">
-      <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] py-10 lg:py-14">{card}</div>
+      <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] py-6 lg:py-8">{card}</div>
     </section>
   );
 }

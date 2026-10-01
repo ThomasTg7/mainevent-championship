@@ -185,3 +185,32 @@ test("al editar un evento se pega un enlace de Google Maps y el mapa de la pági
   await page.goto(`/eventos/${card.slug}`);
   await expect(page.getByTitle("Mapa de Arena Santiago")).toHaveCount(0);
 });
+
+test("la portada de la ficha cabe entera en la pantalla (nombre, peso, cifras)", async ({ page }) => {
+  for (const [width, height] of [[375, 667], [393, 780], [1280, 720], [1440, 900]] as const) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/peleadores/diego-soto");
+    const hero = page.locator('section[aria-labelledby="fighter-name"]');
+    await expect(hero.getByRole("heading", { level: 1 })).toBeVisible();
+    const box = (await hero.boundingBox())!;
+    expect(box.y + box.height, `portada a ${width}×${height}`).toBeLessThanOrEqual(height + 1);
+  }
+});
+
+test("«Récord profesional» va en una línea sobre el récord, y Historial tiene el mismo título que Récord", async ({ page }) => {
+  for (const width of [320, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/peleadores/diego-soto");
+    const title = page.locator('[data-level="pro"] h3');
+    await expect(title).toHaveText(/Récord profesional/i);
+    const lines = await title.evaluate((element) => Math.round(element.getBoundingClientRect().height / parseFloat(getComputedStyle(element).lineHeight)));
+    expect(lines).toBe(1);
+    const total = (await page.locator('[data-level="pro"] [data-record="total"]').boundingBox())!;
+    expect((await title.boundingBox())!.y).toBeLessThan(total.y);
+
+    const [record, history] = await Promise.all([page.locator("#fighter-record-heading").boundingBox(), page.locator("#fighter-history-heading").boundingBox()]);
+    expect(Math.abs(record!.x + record!.width / 2 - (history!.x + history!.width / 2))).toBeLessThan(2);
+    expect(Math.abs(await page.locator("#fighter-history-heading").evaluate((element) => parseFloat(getComputedStyle(element).fontSize)) - (await page.locator("#fighter-record-heading").evaluate((element) => parseFloat(getComputedStyle(element).fontSize))))).toBeLessThan(0.5);
+    await expectNoHorizontalScroll(page);
+  }
+});

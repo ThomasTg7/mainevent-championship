@@ -491,3 +491,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** pedido del usuario (la portada cargada no se veía bien ni en PC ni en celular, la pestaña blanca sobre blanco no se leía, el «Victoria» desalineaba, el salto al botón teletransportaba).
 - **Impacto:** los e2e de eventos y fichas cambiaron (`event-page-changes.spec.ts` nuevo). Plan 06 (home): no queda cuenta regresiva que reutilizar; la home debe pedir `getCachedNextEvent` y mostrar fecha propia.
 - **Estado:** aplicado
+
+## [Plan 03 · Segunda ronda de ajustes] La portada del evento vuelve, con solo dos etiquetas — 2026-10-01
+- **Qué:** corrige la entrada anterior. (1) **Portada del evento:** vuelve a lo de antes (título con los peleadores de la estelar, fecha y lugar, cuenta regresiva, «Comprar entradas» y botón de la cartelera, que se desliza); lo único que cambia son las etiquetas de arriba: ya no salen «Pelea por el título» ni el peso, solo el nombre del evento y su estado (Próximo, En vivo, Finalizado, Cancelado). Se restauraron `Countdown`, `countdownParts`, `showsCountdown` y `EventSchedule` sin la fila «Fecha»; la corrección anula lo dicho antes sobre eliminar la cuenta regresiva. (2) **Ficha del peleador:** la portada entera cabe en la pantalla (la foto se limita en alto: ≈ 38 % del alto en celular y `100svh − 76 px` en escritorio; bio de 3 líneas en celular); «Próxima pelea» ocupa menos (foto del rival de 84×104 px en celular); el orden es Próxima pelea → Datos y Redes → Récord → Historial. «Récord» e «Historial de peleas» usan el mismo `SectionTitle` (centrado, mismo tamaño). En el récord cada nivel se titula «Récord profesional» (amarillo) o «Récord amateur» (naranjo `#FF7A1A`) en una sola línea, con el récord debajo; después va el de Guerra Campal con sus datos; se quitó la etiqueta «Récord total».
+- **Por qué:** pedido del usuario tras revisar.
+- **Impacto:** Plan 06 puede reutilizar `Countdown` en la home.
+- **Estado:** aplicado

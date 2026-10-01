@@ -16,6 +16,7 @@ import { LiveRefresher } from "@/features/events/components/live-refresher";
 import { VenueMap } from "@/features/events/components/venue-map";
 import { getPublicEventBySlug } from "@/features/events/queries";
 import { pickMainBout } from "@/features/events/main-bout";
+import { showsCountdown } from "@/features/events/public-format";
 import { PreviewBanner } from "@/features/fighters/components/preview-banner";
 import { verifyPreviewToken } from "@/features/publication/preview";
 import { formatShortDate, formatTime } from "@/lib/format-date";
@@ -70,7 +71,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
   return (
     <>
       {event.eventStatus === "live" ? <LiveRefresher intervalMs={20_000} /> : null}
-      <EventHero event={event} />
+      <EventHero event={event} ticketHref={ticketHref} ticketExternal={ticketExternal} showCountdown={showsCountdown(event)} />
       <EventStickyBar
         heroId={EVENT_HERO_ID}
         name={event.name}
