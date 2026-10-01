@@ -17,7 +17,7 @@ export function PostHeader({ post }: { post: PostDTO }) {
             {formatLongDate(new Date(post.date))}
           </time>
         </div>
-        <h1 className="font-display text-[clamp(34px,6vw,68px)] uppercase leading-[.95] text-white">{post.title}</h1>
+        <h1 className="font-display text-[clamp(34px,6vw,68px)] uppercase leading-[1.02] text-white">{post.title}</h1>
         {post.excerpt ? <p className="text-lg leading-relaxed text-white/80 md:text-xl">{post.excerpt}</p> : null}
       </div>
       <PostCover cover={post.cover} sizes="(min-width: 1100px) 1100px, 100vw" priority className="mt-8" />

@@ -101,6 +101,35 @@ test("un borrador y una noticia programada no se pueden abrir por su enlace", as
   expect(forged?.status()).toBe(404);
 });
 
+test("en las tarjetas, la categoría, el título y la bajada no se tocan (celular y PC)", async ({ page }) => {
+  for (const size of [{ width: 375, height: 800 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(size);
+    await page.goto("/noticias");
+    await expect(page.locator("article[data-post]").first()).toBeVisible();
+    const cards = await page.locator("article[data-post]").evaluateAll((articles) =>
+      articles.map((article) => {
+        const meta = article.querySelector('[data-slot="post-card-meta"]')!.getBoundingClientRect();
+        const title = article.querySelector("h2, h3")!;
+        const titleBox = title.getBoundingClientRect();
+        const excerpt = article.querySelector('[data-slot="post-card-excerpt"]')?.getBoundingClientRect();
+        const style = getComputedStyle(title);
+        return {
+          slug: (article as HTMLElement).dataset.post,
+          metaGap: titleBox.top - meta.bottom,
+          excerptGap: excerpt ? excerpt.top - titleBox.bottom : null,
+          // Con interlineado menor a 1, las tildes de las mayúsculas (É, Ó) suben sobre la línea de arriba.
+          leading: parseFloat(style.lineHeight) / parseFloat(style.fontSize),
+        };
+      }),
+    );
+    for (const card of cards) {
+      expect(card.metaGap, `${card.slug} (${size.width}px): categoría pegada al título`).toBeGreaterThanOrEqual(8);
+      if (card.excerptGap !== null) expect(card.excerptGap, `${card.slug} (${size.width}px): bajada pegada al título`).toBeGreaterThanOrEqual(8);
+      expect(card.leading, `${card.slug} (${size.width}px): interlineado del título`).toBeGreaterThanOrEqual(1);
+    }
+  }
+});
+
 test("el listado y una noticia no desbordan en celular ni en PC", async ({ page }) => {
   for (const size of [{ width: 320, height: 800 }, { width: 375, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);
