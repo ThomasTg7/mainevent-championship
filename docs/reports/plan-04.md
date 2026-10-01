@@ -41,7 +41,7 @@ No se lanzó el revisor con contexto nuevo (no se pidió; el flujo del proyecto 
 
 ## Verificación
 
-Todo en verde al cerrar: `pnpm test` (698 tests, 86 archivos), `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e` (ver el resumen al final de este archivo) y `E2E_DIST_DIR=.next-e2e pnpm build`.
+Todo en verde al cerrar: `pnpm test` (698 tests, 86 archivos), `pnpm lint`, `pnpm typecheck`, `pnpm test:e2e` (113 tests) y `E2E_DIST_DIR=.next-e2e pnpm build`.
 
 ## Cómo probar
 
