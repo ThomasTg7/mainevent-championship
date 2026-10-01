@@ -131,6 +131,25 @@ test("crear una noticia con portada, un video de YouTube y un peleador, y progra
   await expect(page.locator("main img, article img").first()).toBeVisible();
 });
 
+test("en el editor se ve la publicación real: pegar un reel de Instagram lo muestra y «Quitar» lo saca", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto(adminUrl("/noticias/nueva"));
+  await page.getByRole("tab", { name: "Texto" }).click();
+  const editor = page.getByRole("textbox", { name: "Cuerpo de la noticia" });
+  await editor.click();
+  await page.keyboard.type("Mira el reel:");
+  await page.keyboard.press("Enter");
+  await page.evaluate(() => navigator.clipboard.writeText("https://www.instagram.com/reel/C9xYz12AbCd/?igsh=MWQ1ZGUxMzBkMA=="));
+  await page.keyboard.press("ControlOrMeta+v");
+
+  const frame = editor.locator("iframe");
+  await expect(frame).toHaveAttribute("src", "https://www.instagram.com/p/C9xYz12AbCd/embed");
+  await expect(frame).toHaveAttribute("sandbox", /allow-scripts/);
+  await editor.getByRole("button", { name: "Quitar" }).click();
+  await expect(editor.locator("iframe")).toHaveCount(0);
+  await expect(editor.getByText("Mira el reel:")).toBeVisible();
+});
+
 test("el listado y el formulario no desbordan en celular ni en PC", async ({ page }) => {
   for (const size of [{ width: 375, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);

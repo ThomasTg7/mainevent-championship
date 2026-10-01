@@ -3,15 +3,7 @@
 import { ExternalLink, Play } from "lucide-react";
 import { useState } from "react";
 import { embedCanonicalUrl, embedSrc, type Embed, type EmbedProvider } from "@/domain/embed";
-
-const PROVIDER_NAME: Record<EmbedProvider, string> = { instagram: "Instagram", youtube: "YouTube", tiktok: "TikTok" };
-
-/** Alto y ancho del reproductor de cada red: el video de YouTube es horizontal; Instagram y TikTok, una columna vertical. */
-const FRAME_CLASS: Record<EmbedProvider, string> = {
-  youtube: "aspect-video w-full",
-  instagram: "mx-auto h-[640px] w-full max-w-[540px]",
-  tiktok: "mx-auto h-[740px] w-full max-w-[340px]",
-};
+import { EMBED_FRAME_ATTRIBUTES, EMBED_FRAME_CLASS, EMBED_PROVIDER_NAME } from "../embed-frame";
 
 const FACADE_CLASS: Record<EmbedProvider, string> = {
   youtube: "aspect-video w-full",
@@ -25,7 +17,7 @@ const FACADE_CLASS: Record<EmbedProvider, string> = {
  */
 export function EmbedFacade({ embed }: { embed: Embed }) {
   const [loaded, setLoaded] = useState(false);
-  const name = PROVIDER_NAME[embed.provider];
+  const name = EMBED_PROVIDER_NAME[embed.provider];
 
   return (
     <div className="my-8 flex flex-col gap-2">
@@ -33,12 +25,10 @@ export function EmbedFacade({ embed }: { embed: Embed }) {
         <iframe
           src={embedSrc(embed)}
           title={`Publicación de ${name}`}
-          className={`${FRAME_CLASS[embed.provider]} border-0 bg-surface`}
+          className={`${EMBED_FRAME_CLASS[embed.provider]} border-0 bg-surface`}
           loading="lazy"
-          allow="encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
-          referrerPolicy="strict-origin-when-cross-origin"
-          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
+          {...EMBED_FRAME_ATTRIBUTES}
         />
       ) : (
         <div className={`${FACADE_CLASS[embed.provider]} flex flex-col items-center justify-center gap-4 border border-border bg-surface px-4 py-8 text-center`}>

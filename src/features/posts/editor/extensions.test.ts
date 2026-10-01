@@ -88,3 +88,39 @@ describe("pasting a link from a network on its own", () => {
     expect(types(empty)).toEqual(["paragraph"]);
   });
 });
+
+describe("how an embed looks inside the editor", () => {
+  function editorWithEmbed(provider: string, id: string): Editor {
+    editor = new Editor({
+      element: document.createElement("div"),
+      extensions: createPostExtensions(() => undefined),
+      content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Antes" }] }, { type: "embed", attrs: { provider, id } }] },
+    });
+    return editor;
+  }
+
+  it("shows the real YouTube player (no-cookie domain, sandboxed) so the admin sees what was pasted", () => {
+    const frame = editorWithEmbed("youtube", "dQw4w9WgXcQ").view.dom.querySelector("iframe");
+    expect(frame?.getAttribute("src")).toBe("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
+    expect(frame?.getAttribute("sandbox")).toContain("allow-scripts");
+    expect(frame?.getAttribute("sandbox")).not.toContain("allow-top-navigation");
+    expect(frame?.getAttribute("referrerpolicy")).toBe("strict-origin-when-cross-origin");
+  });
+
+  it("shows the Instagram post itself, also for a reel", () => {
+    const frame = editorWithEmbed("instagram", "C9xYz12AbCd").view.dom.querySelector("iframe");
+    expect(frame?.getAttribute("src")).toBe("https://www.instagram.com/p/C9xYz12AbCd/embed");
+  });
+
+  it("has a «Quitar» button that removes only the embed", () => {
+    const current = editorWithEmbed("youtube", "dQw4w9WgXcQ");
+    const remove = [...current.view.dom.querySelectorAll("button")].find((button) => button.textContent?.includes("Quitar"));
+    remove?.click();
+    expect(JSON.stringify(current.getJSON())).not.toContain('"embed"');
+    expect(JSON.stringify(current.getJSON())).toContain("Antes");
+  });
+
+  it("does not create any frame for invalid attributes", () => {
+    expect(editorWithEmbed("youtube", "../../evil").view.dom.querySelector("iframe")).toBeNull();
+  });
+});

@@ -2,16 +2,15 @@ import Link from "@tiptap/extension-link";
 import { Extension, mergeAttributes, Node, type AnyExtension } from "@tiptap/react";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
-import { embedCanonicalUrl, embedFromAttrs, parseEmbedUrl } from "@/domain/embed";
+import { embedCanonicalUrl, embedFromAttrs, embedSrc, parseEmbedUrl } from "@/domain/embed";
 import { isSafeHref } from "@/domain/post-body";
 import type { MediaDTO } from "@/features/media/dto";
+import { EMBED_FRAME_ATTRIBUTES, EMBED_FRAME_CLASS, EMBED_PROVIDER_NAME } from "../embed-frame";
 
 // Los únicos nodos y marcas del editor son los de `domain/post-body.ts`. Lo que se pega (Word, Google Docs, una web) se
 // lee con estas mismas reglas: lo que no está aquí (estilos, tablas, subrayado, código, imágenes de otro sitio) se pierde.
 
-const PROVIDER_NAME = { instagram: "Instagram", youtube: "YouTube", tiktok: "TikTok" } as const;
-
-/** Publicación de Instagram, YouTube o TikTok: guarda solo `{ provider, id }`. En el editor se ve como una tarjeta. */
+/** Publicación de Instagram, YouTube o TikTok: guarda solo `{ provider, id }`. En el editor se ve el reproductor real. */
 export const EmbedNode = Node.create({
   name: "embed",
   group: "block",
@@ -41,18 +40,46 @@ export const EmbedNode = Node.create({
   },
 
   addNodeView() {
-    return ({ node }) => {
+    return ({ node, editor, getPos }) => {
       const embed = embedFromAttrs(node.attrs);
       const dom = document.createElement("div");
-      dom.className = "my-4 flex flex-col gap-1 border border-dashed border-border bg-card px-4 py-3 text-sm";
+      dom.className = "my-4 flex flex-col gap-2 border border-border bg-card p-3 text-sm";
       dom.contentEditable = "false";
+
+      const header = document.createElement("div");
+      header.className = "flex items-center justify-between gap-3";
       const title = document.createElement("strong");
-      title.textContent = embed ? `Publicación de ${PROVIDER_NAME[embed.provider]}` : "Publicación no válida";
-      const detail = document.createElement("span");
-      detail.className = "break-all text-muted-foreground";
-      detail.textContent = embed ? embedCanonicalUrl(embed) : "";
-      dom.append(title, detail);
-      return { dom };
+      title.textContent = embed ? `Publicación de ${EMBED_PROVIDER_NAME[embed.provider]}` : "Publicación no válida";
+      // El reproductor se traga los clics: sin este botón no habría cómo seleccionarla para borrarla con el mouse.
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Quitar";
+      remove.className = "min-h-11 shrink-0 border border-border px-4 font-medium hover:border-destructive hover:text-destructive";
+      remove.addEventListener("click", () => {
+        const position = getPos();
+        if (typeof position === "number") editor.chain().focus().deleteRange({ from: position, to: position + node.nodeSize }).run();
+      });
+      header.append(title, remove);
+      dom.append(header);
+
+      if (embed) {
+        // En el panel se carga el reproductor de inmediato: quien edita quiere ver lo que pegó (el público lo pide con un clic).
+        const frame = document.createElement("iframe");
+        frame.src = embedSrc(embed);
+        frame.title = title.textContent;
+        // El video, al ancho de la columna de lectura del sitio (720 px); Instagram y TikTok ya traen su ancho.
+        frame.className = `${EMBED_FRAME_CLASS[embed.provider]} ${embed.provider === "youtube" ? "mx-auto max-w-[720px]" : ""} border-0 bg-background`;
+        frame.loading = "lazy";
+        frame.allowFullscreen = true;
+        frame.setAttribute("allow", EMBED_FRAME_ATTRIBUTES.allow);
+        frame.setAttribute("referrerpolicy", EMBED_FRAME_ATTRIBUTES.referrerPolicy);
+        frame.setAttribute("sandbox", EMBED_FRAME_ATTRIBUTES.sandbox);
+        const link = document.createElement("span");
+        link.className = "break-all text-muted-foreground";
+        link.textContent = embedCanonicalUrl(embed);
+        dom.append(frame, link);
+      }
+      return { dom, stopEvent: (event) => event.target === remove };
     };
   },
 });
