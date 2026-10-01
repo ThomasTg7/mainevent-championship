@@ -545,7 +545,13 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Estado:** aplicado
 
 ## [Plan 04 · Task 7] Carrusel «Noticias» en la ficha y en el evento — 2026-10-01
-- **Qué:** `RelatedNewsRail` (servidor; tarjetas `compact` con deslizar por scroll y imán, sin JavaScript; el recuadro se enfoca con el teclado) reemplaza el hueco `data-slot="fighter-news"` de la ficha y va al final de la página del evento (antes del aviso de vista previa). Sin noticias públicas relacionadas no dibuja nada (ni el título). Lecturas `getCachedPostsForFighter` / `getCachedPostsForEvent` (`fighter:<id>` / `event:<id>` + `POSTS_LIST_TAG` + `MEDIA_ANY_TAG`, 300 s). La ficha las pide junto con el historial en un `Promise.all`; en el evento se piden tras leer el evento (necesitan su id). El e2e comprueba la invalidación de punta a punta: se visita la ficha de Joaquín Núñez (en caché), se crea y publica desde el panel una noticia que lo relaciona (aparece al instante) y al quitar la relación desaparece.
+- **Qué:** `RelatedNewsRail` (servidor; tarjetas `compact` con deslizar por scroll y imán, sin JavaScript; el recuadro se enfoca con el teclado) reemplaza el hueco `data-slot="fighter-news"` de la ficha y va al final de la página del evento (antes del aviso de vista previa). Sin noticias públicas relacionadas no dibuja nada (ni el título). Lecturas `getCachedPostsForFighter` / `getCachedPostsForEvent` (`fighter:<id>` / `event:<id>` + `POSTS_LIST_TAG` + `MEDIA_ANY_TAG`, 300 s). La ficha las pide junto con el historial en un `Promise.all`; en el evento se piden tras leer el evento (necesitan su id). El e2e comprueba la invalidación de punta a punta: se visita la ficha de Martín Olivares (en caché), se crea y publica desde el panel una noticia que lo relaciona (aparece al instante) y al quitar la relación desaparece.
 - **Por qué:** cumplir el hueco que dejó el Plan 02; la invalidación antes y después es lo que hace que una relación quitada no quede colgada.
 - **Impacto:** ninguno en planes siguientes.
+- **Estado:** aplicado
+
+## [Plan 04 · e2e] Peleador propio para la prueba de relaciones — 2026-10-01
+- **Qué:** la prueba de «relacionar y quitar un peleador» usa a Martín Olivares (ninguna otra prueba lo toca): con Joaquín Núñez chocaba con la prueba de edición del panel de peleadores, que lo renombra en paralelo. Las búsquedas de relacionados en los e2e reintentan hasta ver el resultado (escribir antes de que React hidrate pierde el texto).
+- **Por qué:** corridas completas en paralelo; regla de «datos propios por spec».
+- **Impacto:** ninguno.
 - **Estado:** aplicado

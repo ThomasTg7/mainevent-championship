@@ -56,7 +56,7 @@ test("relacionar y quitar un peleador desde el panel actualiza su ficha al insta
   const title = `Noticia E2E relacionada ${Date.now()}`;
 
   // La ficha se visita antes para dejarla en caché: lo que cambie después debe verse por la invalidación, no por casualidad.
-  await page.goto("/peleadores/joaquin-nunez");
+  await page.goto("/peleadores/martin-olivares");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(newsRegion(page)).toHaveCount(0);
 
@@ -66,11 +66,11 @@ test("relacionar y quitar un peleador desde el panel actualiza su ficha al insta
   await page.getByLabel("Categoría").selectOption({ label: "Anuncios" });
   await page.getByRole("tab", { name: "Relacionados" }).click();
   const fighters = page.getByRole("group", { name: "Peleadores relacionados" });
-  const result = fighters.getByRole("button", { name: /Joaquín Núñez/ }).first();
+  const result = fighters.getByRole("button", { name: /Martín Olivares/ }).first();
   // Si se escribe antes de que React hidrate el formulario, el texto se pierde: se reintenta hasta que aparezca el resultado.
   await expect(async () => {
     await fighters.getByRole("searchbox").fill("");
-    await fighters.getByRole("searchbox").fill("Núñez");
+    await fighters.getByRole("searchbox").fill("Olivares");
     await expect(result).toBeVisible({ timeout: 5_000 });
   }).toPass({ timeout: 60_000 });
   await result.click();
@@ -80,16 +80,16 @@ test("relacionar y quitar un peleador desde el panel actualiza su ficha al insta
   await expect(page).toHaveURL(/\/noticias\/[0-9a-f-]+\?creada=1$/);
   const editUrl = page.url();
 
-  await page.goto("/peleadores/joaquin-nunez");
+  await page.goto("/peleadores/martin-olivares");
   await expect(newsRegion(page).getByRole("link", { name: title })).toBeVisible();
 
   // Quitar la relación: también debe desaparecer de la ficha (se invalida lo de antes y lo de después).
   await page.goto(editUrl);
   await page.getByRole("tab", { name: "Relacionados" }).click();
-  await page.getByRole("button", { name: "Quitar a Joaquín Núñez" }).click();
+  await page.getByRole("button", { name: "Quitar a Martín Olivares" }).click();
   await page.getByRole("button", { name: "Guardar cambios" }).click();
   await expect(page.getByText("Cambios guardados").first()).toBeVisible();
 
-  await page.goto("/peleadores/joaquin-nunez");
+  await page.goto("/peleadores/martin-olivares");
   await expect(newsRegion(page)).toHaveCount(0);
 });
