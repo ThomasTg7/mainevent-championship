@@ -4,7 +4,7 @@ import { EVENTS_LIST_TAG } from "@/features/events/cache";
 import { FIGHTERS_LIST_TAG } from "@/features/fighters/cache";
 import { MEDIA_ANY_TAG, mediaCacheTag } from "@/features/media/cache";
 import { POSTS_LIST_TAG, postCacheTag } from "./cache";
-import { getHomeNews, getPublicPostBySlug, getPublicPostRef, listPublicPosts } from "./queries";
+import { getHomeNews, getPublicPostBySlug, getPublicPostRef, listPublicPostCategories, listPublicPosts } from "./queries";
 
 // Lecturas del sitio público, cacheadas con etiquetas para invalidarlas desde la action que escribe.
 // La vista previa nunca pasa por aquí: la página lee el borrador directo de la base.
@@ -19,6 +19,11 @@ export function getCachedPublicPosts(category: string | undefined, page: number)
     tags: [POSTS_LIST_TAG, MEDIA_ANY_TAG],
     revalidate: REVALIDATE_SECONDS,
   })();
+}
+
+/** Filtros de categoría de `/noticias`. */
+export function getCachedPublicPostCategories() {
+  return unstable_cache(() => listPublicPostCategories(db), ["posts-categories"], { tags: [POSTS_LIST_TAG], revalidate: REVALIDATE_SECONDS })();
 }
 
 export function getCachedHomeNews() {

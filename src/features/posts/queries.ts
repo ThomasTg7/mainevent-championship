@@ -8,7 +8,7 @@ import { collectBodyMediaIds } from "@/domain/post-body";
 import type { MediaDTO } from "@/features/media/dto";
 import { getMediaByIds } from "@/features/media/queries";
 import { selectCardRows, toCardDTO, toCardDTOs } from "./card-rows";
-import type { PostCardDTO, PostDTO } from "./dto";
+import type { PostCardDTO, PostCategoryDTO, PostDTO } from "./dto";
 
 const PUBLIC_PAGE_SIZE = 12;
 const HOME_TOP_SIZE = 5;
@@ -40,6 +40,16 @@ export async function listPublicPosts(
   const rows = await selectCardRows(db, where, { limit: pageSize + 1, offset: (Math.max(page, 1) - 1) * pageSize });
   const [items] = await toCardDTOs(db, rows.slice(0, pageSize));
   return { items: items ?? [], hasMore: rows.length > pageSize };
+}
+
+/** Categorías que hoy tienen al menos una noticia visible, en el orden del catálogo (los filtros de `/noticias`). */
+export async function listPublicPostCategories(db: Db): Promise<PostCategoryDTO[]> {
+  const visible = db.select({ categoryId: posts.categoryId }).from(posts).where(publicScope(posts));
+  return db
+    .select({ id: postCategories.id, slug: postCategories.slug, name: postCategories.name })
+    .from(postCategories)
+    .where(inArray(postCategories.id, visible))
+    .orderBy(asc(postCategories.sortOrder), asc(postCategories.name));
 }
 
 /**

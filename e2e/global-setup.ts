@@ -9,6 +9,7 @@ import { seedEvents } from "@/features/events/seed";
 import { createFighter, deleteFighter } from "@/features/fighters/service";
 import { seedFighters } from "@/features/fighters/seed";
 import { seedPosts } from "@/features/posts/seed";
+import { daysAgo, insertPost } from "@/features/posts/test-helpers";
 import { divisions } from "@/db/schema/divisions";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
@@ -50,6 +51,7 @@ export default async function globalSetup(): Promise<void> {
   await seedFighters(db);
   await seedEvents(db);
   await seedPosts(db);
+  await seedPaginationPosts();
   await seedHiddenFighters();
   await seedCardFighters();
   await seedSoldOutTicketsEvent();
@@ -95,5 +97,12 @@ async function seedCardFighters(): Promise<void> {
   if (!ligero) throw new Error("Falta la división Ligero");
   for (const lastName of ["Uno", "Dos", "Tres", "Cuatro", "Cinco", "Seis", "Siete", "Ocho"]) {
     await createFighter(db, { gender: "male", nationality: "CL", divisionId: ligero.id, firstName: "Cartel", lastName }, "e2e");
+  }
+}
+
+/** Cuatro noticias más viejas que las del seed: juntas pasan de 12 y la lista tiene segunda página. Van aquí por la caché del listado. */
+async function seedPaginationPosts(): Promise<void> {
+  for (let index = 1; index <= 4; index += 1) {
+    await insertPost(db, { slug: `relleno-e2e-${index}`, title: `Relleno E2E ${index}`, createdAt: daysAgo(40 + index) });
   }
 }

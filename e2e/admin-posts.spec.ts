@@ -16,6 +16,11 @@ function tomorrowInChile(): string {
   return new Date(Date.now() + 86_400_000).toLocaleDateString("en-CA", { timeZone: "America/Santiago" });
 }
 
+/** `YYYY-MM-DD` de ayer en Chile: una fecha pasada pero reciente (se ve en la primera página del listado). */
+function yesterdayInChile(): string {
+  return new Date(Date.now() - 86_400_000).toLocaleDateString("en-CA", { timeZone: "America/Santiago" });
+}
+
 /** Sube la portada con el editor de imágenes y la guarda. */
 async function uploadCover(page: Page) {
   await page.locator('input[type="file"]').first().setInputFiles({ name: "portada.png", mimeType: "image/png", buffer: await png(1600, 900, "#a33") });
@@ -32,11 +37,18 @@ async function pickRelated(page: Page, label: string, search: string, option: Re
   await field.getByRole("button", { name: option }).first().click();
 }
 
+/** El enlace de la noticia (se ve en la pestaña Datos al editar). */
+async function slugOf(page: Page, postId: string): Promise<string> {
+  await page.goto(adminUrl(`/noticias/${postId}`));
+  return page.getByLabel("Enlace de la noticia").inputValue();
+}
+
 test.beforeEach(async ({ page }) => {
   await signInAsAdmin(page);
 });
 
 test("crear una noticia con portada, un video de YouTube y un peleador, y programarla para mañana", async ({ page }) => {
+  test.setTimeout(90_000);
   const title = `Noticia E2E programada ${Date.now()}`;
   await page.goto(adminUrl("/noticias/nueva"));
   await expect(page.getByRole("heading", { name: "Nueva noticia", level: 1 })).toBeVisible();
@@ -69,6 +81,7 @@ test("crear una noticia con portada, un video de YouTube y un peleador, y progra
 
   await page.getByRole("button", { name: "Crear noticia" }).click();
   await expect(page).toHaveURL(/\/noticias\/[0-9a-f-]+\?creada=1$/);
+  const postId = page.url().match(/\/noticias\/([0-9a-f-]+)\?/)![1]!;
 
   // Lo guardado vuelve completo al abrir la edición.
   await expect(page.getByLabel("Título", { exact: true })).toHaveValue(title);
@@ -84,6 +97,32 @@ test("crear una noticia con portada, un video de YouTube y un peleador, y progra
   // En el listado aparece como programada.
   await page.goto(adminUrl("/noticias"));
   await expect(page.getByText(title).first()).toBeVisible();
+
+  // Programada para mañana: no aparece en el sitio ni se puede abrir por su enlace.
+  const slug = await slugOf(page, postId);
+  await page.goto("/noticias");
+  await expect(page.getByRole("heading", { name: "Noticias", level: 1 })).toBeVisible();
+  await expect(page.getByText(title)).toHaveCount(0);
+  const hidden = await page.goto(`/noticias/${slug}`);
+  expect(hidden?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: "Noticia no encontrada" })).toBeVisible();
+
+  // Reprogramarla para una fecha ya pasada desde el formulario la publica al instante (la action invalida la caché).
+  await page.goto(adminUrl(`/noticias/${postId}`));
+  await page.getByRole("tab", { name: "Publicación" }).click();
+  await page.getByLabel("Fecha").fill(yesterdayInChile());
+  await page.getByLabel("Hora").fill("08:30");
+  await page.getByRole("button", { name: "Guardar cambios" }).click();
+  await expect(page.getByText("Cambios guardados").first()).toBeVisible();
+
+  await page.goto("/noticias");
+  await expect(page.getByRole("link", { name: title })).toBeVisible();
+  await page.goto(`/noticias/${slug}`);
+  await expect(page.getByRole("heading", { name: title, level: 1 })).toBeVisible();
+  await expect(page.getByText("Primer párrafo de la noticia.")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Ver en YouTube/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Matías Pérez/ })).toHaveAttribute("href", "/peleadores/matias-perez");
+  await expect(page.locator("main img, article img").first()).toBeVisible();
 });
 
 test("el listado y el formulario no desbordan en celular ni en PC", async ({ page }) => {

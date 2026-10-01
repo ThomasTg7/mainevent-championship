@@ -14,6 +14,7 @@ import {
   getPublicPostRef,
   listPostsForEvent,
   listPostsForFighter,
+  listPublicPostCategories,
   listPublicPosts,
 } from "./queries";
 import { categoryIdBySlug, daysAgo, insertPost } from "./test-helpers";
@@ -220,5 +221,21 @@ describe("related posts", () => {
     expect(titles(await listPostsForFighter(db, perez, 1))).toEqual(["Nueva de Pérez"]);
     expect(titles(await listPostsForEvent(db, event.id))).toEqual(["Nueva de Pérez"]);
     expect(await listPostsForEvent(db, "00000000-0000-4000-8000-000000000000")).toEqual([]);
+  });
+});
+
+describe("listPublicPostCategories", () => {
+  it("lists, in catalog order, only the categories that have a post visible now", async () => {
+    await clearPosts();
+    await insertPost(db, { categoryId: await categoryIdBySlug(db, "entrevistas") });
+    await insertPost(db, { categoryId: await categoryIdBySlug(db, "resultados"), status: "draft" });
+    await insertPost(db, { categoryId: await categoryIdBySlug(db, "anuncios"), deletedAt: new Date() });
+    await insertPost(db, { categoryId: await categoryIdBySlug(db, "detras-de-camaras"), status: "scheduled", publishAt: new Date(Date.now() + 3_600_000) });
+    await insertPost(db, { categoryId: await categoryIdBySlug(db, "anuncios") });
+
+    expect(await listPublicPostCategories(db)).toEqual([
+      { id: expect.any(String), slug: "anuncios", name: "Anuncios" },
+      { id: expect.any(String), slug: "entrevistas", name: "Entrevistas" },
+    ]);
   });
 });
