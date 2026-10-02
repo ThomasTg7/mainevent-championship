@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { EventStatus } from "@/domain/bout-enums";
+import { TitleChangeDialog } from "@/features/rankings/components/title-change-dialog";
+import type { TitleChangePrompt } from "@/features/rankings/title-change";
 import { EVENT_STATUS_LABELS } from "@/domain/bout-enums";
 import { startLiveEventAction, type RecordResultState } from "../actions";
 import { BoutResultDialog } from "./bout-result-dialog";
@@ -40,6 +42,7 @@ export function LiveConsole({ eventId, eventName, eventStatus, isNight, startsLa
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [correcting, setCorrecting] = useState<string | null>(null);
   const [opened, setOpened] = useState(false);
+  const [titleChange, setTitleChange] = useState<TitleChangePrompt | null>(null);
   // La noche del evento (o el botón) lo pone en vivo: se muestra ya así, sin esperar la respuesta del servidor.
   const startsLive = eventStatus === "scheduled" && (isNight || opened);
   const status: EventStatus = startsLive ? "live" : eventStatus;
@@ -59,7 +62,7 @@ export function LiveConsole({ eventId, eventName, eventStatus, isNight, startsLa
   function handleSaved(boutId: string, state: RecordResultState) {
     setSaved((previous) => new Set(previous).add(boutId));
     toast.success(state.success ?? "Resultado guardado");
-    if (state.titleChange) toast.info("Cambio de título: el retador ganó el cinturón. Queda pendiente de confirmar en Rankings y títulos.");
+    if (state.titleChange) setTitleChange(state.titleChange);
     window.scrollTo({ top: 0 });
   }
 
@@ -112,6 +115,7 @@ export function LiveConsole({ eventId, eventName, eventStatus, isNight, startsLa
       ) : null}
 
       <BoutResultDialog bout={correctingBout} techniques={techniques} onClose={() => setCorrecting(null)} />
+      {titleChange ? <TitleChangeDialog prompt={titleChange} onConfirm={() => setTitleChange(null)} onSkip={() => setTitleChange(null)} /> : null}
     </div>
   );
 }

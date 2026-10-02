@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { TitleChangeDialog } from "@/features/rankings/components/title-change-dialog";
+import type { TitleChangePrompt } from "@/features/rankings/title-change";
 import type { AdminBout } from "@/features/events/admin-card-queries";
 import { clearBoutResultAction, overturnResultAction, recordBoutResultAction, type RecordResultState } from "../actions";
 import { draftFromResult, EMPTY_DRAFT } from "../result-draft";
@@ -18,14 +20,23 @@ type BoutResultDialogProps = {
 
 /** Registra o corrige el resultado de una pelea; con un resultado guardado también permite borrarlo o anularlo. */
 export function BoutResultDialog({ bout, techniques, onClose }: BoutResultDialogProps) {
+  // La pregunta del cambio de título vive aquí (no en `Content`): el diálogo del resultado se cierra al guardar.
+  const [titleChange, setTitleChange] = useState<TitleChangePrompt | null>(null);
   return (
-    <Dialog open={bout !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">{bout ? <Content key={bout.id} bout={bout} techniques={techniques} onClose={onClose} /> : null}</DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={bout !== null} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
+          {bout ? <Content key={bout.id} bout={bout} techniques={techniques} onClose={onClose} onTitleChange={setTitleChange} /> : null}
+        </DialogContent>
+      </Dialog>
+      {titleChange ? <TitleChangeDialog prompt={titleChange} onConfirm={() => setTitleChange(null)} onSkip={() => setTitleChange(null)} /> : null}
+    </>
   );
 }
 
-function Content({ bout, techniques, onClose }: { bout: AdminBout; techniques: { id: string; name: string }[]; onClose: () => void }) {
+type ContentProps = { bout: AdminBout; techniques: { id: string; name: string }[]; onClose: () => void; onTitleChange: (prompt: TitleChangePrompt) => void };
+
+function Content({ bout, techniques, onClose, onTitleChange }: ContentProps) {
   const [isPending, startTransition] = useTransition();
   // Borrar y anular piden confirmar en el mismo diálogo; solo una de las dos a la vez.
   const [confirming, setConfirming] = useState<"clear" | "overturn" | null>(null);
@@ -37,7 +48,7 @@ function Content({ bout, techniques, onClose }: { bout: AdminBout; techniques: {
 
   function saved(state: RecordResultState) {
     toast.success(state.success ?? "Resultado guardado");
-    if (state.titleChange) toast.info("Cambio de título: el retador ganó el cinturón. Queda pendiente de confirmar en Rankings y títulos.");
+    if (state.titleChange) onTitleChange(state.titleChange);
     onClose();
   }
 

@@ -8,8 +8,9 @@ import { zodFieldErrors, type FormActionState } from "@/lib/form-errors";
 import { requireAdmin } from "@/lib/require-admin";
 import { runFormAction } from "@/lib/run-form-action";
 import { runUserFacing } from "@/lib/user-facing-error";
+import { describeTitleChange, type TitleChangePrompt } from "@/features/rankings/title-change";
 import { boutResultInputSchema } from "./schema";
-import { clearBoutResult, overturnResult, recordBoutResult, startLiveEvent, type TitleChangeCandidate } from "./service";
+import { clearBoutResult, overturnResult, recordBoutResult, startLiveEvent } from "./service";
 
 const BOUT_NOT_FOUND: FormActionState = { error: "No se encontró la pelea" };
 const EVENT_NOT_FOUND: FormActionState = { error: "No se encontró el evento" };
@@ -17,8 +18,8 @@ const EVENT_NOT_FOUND: FormActionState = { error: "No se encontró el evento" };
 const isId = (id: unknown): id is string => eventIdSchema.safeParse(id).success;
 const run = (task: () => Promise<FormActionState | void>) => runFormAction("Error en los resultados", task);
 
-/** Lo que devuelve guardar un resultado: la consola en vivo avanza a `nextBoutId` y avisa de un posible cambio de título. */
-export type RecordResultState = FormActionState & { titleChange?: TitleChangeCandidate | null; nextBoutId?: string | null };
+/** Lo que devuelve guardar un resultado: la consola en vivo avanza a `nextBoutId`; `titleChange` es la pregunta de confirmar al nuevo campeón. */
+export type RecordResultState = FormActionState & { titleChange?: TitleChangePrompt | null; nextBoutId?: string | null };
 
 /** Guarda o corrige el resultado. Las reglas del resultado devuelven un error por campo; nada se guarda. */
 export async function recordBoutResultAction(boutId: string, input: unknown): Promise<RecordResultState> {
@@ -29,14 +30,18 @@ export async function recordBoutResultAction(boutId: string, input: unknown): Pr
   const eventId = await getBoutEventId(db, boutId);
   if (!eventId) return BOUT_NOT_FOUND;
 
-  const result = await runUserFacing("Error al guardar el resultado", () =>
-    withEventRevalidation(eventId, () => recordBoutResult(db, boutId, parsed.data, admin.userId)),
-  );
+  const result = await runUserFacing("Error al guardar el resultado", async () => {
+    const outcome = await withEventRevalidation(eventId, () => recordBoutResult(db, boutId, parsed.data, admin.userId));
+    // Se compara con el campeón guardado: si ya es ese peleador (una corrección tras confirmar), no se vuelve a preguntar.
+    const titleChange = outcome.ok && outcome.titleChange ? await describeTitleChange(db, outcome.titleChange) : null;
+    return { outcome, titleChange };
+  });
   if ("error" in result) return { error: result.error };
-  if (!result.value.ok) return { fieldErrors: result.value.errors };
+  const { outcome, titleChange } = result.value;
+  if (!outcome.ok) return { fieldErrors: outcome.errors };
 
   revalidateEventPanel();
-  return { success: "Resultado guardado", titleChange: result.value.titleChange, nextBoutId: result.value.nextBoutId };
+  return { success: "Resultado guardado", titleChange, nextBoutId: outcome.nextBoutId };
 }
 
 export async function clearBoutResultAction(boutId: string): Promise<FormActionState> {
