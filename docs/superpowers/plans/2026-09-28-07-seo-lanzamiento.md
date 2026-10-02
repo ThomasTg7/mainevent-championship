@@ -16,7 +16,7 @@
 - Hereda Plan 00–06.
 - Plantilla de título: `"%s | Guerra Campal"`; home: `"Guerra Campal — MMA en Chile"`.
 - Descripción máx. 160 caracteres (se trunca en palabra completa con "…").
-- Imagen Open Graph: la variante de 1200 px de `settings.share.ogMediaId` (`getMedia`, URL absoluta); fallback estático `public/og-default.jpg`.
+- Imagen Open Graph: la variante de 1200 px de `settings.share.ogMediaId` (`getMedia`, URL absoluta); fallback estático `public/og-default.jpg`. **Excepción (revisión del Plan 04):** una noticia con portada usa su portada (variante de 1600 px de `news_cover`, 16:9; `og:image:width/height` de esa variante); sin portada, la imagen de marca.
 - **Dos dominios (decisión posterior al Plan 02):** sitio en `SITE_URL` (`guerracampal.cl`) y panel en `ADMIN_URL` (`admin.guerracampal.cl`), servidos por la misma app; `src/proxy.ts` + `src/lib/admin-routing.ts` deciden por dominio. `robots.txt` (`src/app/robots.ts`) responde según el host: en el panel `Disallow: /` siempre; en el sitio lo de abajo. `sitemap.xml` solo en el sitio. Canonical y Open Graph siempre con `SITE_URL`.
 - `robots.txt` del sitio: `Disallow: /admin`, `Disallow: /api`; `Sitemap: <SITE_URL>/sitemap.xml`. Si `SITE_URL` termina en `.vercel.app` y `ALLOW_INDEXING` no es `true`, `Disallow: /` (evitar indexar el subdominio de prueba antes del lanzamiento).
 - `SITE_URL` desde variable de entorno; cambiar de dominio no requiere cambios de código.
@@ -45,7 +45,7 @@
   - `pageMetadata(input: { title: string; description: string; path: string; ogImageUrl: string; noindex?: boolean }): Metadata`
   - `eventJsonLd(e: EventPageDTO, siteUrl): WithContext<SportsEvent>` (name, startDate ISO con offset, endDate, eventStatus, eventAttendanceMode Offline, location Place+PostalAddress, image, organizer Organization, offers desde `ticket_tiers` con `priceCurrency: 'CLP'` y `availability` InStock/SoldOut, competitor = peleadores de la pelea estelar)
   - `fighterJsonLd(f: FighterProfileDTO, siteUrl): WithContext<Person>` (name, alternateName = apodo, nationality, height, weight, image, sameAs = redes)
-  - `articleJsonLd(p: PostDTO, siteUrl): WithContext<NewsArticle>`
+  - `articleJsonLd(p: PostDTO, siteUrl): WithContext<NewsArticle>` (`headline` = título, `description` = bajada, `datePublished` = `p.date` —ya es el momento de publicarla, `publishAtFor`—, `dateModified` = `p.updatedAt`, `image` = portada (1600 px) o la de marca, `articleSection` = categoría, `author`/`publisher` = Organization Guerra Campal, `mainEntityOfPage` = URL canónica, `about` = peleadores relacionados como `Person` con su URL). Agregar `updatedAt` (ISO) a `PostDTO` en `getPublicPostBySlug` (`src/features/posts/queries.ts`); el `PostDTO` de la vista previa en vivo (`buildLivePreviewPost`, `src/features/posts/live-preview.ts`) lo llena con la misma fecha.
   - `organizationJsonLd(settings, siteUrl): WithContext<Organization>`
   - `<JsonLd data />` — `<script type="application/ld+json">` con `JSON.stringify` y `<` escapado como `<`.
 
@@ -59,7 +59,8 @@
 - Modify: `generateMetadata` en `src/app/(site)/**/page.tsx` (home, eventos, evento, peleadores, peleador, rankings, noticias, noticia, entradas, quiero-pelear, patrocinar, nosotros, contacto, privacidad); `src/app/(site)/layout.tsx` (`metadataBase`, plantilla de título, verificación de Google desde settings, `<html lang="es-CL">`)
 - Test: `e2e/seo.spec.ts`
 
-- [ ] **Step 1: Test e2e que falla:** cada ruta pública tiene `<title>` único con plantilla, `meta[name=description]`, `link[rel=canonical]` sin query, `og:image`; ficha de peleador y evento tienen JSON-LD parseable del tipo correcto; `?preview=` agrega `noindex`.
+- Noticias (Plan 04 ya construido): `/noticias/[slug]` ya tiene `generateMetadata` (título, bajada, `noindex` con `?preview=`) que comparte `loadPost` (`cache()` de React): pasarlo a `pageMetadata` y agregar `og:type=article`, `article:published_time`, `article:section` y la portada como imagen. `/noticias`: canónica propia con solo los parámetros válidos (`categoria` existente y `pagina` > 1; nunca uno inventado), título «Noticias» o «<Categoría> · Noticias». El JSON-LD va en `page.tsx`, no dentro de `PostArticle`: así la vista previa en vivo del panel no lo dibuja.
+- [ ] **Step 1: Test e2e que falla:** cada ruta pública tiene `<title>` único con plantilla, `meta[name=description]`, `link[rel=canonical]` sin query (salvo `/noticias?categoria=…&pagina=…`, autocanónica), `og:image`; ficha de peleador, evento y noticia tienen JSON-LD parseable del tipo correcto (`NewsArticle` con `datePublished`); una noticia con portada usa esa imagen en `og:image`; `?preview=` agrega `noindex`.
 - [ ] **Step 2:** FAIL → implementar → PASS.
 - [ ] **Step 3: Commit** `feat(seo): per-page metadata and structured data`
 
@@ -69,7 +70,7 @@
 - Create: `src/app/sitemap.ts`, `src/app/robots.ts`, `src/features/seo/sitemap-entries.ts`, `sitemap-entries.test.ts`
 
 **Interfaces:**
-- Produces: `getSitemapEntries(db, siteUrl): Promise<MetadataRoute.Sitemap>` — rutas fijas + peleadores, eventos y noticias públicos (`publicScope` de `src/db/public-scope.ts`) con `lastModified = updated_at`; una consulta por entidad (solo `slug` y `updated_at`), nunca las fichas completas.
+- Produces: `getSitemapEntries(db, siteUrl): Promise<MetadataRoute.Sitemap>` — rutas fijas (incluye `/noticias`) + peleadores, eventos y noticias públicos (`publicScope(posts)` de `src/db/public-scope.ts`; `/noticias/<slug>`) con `lastModified = updated_at`; una consulta por entidad (solo `slug` y `updated_at`), nunca las fichas completas. Las categorías con alguna noticia visible (`listPublicPostCategories`) entran como `/noticias?categoria=<slug>`. Nada del panel (`/vista-previa-noticia` vive en el subdominio del panel, que ya responde `Disallow: /`).
 - Decidir (y anotar en `docs/decisions.md`) si 5 min de retraso para lo programado basta; si no, el cron diario no alcanza: agregar un cron cada 5 min que expire los tags de los listados (en un route handler no existe `updateTag`: usar `revalidateTag` con expiración inmediata, verificando en la documentación de Next 16 que no sirva contenido viejo) cuando hay `publish_at` vencido desde la última corrida.
 
 - [ ] **Step 1: Tests que fallan:** entradas incluyen `/peleadores/matias-perez`, excluyen borradores, programados futuros y papelera; `robots` con `SITE_URL=https://gc.vercel.app` y sin `ALLOW_INDEXING` → `disallow: '/'`; con `ALLOW_INDEXING=true` → solo `/admin` y `/api`.
@@ -94,7 +95,7 @@
 - Create: `lighthouserc.json`, `e2e/a11y.spec.ts`
 - Modify: componentes según hallazgos
 
-- [ ] **Step 1: Test que falla:** `e2e/a11y.spec.ts` corre axe en home, `/peleadores`, ficha, `/eventos/<slug>`, `/rankings`, `/noticias/<slug>`, `/quiero-pelear` y el login del panel (`adminUrl("/login")` de `e2e/fixtures/admin.ts`): 0 violaciones `serious`/`critical`.
+- [ ] **Step 1: Test que falla:** `e2e/a11y.spec.ts` corre axe en home, `/peleadores`, ficha, `/eventos/<slug>`, `/rankings`, `/noticias`, `/noticias/<slug>` (una con video: la fachada «Ver en YouTube» debe pasar), `/quiero-pelear` y el login del panel (`adminUrl("/login")` de `e2e/fixtures/admin.ts`): 0 violaciones `serious`/`critical`.
 - [ ] **Step 2:** Corregir hasta PASS (contraste amarillo sobre blanco solo en textos grandes, foco visible, `aria-label` en controles de ícono, orden de encabezados).
 - [ ] **Step 3:** `pnpm build && pnpm start` + `lhci autorun` con los presupuestos de Global Constraints en perfil móvil. Corregir (imagen del hero con `priority` y `fetchPriority`, GSAP/Lenis cargados en cliente de forma diferida, fuentes con `display: swap`) hasta cumplir.
 - [ ] **Step 4: Commit** `perf/a11y: meet lighthouse budgets and axe checks`
@@ -120,7 +121,7 @@
 ### Task 7: Guías de operación y migración a VPS
 
 **Files:**
-- Create: `docs/guia-admin.md` (para la promotora: cómo crear evento, armar cartelera, noche de pelea, cargar resultados, rankings, noticias, formatos de imagen con la tabla del spec, papelera)
+- Create: `docs/guia-admin.md` (para la promotora: cómo crear evento, armar cartelera, noche de pelea, cargar resultados, rankings, noticias —editor, pegar un link de Instagram/YouTube/TikTok, publicador «Con IA» con su prompt (`src/features/posts/ai-prompt.ts`) y la vista previa en vivo en celular y PC—, formatos de imagen con la tabla del spec, papelera)
 - Create: `docs/vps-migration.md`, `deploy/docker-compose.prod.yml` (app Next standalone, postgres:17, minio, umami, caddy con HTTPS para `guerracampal.cl` **y** `admin.guerracampal.cl` hacia la misma app, conservando el `Host`), `deploy/Dockerfile`, `deploy/cron` (purga diaria con `curl` + `CRON_SECRET`; incluye subidas abandonadas e imágenes sin uso), CORS de MinIO y encabezados del dominio de medios en Caddy iguales a los del Step 1b de la Task 6
 
 - [ ] **Step 1:** `next.config.ts` con `output: 'standalone'`; `docker compose -f deploy/docker-compose.prod.yml up` levanta el sitio localmente con MinIO y `STORAGE_DRIVER=s3` apuntando a MinIO. **Verificación:** home carga e imágenes se sirven desde MinIO.

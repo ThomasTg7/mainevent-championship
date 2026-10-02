@@ -70,3 +70,13 @@ Sitio público (`http://localhost:3000`):
 3. `/peleadores/matias-perez` (carrusel «Noticias» al final) y `/peleadores/felipe-araya` (sin noticias: no hay sección).
 4. `/eventos/guerra-campal-5` (carrusel «Noticias» al final) y `/eventos/guerra-campal-2` (sin sección).
 5. Una noticia con galería (agrégale fotos desde el panel; el seed no trae): abrir una foto, flechas, Escape y deslizar en celular.
+
+## Ajustes pedidos y revisión (Opus, 2026-10-01)
+
+Ajustes pedidos por el usuario antes de revisar (en `docs/decisions.md` → «Ajustes pedidos antes de revisar el Plan 04»): tarjetas sin choque entre categoría, título y bajada; reproductor real de redes dentro del editor; publicador «Con IA»; vista previa en vivo bajo el formulario (celular y PC).
+
+Revisión (`/code-review high`, UI en 375 y 1440 px, Review Focus): correcciones en `docs/decisions.md` → «Revisión del Plan 04 (Opus)». Lo principal: una noticia relacionada con un peleador en la papelera ya se puede volver a guardar; publicar una programada que ya salió conserva su fecha; la home cae a la noticia más reciente si no hay destacada; índice para el orden de los listados (migración 0012); la vista previa en vivo no redibuja el formulario en cada tecla. Planes 05–07 y spec actualizados.
+
+```bash
+pnpm db:migrate   # migración 0012 (índice del orden de noticias); ya aplicada a la base de desarrollo
+```
