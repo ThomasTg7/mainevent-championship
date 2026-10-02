@@ -2,7 +2,7 @@
 
 import { PenLine, Sparkles } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FormField } from "@/components/admin/form-field";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +23,12 @@ const AiWriterPanel = dynamic(() => import("./ai-writer/ai-writer-panel").then((
 });
 
 type Mode = "write" | "ai";
+
+/**
+ * Espera antes de avisar un cambio del cuerpo (vista previa): avisar en cada tecla volvería a dibujar el formulario
+ * entero mientras se escribe.
+ */
+const BODY_NOTICE_DELAY_MS = 300;
 
 type PostEditorFieldProps = {
   initial: PostBody;
@@ -45,9 +51,14 @@ export function PostEditorField({ initial, media: initialMedia, error, onBodyCha
   const [mode, setMode] = useState<Mode>("write");
   const [aiOpened, setAiOpened] = useState(false);
 
-  function changeBody(next: PostBody) {
+  const noticeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(noticeTimer.current), []);
+
+  function changeBody(next: PostBody, { immediate = false } = {}) {
     setBody(next);
-    onBodyChange?.(next);
+    clearTimeout(noticeTimer.current);
+    if (immediate) onBodyChange?.(next);
+    else noticeTimer.current = setTimeout(() => onBodyChange?.(next), BODY_NOTICE_DELAY_MS);
   }
 
   function addMedia(items: MediaDTO[]) {
@@ -58,7 +69,7 @@ export function PostEditorField({ initial, media: initialMedia, error, onBodyCha
   function loadFromAi(doc: PostBody, photos: MediaDTO[]) {
     addMedia(photos);
     setEditorContent((current) => ({ doc, version: current.version + 1 }));
-    changeBody(doc);
+    changeBody(doc, { immediate: true });
     setMode("write");
   }
 
@@ -85,7 +96,7 @@ export function PostEditorField({ initial, media: initialMedia, error, onBodyCha
         <PostEditor
           key={editorContent.version}
           value={editorContent.doc}
-          onChange={changeBody}
+          onChange={(next) => changeBody(next)}
           onMediaAdded={(item) => addMedia([item])}
           media={media}
           invalid={Boolean(error)}

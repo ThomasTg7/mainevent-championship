@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { boolean, index, integer, jsonb, pgTable, primaryKey, text, uuid } from "drizzle-orm/pg-core";
 import { EMPTY_POST_BODY, type PostBody } from "@/domain/post-body";
 import { publication, timestamps } from "./_columns";
@@ -39,6 +40,9 @@ export const posts = pgTable(
     index("posts_publish_at_idx").on(table.publishAt),
     index("posts_deleted_at_idx").on(table.deletedAt),
     index("posts_cover_media_id_idx").on(table.coverMediaId),
+    // Orden de todos los listados (`newestFirst` en `card-rows.ts`): más reciente primero, el id desempata.
+    // Mismo orden que la consulta (`DESC` a secas, nulos primero) para que Postgres recorra el índice sin ordenar.
+    index("posts_date_idx").on(sql`coalesce(${table.publishAt}, ${table.createdAt}) desc`, sql`${table.id} desc`),
   ],
 );
 

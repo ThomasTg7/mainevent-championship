@@ -70,9 +70,16 @@ export async function deleteCategory(db: Db, id: string, actorId: string): Promi
   const [category] = await db.select({ name: postCategories.name }).from(postCategories).where(eq(postCategories.id, id)).limit(1);
   if (!category) throw new UserFacingError(NOT_FOUND);
 
-  const [{ total }] = await db.select({ total: count() }).from(posts).where(eq(posts.categoryId, id));
+  const [{ total, inTrash }] = await db
+    .select({ total: count(), inTrash: count(posts.deletedAt) })
+    .from(posts)
+    .where(eq(posts.categoryId, id));
   if ((total ?? 0) > 0) {
-    throw new UserFacingError(`Tiene ${total} ${total === 1 ? "noticia" : "noticias"}: cámbialas de categoría antes de eliminarla`);
+    // Las de la papelera no salen en el listado: se dicen aparte para que se sepa dónde buscarlas.
+    const noun = (n: number) => `${n} ${n === 1 ? "noticia" : "noticias"}`;
+    const visible = total - inTrash;
+    const where = visible === 0 ? `${noun(inTrash)} en la papelera` : inTrash > 0 ? `${noun(visible)} (y ${inTrash} en la papelera)` : noun(visible);
+    throw new UserFacingError(`Tiene ${where}: cámbialas de categoría antes de eliminarla`);
   }
 
   await db.transaction(async (tx) => {

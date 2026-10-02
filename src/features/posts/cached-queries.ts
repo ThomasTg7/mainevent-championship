@@ -13,8 +13,12 @@ import { getHomeNews, getPublicPostBySlug, getPublicPostRef, listPostsForEvent, 
 // (la ficha se ve al instante por la lectura mínima; listados y home, con hasta este retraso).
 const REVALIDATE_SECONDS = 300;
 
-/** Listado público por categoría (slug) y página. Pocas combinaciones: se cachea. */
+/** Más allá de esta página no se cachea: cada `?pagina=` inventado sería una entrada de un solo uso. */
+const MAX_CACHED_PAGE = 20;
+
+/** Listado público por categoría (slug) y página. Pocas combinaciones: se cachea (las primeras páginas). */
 export function getCachedPublicPosts(category: string | undefined, page: number) {
+  if (page > MAX_CACHED_PAGE) return listPublicPosts(db, { category }, { page });
   return unstable_cache(() => listPublicPosts(db, { category }, { page }), ["posts-list", category ?? "", String(page)], {
     tags: [POSTS_LIST_TAG, MEDIA_ANY_TAG],
     revalidate: REVALIDATE_SECONDS,

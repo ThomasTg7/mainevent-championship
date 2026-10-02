@@ -1,5 +1,4 @@
-import type { PostMark, PostNode } from "./post-body";
-import { isSafeHref } from "./post-body";
+import { isSafeHref, withProtocol, type PostMark, type PostNode } from "./post-body";
 
 // Formato dentro de una línea: **negrita**, *cursiva* (o _cursiva_), [texto](enlace) y direcciones sueltas. Todo lo
 // demás (HTML incluido) queda como texto: el renderer nunca interpreta texto como HTML.
@@ -20,11 +19,6 @@ const INLINE_PATTERN = new RegExp(
 );
 
 const TRAILING_PUNCTUATION = /[.,;:!?»"')\]]+$/;
-
-/** «example.com» se completa con https://; las rutas del sitio (`/eventos`) se dejan como están. */
-export function withProtocol(href: string): string {
-  return /^([a-z][a-z0-9+.-]*:|\/)/i.test(href) ? href : `https://${href}`;
-}
 
 function textNode(text: string, marks: PostMark[]): PostNode | null {
   if (!text) return null;

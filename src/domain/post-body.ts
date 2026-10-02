@@ -44,6 +44,11 @@ export function isSafeHref(href: unknown): href is string {
   }
 }
 
+/** «example.com» se completa con https://; las rutas del sitio (`/eventos`) y los esquemas escritos se dejan como están. */
+export function withProtocol(href: string): string {
+  return /^([a-z][a-z0-9+.-]*:|\/)/i.test(href) ? href : `https://${href}`;
+}
+
 function isValidMarks(marks: unknown): boolean {
   if (marks === undefined) return true;
   if (!Array.isArray(marks)) return false;

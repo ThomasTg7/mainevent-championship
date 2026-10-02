@@ -5,12 +5,7 @@ import { useState, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { parseEmbedUrl } from "@/domain/embed";
-import { isSafeHref } from "@/domain/post-body";
-
-/** «example.com» se completa con https://; las rutas del sitio (`/eventos`) se dejan como están. */
-function withProtocol(text: string): string {
-  return /^([a-z][a-z0-9+.-]*:|\/)/i.test(text) ? text : `https://${text}`;
-}
+import { isSafeHref, withProtocol } from "@/domain/post-body";
 
 type PanelProps = { editor: Editor; onClose: () => void };
 

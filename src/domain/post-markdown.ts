@@ -1,6 +1,6 @@
 import { embedCanonicalUrl, embedFromAttrs, parseEmbedUrl } from "./embed";
-import { EMPTY_POST_BODY, isSafeHref, validatePostBody, type PostBody, type PostNode } from "./post-body";
-import { formatInline, parseInline, withProtocol } from "./post-markdown-inline";
+import { EMPTY_POST_BODY, isSafeHref, validatePostBody, withProtocol, type PostBody, type PostNode } from "./post-body";
+import { formatInline, parseInline } from "./post-markdown-inline";
 
 // Texto que entrega una IA (Markdown simple) ⇄ cuerpo de una noticia. El formato es el que pide el prompt del panel:
 // TÍTULO/BAJADA arriba, ## y ### para títulos, listas, citas, ---, [FOTO N] y el link de una red solo en su línea.
@@ -42,25 +42,28 @@ function stripCodeFence(lines: string[]): string[] {
   return last >= 0 && rest[last]!.trim().startsWith("```") ? rest.slice(0, last) : rest;
 }
 
-/** Lee TÍTULO y BAJADA del principio; devuelve desde qué línea empieza el cuerpo. */
+/**
+ * Lee TÍTULO y BAJADA del principio; devuelve desde qué línea empieza el cuerpo. Una etiqueta vacía cuenta como
+ * encabezado pero vale `null`: cargar el texto nunca borra lo que ya está escrito en el formulario.
+ */
 function readHeader(lines: string[]) {
-  let title: string | null = null;
-  let excerpt: string | null = null;
+  let title: string | undefined;
+  let excerpt: string | undefined;
   let index = 0;
   for (; index < lines.length; index++) {
     const line = plainLabel(lines[index]!);
     if (!line) continue;
     const titleMatch = line.match(TITLE_LINE);
     const excerptMatch = line.match(EXCERPT_LINE);
-    if (titleMatch && title === null) title = titleMatch[1]!.trim();
-    else if (excerptMatch && excerpt === null) excerpt = excerptMatch[1]!.trim();
+    if (titleMatch && title === undefined) title = titleMatch[1]!.trim();
+    else if (excerptMatch && excerpt === undefined) excerpt = excerptMatch[1]!.trim();
     else break;
   }
-  if (title === null && excerpt === null) return { title, excerpt, start: 0 };
+  if (title === undefined && excerpt === undefined) return { title: null, excerpt: null, start: 0 };
   // Tras el encabezado, una línea «---» o «Texto:» separa el cuerpo: no es parte de él.
   const next = lines.findIndex((line, position) => position >= index && line.trim() !== "");
   if (next >= 0 && (RULE.test(lines[next]!.trim()) || BODY_LABEL.test(plainLabel(lines[next]!)))) index = next + 1;
-  return { title, excerpt, start: index };
+  return { title: title || null, excerpt: excerpt || null, start: index };
 }
 
 /** Un link solo en su línea: publicación de una red si se reconoce; si no, un párrafo con el enlace. */

@@ -169,7 +169,38 @@ describe("updatePost", () => {
   });
 });
 
+describe("updatePost with a related fighter in the trash", () => {
+  it("keeps saving a post whose fighter went to the trash, but refuses to add a trashed fighter", async () => {
+    const araya = await fighterIdBySlug(db, "felipe-araya");
+    const { id } = await createPost(db, validPostInput(anuncios, { title: "Con Araya", fighterIds: [araya] }), "admin-1");
+    await db.update(fighters).set({ deletedAt: new Date() }).where(eq(fighters.id, araya));
+    try {
+      // El formulario reenvía la relación (marcada «no se ve en el sitio»): editar otra cosa no debe fallar.
+      await updatePost(db, id, validPostInput(anuncios, { title: "Con Araya, corregida", fighterIds: [araya] }), "admin-1");
+      expect((await findPost(id)).title).toBe("Con Araya, corregida");
+      expect((await db.select().from(postFighters).where(eq(postFighters.postId, id))).map((row) => row.fighterId)).toEqual([araya]);
+
+      const other = await createPost(db, validPostInput(anuncios, { title: "Sin Araya" }), "admin-1");
+      await expect(updatePost(db, other.id, validPostInput(anuncios, { title: "Sin Araya", fighterIds: [araya] }), "admin-1")).rejects.toThrow("peleador");
+    } finally {
+      await db.update(fighters).set({ deletedAt: null }).where(eq(fighters.id, araya));
+    }
+  });
+});
+
 describe("setPostPublication and deletePost", () => {
+  it("keeps the date of a scheduled post that is already public when it is published", async () => {
+    const yesterday = new Date(Date.now() - 86_400_000);
+    const { id } = await createPost(db, validPostInput(anuncios, { title: "Programada que ya salió", status: "scheduled", publishAt: yesterday }), "admin-1");
+    await setPostPublication(db, id, { status: "published", publishAt: null }, "admin-1");
+    expect((await findPost(id)).publishAt).toEqual(yesterday);
+
+    const tomorrow = new Date(Date.now() + 86_400_000);
+    const future = await createPost(db, validPostInput(anuncios, { title: "Programada para mañana", status: "scheduled", publishAt: tomorrow }), "admin-1");
+    await setPostPublication(db, future.id, { status: "published", publishAt: null }, "admin-1");
+    expect((await findPost(future.id)).publishAt!.getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
   it("publishes, schedules, returns to draft and audits", async () => {
     const { id } = await createPost(db, validPostInput(anuncios, { title: "Publicar luego" }), "admin-1");
     await setPostPublication(db, id, { status: "published", publishAt: null }, "admin-1");
@@ -212,7 +243,7 @@ describe("categories", () => {
   it("refuses to delete a category that has posts (even in the trash) and deletes an empty one", async () => {
     const { id } = await saveCategory(db, { name: "Para borrar" }, "admin-1");
     const used = await insertPost(db, { categoryId: id, deletedAt: new Date() });
-    await expect(deleteCategory(db, id, "admin-1")).rejects.toThrow("Tiene 1 noticia");
+    await expect(deleteCategory(db, id, "admin-1")).rejects.toThrow("Tiene 1 noticia en la papelera");
 
     await db.delete(posts).where(eq(posts.id, used.id));
     await deleteCategory(db, id, "admin-1");

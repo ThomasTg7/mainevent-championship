@@ -23,6 +23,13 @@ describe("parsePostMarkdown: title and excerpt", () => {
     expect(draft.body?.content).toEqual([paragraph(text("Texto."))]);
   });
 
+  it("treats an empty TÍTULO or BAJADA as missing (it never erases what the form has)", () => {
+    const draft = parsePostMarkdown("TÍTULO:\nBAJADA:   \n\nTexto.", []);
+    expect(draft.title).toBeNull();
+    expect(draft.excerpt).toBeNull();
+    expect(draft.body?.content).toEqual([paragraph(text("Texto."))]);
+  });
+
   it("returns null title and excerpt when the text has none", () => {
     const draft = parsePostMarkdown("Solo texto.", []);
     expect(draft.title).toBeNull();

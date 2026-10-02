@@ -4,6 +4,7 @@ import { events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import { postCategories, postEvents, postFighters, postGallery, posts, type Post } from "@/db/schema/posts";
 import { collectBodyMediaIds } from "@/domain/post-body";
+import { isPublic } from "@/domain/publication";
 import { escapeLike, pageWindow, loadMedia, type PageOptions } from "@/features/fighters/query-helpers";
 import type { MediaDTO } from "@/features/media/dto";
 import { newestFirst } from "./card-rows";
@@ -67,9 +68,6 @@ export type PostForEdit = {
   events: RelatedItemDTO[];
 };
 
-const isPublicNow = (row: { status: string; publishAt: Date | null; deletedAt: Date | null }, now: Date) =>
-  row.deletedAt === null && (row.status === "published" || (row.status === "scheduled" && row.publishAt !== null && row.publishAt <= now));
-
 /** La noticia (fuera de la papelera) con sus imágenes y relaciones, para el formulario. Las relaciones que hoy no se ven en el sitio quedan marcadas. */
 export async function getPostForEdit(db: Db, id: string): Promise<PostForEdit | null> {
   const [post] = await db
@@ -109,8 +107,8 @@ export async function getPostForEdit(db: Db, id: string): Promise<PostForEdit | 
     cover: post.coverMediaId ? (mediaById.get(post.coverMediaId) ?? null) : null,
     gallery: galleryRows.flatMap((row) => mediaById.get(row.mediaId) ?? []),
     bodyMedia,
-    fighters: fighterRows.map((row) => ({ id: row.id, label: `${row.firstName} ${row.lastName}`, isPublic: isPublicNow(row, now) })),
-    events: eventRows.map((row) => ({ id: row.id, label: row.name, isPublic: isPublicNow(row, now) })),
+    fighters: fighterRows.map((row) => ({ id: row.id, label: `${row.firstName} ${row.lastName}`, isPublic: isPublic(row, now) })),
+    events: eventRows.map((row) => ({ id: row.id, label: row.name, isPublic: isPublic(row, now) })),
   };
 }
 

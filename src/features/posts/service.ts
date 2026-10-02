@@ -11,6 +11,7 @@ import { assertUsableMedia } from "@/features/media/service";
 import { publicationInputSchema, type PublicationInput } from "@/features/publication/schema";
 import { softDelete } from "@/features/trash/trash";
 import { UserFacingError } from "@/lib/user-facing-error";
+import { getPostRelationIds } from "./admin-queries";
 import { postInputSchema, type PostData, type PostRawInput } from "./schema";
 
 const NOT_FOUND = "No se encontró la noticia";
@@ -40,8 +41,11 @@ function editableColumns(data: PostData) {
  */
 function publishAtFor(status: PostData["status"], requested: Date | null, current: Pick<Post, "status" | "publishAt"> | null): Date | null {
   if (status === "scheduled") return requested;
-  if (status === "published") return current?.status === "published" ? current.publishAt : new Date();
-  return null;
+  if (status !== "published") return null;
+  if (current?.status === "published") return current.publishAt;
+  // Una programada cuya hora ya pasó ya está en el sitio con esa fecha: publicarla no la mueve.
+  if (current?.status === "scheduled" && current.publishAt && current.publishAt <= new Date()) return current.publishAt;
+  return new Date();
 }
 
 async function assertUsableImages(db: Db, data: PostData): Promise<void> {
@@ -52,14 +56,23 @@ async function assertUsableImages(db: Db, data: PostData): Promise<void> {
   ]);
 }
 
-async function assertRelationsExist(db: Db, data: PostData): Promise<void> {
-  if (data.fighterIds.length > 0) {
-    const found = await db.select({ id: fighters.id }).from(fighters).where(and(inArray(fighters.id, data.fighterIds), isNull(fighters.deletedAt)));
-    if (found.length !== data.fighterIds.length) throw new UserFacingError("Uno de los peleadores relacionados ya no existe. Quítalo y vuelve a guardar.");
+type RelationIds = { fighterIds: string[]; eventIds: string[] };
+const NO_RELATIONS: RelationIds = { fighterIds: [], eventIds: [] };
+
+/**
+ * Una relación nueva debe ser con un peleador o evento fuera de la papelera. Las que la noticia ya tenía se conservan
+ * aunque estén en la papelera (el sitio las oculta y el panel las marca): editar otra cosa no obliga a quitarlas.
+ */
+async function assertRelationsExist(db: Db, data: PostData, kept: RelationIds = NO_RELATIONS): Promise<void> {
+  const newFighterIds = data.fighterIds.filter((id) => !kept.fighterIds.includes(id));
+  const newEventIds = data.eventIds.filter((id) => !kept.eventIds.includes(id));
+  if (newFighterIds.length > 0) {
+    const found = await db.select({ id: fighters.id }).from(fighters).where(and(inArray(fighters.id, newFighterIds), isNull(fighters.deletedAt)));
+    if (found.length !== newFighterIds.length) throw new UserFacingError("Uno de los peleadores relacionados ya no existe. Quítalo y vuelve a guardar.");
   }
-  if (data.eventIds.length > 0) {
-    const found = await db.select({ id: events.id }).from(events).where(and(inArray(events.id, data.eventIds), isNull(events.deletedAt)));
-    if (found.length !== data.eventIds.length) throw new UserFacingError("Uno de los eventos relacionados ya no existe. Quítalo y vuelve a guardar.");
+  if (newEventIds.length > 0) {
+    const found = await db.select({ id: events.id }).from(events).where(and(inArray(events.id, newEventIds), isNull(events.deletedAt)));
+    if (found.length !== newEventIds.length) throw new UserFacingError("Uno de los eventos relacionados ya no existe. Quítalo y vuelve a guardar.");
   }
 }
 
@@ -101,10 +114,10 @@ async function findEditablePost(db: Executor, id: string): Promise<Post> {
   return row;
 }
 
-async function validateForSave(db: Db, data: PostData): Promise<void> {
+async function validateForSave(db: Db, data: PostData, kept?: RelationIds): Promise<void> {
   await assertCategoryExists(db, data.categoryId);
   await assertUsableImages(db, data);
-  await assertRelationsExist(db, data);
+  await assertRelationsExist(db, data, kept);
 }
 
 export async function createPost(db: Db, input: PostRawInput, actorId: string): Promise<{ id: string; slug: string }> {
@@ -140,7 +153,7 @@ export async function createPost(db: Db, input: PostRawInput, actorId: string): 
 export async function updatePost(db: Db, id: string, input: PostRawInput, actorId: string): Promise<{ slug: string }> {
   const data = parsePost(input);
   const current = await findEditablePost(db, id);
-  await validateForSave(db, data);
+  await validateForSave(db, data, await getPostRelationIds(db, id));
 
   const slug = data.slug ?? current.slug;
   if (slug !== current.slug && (await slugTaken(db, slug, id))) throw new UserFacingError("Ese enlace ya lo usa otra noticia");

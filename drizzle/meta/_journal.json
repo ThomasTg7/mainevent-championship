@@ -85,6 +85,13 @@
       "when": 1790888539038,
       "tag": "0011_smooth_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790903289661,
+      "tag": "0012_swift_cannonball",
+      "breakpoints": true
     }
   ]
 }
