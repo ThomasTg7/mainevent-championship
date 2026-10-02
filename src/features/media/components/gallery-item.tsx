@@ -12,13 +12,15 @@ type GalleryItemProps = {
   media: MediaDTO;
   position: number;
   total: number;
+  /** «FOTO N» sobre la miniatura (visible también en celular). */
+  numbered?: boolean;
   disabled: boolean;
   onMove: (delta: -1 | 1) => void;
   onEdit: () => void;
   onRemove: () => void;
 };
 
-export function GalleryItem({ media, position, total, disabled, onMove, onEdit, onRemove }: GalleryItemProps) {
+export function GalleryItem({ media, position, total, numbered = false, disabled, onMove, onEdit, onRemove }: GalleryItemProps) {
   // Sin arrastrar mientras se suben fotos: la lista que se guarda al terminar pisaría el nuevo orden.
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: media.id, disabled });
 
@@ -39,8 +41,9 @@ export function GalleryItem({ media, position, total, disabled, onMove, onEdit, 
       >
         <GripVertical aria-hidden />
       </Button>
-      <div className="size-16 shrink-0 overflow-hidden bg-muted sm:size-20">
+      <div className="relative size-16 shrink-0 overflow-hidden bg-muted sm:size-20">
         <MediaImage media={media} sizes="80px" className="size-full object-cover" />
+        {numbered ? <span className="absolute inset-x-0 bottom-0 bg-black/80 py-0.5 text-center text-[11px] font-bold text-primary">FOTO {position + 1}</span> : null}
       </div>
       {/* En celular no cabe junto a los 4 botones; cada botón ya dice "foto N" a los lectores de pantalla. */}
       <span className="hidden min-w-0 flex-1 truncate text-sm sm:block">Foto {position + 1}</span>

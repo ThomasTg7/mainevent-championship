@@ -1,0 +1,214 @@
+import { embedCanonicalUrl, embedFromAttrs, parseEmbedUrl } from "./embed";
+import { EMPTY_POST_BODY, isSafeHref, validatePostBody, type PostBody, type PostNode } from "./post-body";
+import { formatInline, parseInline, withProtocol } from "./post-markdown-inline";
+
+// Texto que entrega una IA (Markdown simple) ⇄ cuerpo de una noticia. El formato es el que pide el prompt del panel:
+// TÍTULO/BAJADA arriba, ## y ### para títulos, listas, citas, ---, [FOTO N] y el link de una red solo en su línea.
+// El resultado pasa por `validatePostBody`, igual que lo que se guarda desde el editor.
+
+export const TITLE_MAX = 140;
+export const EXCERPT_MAX = 300;
+
+export type PostDraft = {
+  title: string | null;
+  excerpt: string | null;
+  /** `null` si el texto no cabe en una noticia (ver `error`). */
+  body: PostBody | null;
+  /** Avisos que no impiden cargar el texto (una foto que no existe, un título largo). */
+  warnings: string[];
+  error?: string;
+};
+
+const TITLE_LINE = /^t[ií]tulo\s*:\s*(.*)$/i;
+const EXCERPT_LINE = /^bajada\s*:\s*(.*)$/i;
+const BODY_LABEL = /^(texto|cuerpo)\s*:?\s*$/i;
+const RULE = /^(-{3,}|\*{3,}|_{3,})$/;
+const HEADING = /^(#{1,6})\s+(.*)$/;
+const PHOTO = /^\[foto\s*(\d+)\]$/i;
+const BULLET = /^[-*+•]\s+(.*)$/;
+const ORDERED = /^\d+[.)]\s+(.*)$/;
+const QUOTE = /^>\s?(.*)$/;
+const LONE_URL = /^<?((?:https?:\/\/|www\.)\S+?)>?$/i;
+const LONE_LINK = /^\[[^\]]+\]\(([^)\s]+)\)$/;
+
+/** Una línea de encabezado sin adornos (`**Título:**`, `# Título:`). */
+const plainLabel = (line: string) => line.replace(/\*\*/g, "").replace(/^#+\s*/, "").trim();
+
+function stripCodeFence(lines: string[]): string[] {
+  const first = lines.findIndex((line) => line.trim() !== "");
+  if (first < 0 || !lines[first]!.trim().startsWith("```")) return lines;
+  const rest = lines.slice(first + 1);
+  const last = rest.findLastIndex((line) => line.trim() !== "");
+  return last >= 0 && rest[last]!.trim().startsWith("```") ? rest.slice(0, last) : rest;
+}
+
+/** Lee TÍTULO y BAJADA del principio; devuelve desde qué línea empieza el cuerpo. */
+function readHeader(lines: string[]) {
+  let title: string | null = null;
+  let excerpt: string | null = null;
+  let index = 0;
+  for (; index < lines.length; index++) {
+    const line = plainLabel(lines[index]!);
+    if (!line) continue;
+    const titleMatch = line.match(TITLE_LINE);
+    const excerptMatch = line.match(EXCERPT_LINE);
+    if (titleMatch && title === null) title = titleMatch[1]!.trim();
+    else if (excerptMatch && excerpt === null) excerpt = excerptMatch[1]!.trim();
+    else break;
+  }
+  if (title === null && excerpt === null) return { title, excerpt, start: 0 };
+  // Tras el encabezado, una línea «---» o «Texto:» separa el cuerpo: no es parte de él.
+  const next = lines.findIndex((line, position) => position >= index && line.trim() !== "");
+  if (next >= 0 && (RULE.test(lines[next]!.trim()) || BODY_LABEL.test(plainLabel(lines[next]!)))) index = next + 1;
+  return { title, excerpt, start: index };
+}
+
+/** Un link solo en su línea: publicación de una red si se reconoce; si no, un párrafo con el enlace. */
+function loneLinkBlock(line: string): PostNode | null {
+  const href = line.match(LONE_LINK)?.[1] ?? line.match(LONE_URL)?.[1];
+  if (!href) return null;
+  const embed = parseEmbedUrl(href);
+  if (embed) return { type: "embed", attrs: { provider: embed.provider, id: embed.id } };
+  if (!LONE_URL.test(line)) return null;
+  const url = withProtocol(href);
+  return isSafeHref(url) ? { type: "paragraph", content: [{ type: "text", text: href, marks: [{ type: "link", attrs: { href: url } }] }] } : null;
+}
+
+const paragraphOf = (text: string): PostNode => {
+  const content = parseInline(text);
+  return content.length > 0 ? { type: "paragraph", content } : { type: "paragraph" };
+};
+
+function parseBlocks(lines: string[], photoIds: readonly string[], warnings: string[]): PostNode[] {
+  const blocks: PostNode[] = [];
+  let paragraph: string[] = [];
+  let quote: string[] | null = null;
+  // Se reasigna dentro de `push`: sin el `as`, TypeScript lo da por `null` para siempre.
+  let list = null as PostNode | null;
+
+  const flushParagraph = () => {
+    if (paragraph.length > 0) blocks.push(paragraphOf(paragraph.join(" ")));
+    paragraph = [];
+  };
+  const flushQuote = () => {
+    if (!quote) return;
+    const paragraphs = quote.join("\n").split(/\n\s*\n/).map((part) => part.split("\n").map((line) => line.trim()).filter(Boolean).join(" ")).filter(Boolean);
+    if (paragraphs.length > 0) blocks.push({ type: "blockquote", content: paragraphs.map(paragraphOf) });
+    quote = null;
+  };
+  const push = (block: PostNode) => {
+    flushParagraph();
+    flushQuote();
+    list = null;
+    blocks.push(block);
+  };
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    const quoted = line.match(QUOTE);
+    if (quoted) {
+      flushParagraph();
+      list = null;
+      (quote ??= []).push(quoted[1]!);
+      continue;
+    }
+    flushQuote();
+    if (!line) {
+      flushParagraph();
+      continue;
+    }
+
+    const item = line.match(BULLET) ?? line.match(ORDERED);
+    if (item && !RULE.test(line)) {
+      flushParagraph();
+      const content = parseInline(item[1]!.trim());
+      if (content.length === 0) continue;
+      const type = BULLET.test(line) ? "bulletList" : "orderedList";
+      // Una línea en blanco entre ítems no corta la lista (las IA suelen dejarla).
+      if (list?.type !== type) {
+        list = { type, content: [] };
+        blocks.push(list);
+      }
+      list.content!.push({ type: "listItem", content: [{ type: "paragraph", content }] });
+      continue;
+    }
+
+    const heading = line.match(HEADING);
+    const photo = line.match(PHOTO);
+    const lone = loneLinkBlock(line);
+    if (heading) {
+      const content = parseInline(heading[2]!.trim());
+      if (content.length > 0) push({ type: "heading", attrs: { level: heading[1]!.length <= 2 ? 2 : 3 }, content });
+    } else if (RULE.test(line)) {
+      push({ type: "horizontalRule" });
+    } else if (photo) {
+      const number = Number(photo[1]);
+      const mediaId = photoIds[number - 1];
+      if (mediaId) push({ type: "image", attrs: { mediaId } });
+      else warnings.push(`[FOTO ${number}] no se insertó: ${photoIds.length === 0 ? "no hay fotos subidas" : `solo hay ${photoIds.length} ${photoIds.length === 1 ? "foto subida" : "fotos subidas"}`}.`);
+    } else if (lone) {
+      push(lone);
+    } else {
+      list = null;
+      paragraph.push(line);
+    }
+  }
+  flushParagraph();
+  flushQuote();
+  return blocks;
+}
+
+/** Texto de la IA a título, bajada y cuerpo. `photoIds[0]` es la «[FOTO 1]». */
+export function parsePostMarkdown(text: string, photoIds: readonly string[]): PostDraft {
+  const lines = stripCodeFence(text.replace(/\r\n?/g, "\n").split("\n"));
+  const { title, excerpt, start } = readHeader(lines);
+  const warnings: string[] = [];
+  if (title && title.length > TITLE_MAX) warnings.push(`El título tiene ${title.length} caracteres (máximo ${TITLE_MAX}).`);
+  if (excerpt && excerpt.length > EXCERPT_MAX) warnings.push(`La bajada tiene ${excerpt.length} caracteres (máximo ${EXCERPT_MAX}).`);
+
+  const content = parseBlocks(lines.slice(start), photoIds, warnings);
+  const body: PostBody = content.length > 0 ? { type: "doc", content } : structuredClone(EMPTY_POST_BODY);
+  if (!validatePostBody(body)) return { title, excerpt, body: null, warnings, error: "El texto es demasiado largo para una noticia. Pídele a la IA una versión más corta." };
+  return { title, excerpt, body, warnings };
+}
+
+function formatBlock(node: PostNode, photoIds: readonly string[], indent = ""): string | null {
+  switch (node.type) {
+    case "paragraph":
+      return node.content?.length ? formatInline(node.content) : null;
+    case "heading":
+      return `${node.attrs?.level === 3 ? "###" : "##"} ${formatInline(node.content)}`;
+    case "bulletList":
+    case "orderedList":
+      return (node.content ?? [])
+        .map((item, index) => {
+          const marker = node.type === "bulletList" ? "-" : `${index + 1}.`;
+          const [first, ...rest] = item.content ?? [];
+          const nested = rest.map((child) => formatBlock(child, photoIds, `${indent}  `)).filter(Boolean);
+          return [`${indent}${marker} ${first ? formatInline(first.content) : ""}`, ...nested].join("\n");
+        })
+        .join("\n");
+    case "blockquote":
+      return (node.content ?? []).map((child) => `> ${formatInline(child.content)}`).join("\n>\n");
+    case "horizontalRule":
+      return "---";
+    case "image": {
+      const number = photoIds.indexOf(String(node.attrs?.mediaId)) + 1;
+      return number > 0 ? `[FOTO ${number}]` : null;
+    }
+    case "embed": {
+      const embed = embedFromAttrs(node.attrs);
+      return embed ? embedCanonicalUrl(embed) : null;
+    }
+    default:
+      return null;
+  }
+}
+
+/** La noticia actual en el mismo formato, para pedirle cambios a la IA. Las imágenes salen como «[FOTO N]». */
+export function postToMarkdown(post: { title: string; excerpt: string; body: PostBody }, photoIds: readonly string[]): string {
+  const header = [post.title.trim() && `TÍTULO: ${post.title.trim()}`, post.excerpt.trim() && `BAJADA: ${post.excerpt.trim()}`].filter(Boolean);
+  const blocks = (post.body.content ?? []).map((node) => formatBlock(node, photoIds)).filter((block): block is string => Boolean(block));
+  const sections = [...(header.length > 0 ? [header.join("\n")] : []), ...blocks];
+  return sections.length > 0 ? `${sections.join("\n\n")}\n` : "";
+}

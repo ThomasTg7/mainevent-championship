@@ -20,6 +20,8 @@ type PostEditorProps = {
   onChange: (doc: PostBody) => void;
   /** Imágenes que ya trae el cuerpo, por id (el editor las muestra sin pedirlas). */
   media?: Record<string, MediaDTO>;
+  /** Al subir una imagen desde la barra (para que el resto del formulario la conozca). */
+  onMediaAdded?: (media: MediaDTO) => void;
   /** Para enlazar la etiqueta y los errores del campo. */
   id?: string;
   invalid?: boolean;
@@ -30,7 +32,7 @@ type PostEditorProps = {
  * negrita, cursiva, listas, cita, enlace, separador, imagen y publicación de Instagram/YouTube/TikTok. Pesa: se carga
  * con `next/dynamic` solo en el formulario de noticias.
  */
-export function PostEditor({ value, onChange, media = {}, id = "post-body", invalid }: PostEditorProps) {
+export function PostEditor({ value, onChange, media = {}, onMediaAdded, id = "post-body", invalid }: PostEditorProps) {
   const [panel, setPanel] = useState<ToolbarPanel>(null);
   const [imageOpen, setImageOpen] = useState(false);
   // Un solo mapa para toda la vida del editor: las imágenes que se suben después se agregan sin recrearlo.
@@ -54,6 +56,7 @@ export function PostEditor({ value, onChange, media = {}, id = "post-body", inva
   function insertImage(mediaId: string | null, item: MediaDTO | null) {
     if (!mediaId || !item || !editor) return;
     mediaById.set(mediaId, item);
+    onMediaAdded?.(item);
     editor.chain().focus().insertContent({ type: "image", attrs: { mediaId } }).run();
     setImageOpen(false);
   }

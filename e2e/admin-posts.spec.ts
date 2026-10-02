@@ -150,6 +150,73 @@ test("en el editor se ve la publicación real: pegar un reel de Instagram lo mue
   await expect(editor.getByText("Mira el reel:")).toBeVisible();
 });
 
+test("con IA: copiar el prompt, subir una foto, pegar la respuesta, cargarla, copiarla de vuelta, deshacer y guardar", async ({ page, context }) => {
+  test.setTimeout(90_000);
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const title = `Noticia IA E2E ${Date.now()}`;
+  await page.goto(adminUrl("/noticias/nueva"));
+  await page.getByRole("tab", { name: "Texto" }).click();
+
+  await page.getByRole("button", { name: "¿Cómo lo hago con IA?" }).click();
+  const help = page.getByRole("dialog", { name: "Escribir la noticia con IA" });
+  await help.getByRole("button", { name: "Copiar prompt" }).click();
+  await expect(page.getByText("Prompt copiado")).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("[FOTO 1]");
+  await page.keyboard.press("Escape");
+  await expect(help).toBeHidden();
+
+  await page.getByRole("button", { name: "Con IA", exact: true }).click();
+  const writer = page.locator('[data-slot="ai-writer"]');
+  await writer.locator('input[type="file"]').setInputFiles({ name: "foto-ia.png", mimeType: "image/png", buffer: await png(1200, 800, "#3a6") });
+  await expect(writer.getByText("FOTO 1", { exact: true })).toBeVisible();
+
+  await writer.getByLabel("2. Respuesta de la IA").fill(
+    [`TÍTULO: ${title}`, "BAJADA: Una bajada escrita por la IA.", "", "## La previa", "", "Pérez llega **invicto** al combate.", "", "[FOTO 1]", "", "https://youtu.be/dQw4w9WgXcQ", "", "[FOTO 2]"].join("\n"),
+  );
+  await writer.getByRole("button", { name: "Cargar en la noticia" }).click();
+  await expect(page.getByText("Texto cargado en la noticia")).toBeVisible();
+  await expect(writer.getByText("[FOTO 2] no se insertó")).toBeAttached();
+
+  // Vuelve al editor con el texto convertido.
+  const editor = page.getByRole("textbox", { name: "Cuerpo de la noticia" });
+  await expect(editor.getByRole("heading", { name: "La previa" })).toBeVisible();
+  await expect(editor.locator("strong", { hasText: "invicto" })).toBeVisible();
+  await expect(editor.locator("figure img")).toHaveCount(1);
+  await expect(editor.locator("iframe")).toHaveAttribute("src", /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
+
+  // «Copiar noticia para la IA» devuelve la versión actual en el mismo formato.
+  await page.getByRole("button", { name: "Con IA", exact: true }).click();
+  await writer.getByRole("button", { name: "Copiar noticia para la IA" }).click();
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copied).toContain(`TÍTULO: ${title}`);
+  expect(copied).toContain("Pérez llega **invicto** al combate.");
+  expect(copied).toContain("[FOTO 1]");
+  expect(copied).toContain("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+
+  // Deshacer deja todo como estaba; volver a cargar lo repone.
+  await page.getByRole("tab", { name: "Datos" }).click();
+  await expect(page.getByLabel("Título", { exact: true })).toHaveValue(title);
+  await expect(page.getByLabel("Bajada")).toHaveValue("Una bajada escrita por la IA.");
+  await page.getByRole("button", { name: "Deshacer" }).click();
+  await expect(page.getByLabel("Título", { exact: true })).toHaveValue("");
+  // Al cerrarse, el aviso devuelve el foco a la pestaña Datos (y Radix la activa): se espera a que termine.
+  await expect(page.getByRole("button", { name: "Deshacer" })).toBeHidden();
+  await page.getByRole("tab", { name: "Texto" }).click();
+  await expect(page.getByRole("tab", { name: "Texto" })).toHaveAttribute("aria-selected", "true");
+  await expect(editor.getByRole("heading", { name: "La previa" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Con IA", exact: true }).click();
+  await writer.getByRole("button", { name: "Cargar en la noticia" }).click();
+  await expect(editor.getByRole("heading", { name: "La previa" })).toBeVisible();
+
+  await page.getByRole("tab", { name: "Datos" }).click();
+  await page.getByLabel("Categoría").selectOption({ label: "Anuncios" });
+  await page.getByRole("button", { name: "Crear noticia" }).click();
+  await expect(page).toHaveURL(/\/noticias\/[0-9a-f-]+\?creada=1$/);
+  await page.getByRole("tab", { name: "Texto" }).click();
+  await expect(editor.getByRole("heading", { name: "La previa" })).toBeVisible();
+  await expect(editor.locator("figure img")).toHaveCount(1);
+});
+
 test("el listado y el formulario no desbordan en celular ni en PC", async ({ page }) => {
   for (const size of [{ width: 375, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);
