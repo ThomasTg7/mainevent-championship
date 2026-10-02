@@ -555,3 +555,31 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** corridas completas en paralelo; regla de «datos propios por spec».
 - **Impacto:** ninguno.
 - **Estado:** aplicado
+
+---
+
+# Ajustes pedidos antes de revisar el Plan 04 — 2026-10-01
+
+## [Plan 04 · Ajustes] Tarjetas de noticias sin choques entre categoría, título y bajada — 2026-10-01
+- **Qué:** `PostCard` deja espacio fijo entre la línea de categoría · fecha, el título y la bajada (antes iban pegados en la tarjeta grande) y el título usa interlineado ≥ 1 (`1.04` Anton, `1.12` Barlow Condensed): con `.95` las tildes de las mayúsculas (É, Ó) subían sobre la categoría. Títulos de tarjetas chicas a 3 líneas como máximo; tarjetas del listado del mismo alto. La cabecera de la noticia pasa de `.95` a `1.02`. El e2e mide los espacios y el interlineado en 375 y 1440 px.
+- **Por qué:** pedido del usuario (el título tapaba la categoría en celular y PC).
+- **Impacto:** Plan 06 reutiliza `PostCard` con el ajuste; regla para títulos en Anton con tildes: interlineado ≥ 1.
+- **Estado:** aplicado
+
+## [Plan 04 · Ajustes] El editor muestra la publicación real de la red — 2026-10-01
+- **Qué:** el nodo `embed` del editor dibuja el reproductor real (mismo `iframe`, `sandbox`, `referrerpolicy` y `youtube-nocookie` que la fachada pública tras el clic), con un botón «Quitar» (el `iframe` se traga los clics y no había cómo seleccionarlo con el mouse). Tamaños y atributos en `posts/embed-frame.ts`, compartido con `EmbedFacade`. El sitio público sigue con fachada (nada de terceros antes del clic); en el panel quien edita sí quiere ver lo que pegó.
+- **Por qué:** pedido del usuario (ver la publicación de Instagram o el video al pegar el link).
+- **Impacto:** ninguno en planes siguientes. Videos subidos como archivo siguen fuera (decisión del usuario: solo YouTube, Instagram o TikTok).
+- **Estado:** aplicado
+
+## [Plan 04 · Ajustes] Publicador «Con IA» — 2026-10-01
+- **Qué:** la pestaña Texto tiene dos publicadores: «Escribir» (editor) y «Con IA». «¿Cómo lo hago con IA?» abre un diálogo con los pasos y un prompt para copiar (`posts/ai-prompt.ts`) que enseña a cualquier IA externa (ChatGPT, Claude, Gemini; sin API ni claves) el formato: `TÍTULO:`/`BAJADA:`, `##`/`###`, negrita, cursiva, enlaces, listas, citas, `---`, el link de una red solo en su línea y `[FOTO N]`. La respuesta pegada se convierte con `parsePostMarkdown` (`src/domain/post-markdown.ts` + `post-markdown-inline.ts`, puros y testeados) y pasa `validatePostBody`: el HTML queda como texto y un enlace no seguro, como texto sin enlace. Las fotos se suben en el mismo panel (reutiliza `GalleryEditor`, ahora con `numbered`, `uploadLabels` y `onMediaChange`) y quedan numeradas; las imágenes que ya están en el cuerpo también reciben número. «Cargar en la noticia» llena título y bajada (`writeFormText`, `src/lib/form-dom.ts`), reemplaza el cuerpo (vuelve a montar el editor) y ofrece «Deshacer» por 15 s; «Copiar noticia para la IA» exporta la versión actual con `postToMarkdown` (ida y vuelta probada) para pedir cambios una y otra vez.
+- **Por qué:** pedido del usuario: redactar con IA y poder iterar.
+- **Impacto:** si cambia el esquema del cuerpo (`post-body.ts`), actualizar el conversor, el prompt y sus pruebas. Plan 07: ninguno.
+- **Estado:** aplicado
+
+## [Plan 04 · Ajustes] Vista previa en vivo bajo el formulario (celular y PC) — 2026-10-01
+- **Qué:** bajo las pestañas del formulario de noticias, «Vista previa en vivo» muestra la noticia como en el sitio y se actualiza al escribir (150 ms de espera). Va en un `iframe` del propio panel (`admin/(frame)/vista-previa-noticia`, layout sin barra lateral, con `requireAdmin`) para que el diseño responda al ancho real: Celular 375×760 y PC 1440×900, achicados con `scale` si no caben; «Ocultar/Mostrar» desmonta el `iframe`. El formulario arma un `PostDTO` con `buildLivePreviewPost` (`posts/live-preview.ts`, testeado) desde `useLivePreviewPost` (campos de texto al cambiar el `<form>`; portada, galería, cuerpo e imágenes por avisos de cada pestaña) y lo manda por `postMessage` (mismo origen, solo entre esa ventana y su `iframe`). La página pública y la vista previa usan el mismo `PostArticle` (extraído de `/noticias/[slug]`). Peleadores y eventos relacionados no salen en la vista previa (el formulario solo tiene sus nombres); se ven al guardar con el enlace de vista previa de siempre.
+- **Por qué:** pedido del usuario: ver los cambios abajo, en celular y PC, mientras edita.
+- **Impacto:** el mismo patrón (`(frame)` + `postMessage` + componente compartido) sirve si otro formulario quiere vista previa en vivo.
+- **Estado:** aplicado
