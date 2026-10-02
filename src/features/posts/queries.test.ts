@@ -50,11 +50,18 @@ describe("getHomeNews", () => {
     expect(titles(top)).not.toContain("Destacada nueva");
   });
 
-  it("leaves main empty when no post is featured", async () => {
+  it("falls back to the most recent post as main when none is featured, and leaves it out of top", async () => {
     await clearPosts();
-    await insertPost(db, { title: "Una", createdAt: daysAgo(2) });
-    expect((await getHomeNews(db)).main).toBeNull();
-    expect(titles((await getHomeNews(db)).top)).toEqual(["Una"]);
+    for (let day = 1; day <= 7; day += 1) await insertPost(db, { title: `Normal ${day}`, createdAt: daysAgo(day) });
+    const { main, top } = await getHomeNews(db);
+    expect(main?.title).toBe("Normal 1");
+    expect(titles(top)).toEqual(["Normal 2", "Normal 3", "Normal 4", "Normal 5", "Normal 6"]);
+  });
+
+  it("has no main and no top without public posts", async () => {
+    await clearPosts();
+    await insertPost(db, { title: "Borrador", status: "draft" });
+    expect(await getHomeNews(db)).toEqual({ main: null, top: [] });
   });
 
   it("does not show a scheduled post before its date, a draft or one in the trash", async () => {
@@ -65,8 +72,8 @@ describe("getHomeNews", () => {
     await insertPost(db, { title: "Publicada" });
 
     const { main, top } = await getHomeNews(db);
-    expect(main).toBeNull();
-    expect(titles(top)).toEqual(["Publicada"]);
+    expect(main?.title).toBe("Publicada");
+    expect(top).toEqual([]);
   });
 
   it("shows a scheduled post once its date has passed, dated by its publication time", async () => {
@@ -74,7 +81,9 @@ describe("getHomeNews", () => {
     await insertPost(db, { title: "Vieja", createdAt: daysAgo(5) });
     await insertPost(db, { title: "Programada ya llegada", status: "scheduled", publishAt: daysAgo(0.01), createdAt: daysAgo(20) });
 
-    expect(titles((await getHomeNews(db)).top)).toEqual(["Programada ya llegada", "Vieja"]);
+    const { main, top } = await getHomeNews(db);
+    expect(main?.title).toBe("Programada ya llegada");
+    expect(titles(top)).toEqual(["Vieja"]);
   });
 });
 

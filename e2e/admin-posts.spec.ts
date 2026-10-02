@@ -312,4 +312,13 @@ test("una noticia se publica y se envía a la papelera desde el listado", async 
   await expect(page.getByText("Enviada a la papelera").first()).toBeVisible();
   await page.goto(adminUrl(`/noticias?q=${encodeURIComponent(title)}`));
   await expect(page.getByText("Ninguna noticia coincide")).toBeVisible();
+  await page.goto("/noticias");
+  await expect(page.getByRole("link", { name: title })).toHaveCount(0);
+
+  // Restaurarla la devuelve al sitio sin esperar la caché.
+  await page.goto(adminUrl("/papelera"));
+  await page.getByRole("listitem").or(page.getByRole("row")).filter({ hasText: title }).getByRole("button", { name: "Restaurar" }).click();
+  await expect(page.getByText(title)).toHaveCount(0);
+  await page.goto("/noticias");
+  await expect(page.getByRole("link", { name: title })).toBeVisible();
 });

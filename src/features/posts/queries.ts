@@ -54,15 +54,16 @@ export async function listPublicPostCategories(db: Db): Promise<PostCategoryDTO[
 
 /**
  * Home (spec §3): la noticia «Destacada» más reciente es la principal y «Top Noticias» son las 5 publicadas más
- * recientes sin ella. Sin ninguna destacada, `main` queda vacío.
+ * recientes sin ella. Sin ninguna destacada, la principal es la más reciente (la home nunca queda sin noticia grande
+ * mientras haya alguna publicada).
  */
 export async function getHomeNews(db: Db): Promise<{ main: PostCardDTO | null; top: PostCardDTO[] }> {
-  const [mainRows, latest] = await Promise.all([
+  const [featuredRows, latest] = await Promise.all([
     selectCardRows(db, and(publicScope(posts), eq(posts.featured, true)), { limit: 1 }),
     // Una más que el tope: si la principal está entre las más recientes, se descarta y aún quedan 5.
     selectCardRows(db, publicScope(posts), { limit: HOME_TOP_SIZE + 1 }),
   ]);
-  const mainRow = mainRows[0];
+  const mainRow = featuredRows[0] ?? latest[0];
   const topRows = latest.filter((row) => row.id !== mainRow?.id).slice(0, HOME_TOP_SIZE);
   const [main, top] = await toCardDTOs(db, mainRow ? [mainRow] : [], topRows);
   return { main: main?.[0] ?? null, top: top ?? [] };
