@@ -2,12 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
+import type { FighterSearchResult } from "@/features/events/card-actions";
 import { revalidateFighter } from "@/features/fighters/cache";
 import type { FormActionState } from "@/lib/form-errors";
 import { requireAdmin } from "@/lib/require-admin";
 import { runFormAction } from "@/lib/run-form-action";
 import { revalidateRankings } from "./cache";
-import { championSchema, dismissSchema, saveRankingSchema, vacateSchema } from "./schema";
+import { searchEligibleFighters, getDivisionGender } from "./admin-queries";
+import { championSchema, dismissSchema, rankingScopeSchema, saveRankingSchema, vacateSchema } from "./schema";
 import { dismissSuggestion, saveRanking, setChampion, vacateTitle, type RankingChange } from "./service";
 
 const INVALID: FormActionState = { error: "Datos inválidos" };
@@ -61,4 +63,17 @@ export async function dismissSuggestionAction(eventId: unknown, fighterId: unkno
     revalidatePath("/admin/rankings/[level]/[scope]", "page");
     return {};
   });
+}
+
+export type EligibleFighter = FighterSearchResult;
+
+/** Buscador del editor y del selector de campeón: hasta 10 peleadores elegibles del alcance (nunca la lista completa). */
+export async function searchEligibleFightersAction(scope: unknown, query: unknown): Promise<EligibleFighter[]> {
+  await requireAdmin();
+  const parsed = rankingScopeSchema.safeParse(scope);
+  const text = typeof query === "string" ? query.trim().slice(0, 60) : "";
+  if (!parsed.success || text.length < 2) return [];
+  const gender = parsed.data.divisionId ? await getDivisionGender(db, parsed.data.divisionId) : null;
+  if (parsed.data.divisionId && !gender) return [];
+  return searchEligibleFighters(db, { ...parsed.data, gender }, text);
 }

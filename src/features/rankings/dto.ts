@@ -3,6 +3,15 @@ import type { BoutLevel } from "@/domain/bout-enums";
 import type { ManualRecord } from "@/features/fighters/dto";
 import type { MediaDTO } from "@/features/media/dto";
 
+/** Un peleador del editor del panel (el ranking guardado, también quien ya no se ve en el sitio). */
+export type EditorFighter = {
+  id: string;
+  name: string;
+  nationality: string;
+  /** Por qué ya no se ve en el sitio (Retirado, Inactivo, En la papelera, No publicado); `null` si se ve. */
+  hiddenNote: string | null;
+};
+
 export type RankedFighterDTO = {
   id: string;
   slug: string;
