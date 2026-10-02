@@ -1,0 +1,64 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { db } from "@/db";
+import { revalidateFighter } from "@/features/fighters/cache";
+import type { FormActionState } from "@/lib/form-errors";
+import { requireAdmin } from "@/lib/require-admin";
+import { runFormAction } from "@/lib/run-form-action";
+import { revalidateRankings } from "./cache";
+import { championSchema, dismissSchema, saveRankingSchema, vacateSchema } from "./schema";
+import { dismissSuggestion, saveRanking, setChampion, vacateTitle, type RankingChange } from "./service";
+
+const INVALID: FormActionState = { error: "Datos inválidos" };
+const run = (task: () => Promise<FormActionState>) => runFormAction("Error en rankings", task);
+
+/** Expira lo público de un cambio de ranking o de título: los rankings y la ficha de cada peleador afectado (`revalidateFighter` ya incluye `rankings`). */
+function revalidateChange({ affectedFighterIds }: RankingChange): void {
+  revalidateRankings();
+  for (const id of affectedFighterIds) revalidateFighter(id);
+  // Las pantallas del panel (listado de alcances y editor) leen versiones y títulos.
+  revalidatePath("/admin/rankings");
+  revalidatePath("/admin/rankings/[level]/[scope]", "page");
+}
+
+export async function saveRankingAction(scope: unknown, fighterIds: unknown): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  const parsed = saveRankingSchema.safeParse({ scope, fighterIds });
+  if (!parsed.success) return INVALID;
+  return run(async () => {
+    revalidateChange(await saveRanking(db, parsed.data.scope, parsed.data.fighterIds, admin.userId));
+    return { success: "Nueva versión del ranking guardada" };
+  });
+}
+
+export async function setChampionAction(level: unknown, divisionId: unknown, fighterId: unknown): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  const parsed = championSchema.safeParse({ level, divisionId, fighterId });
+  if (!parsed.success) return INVALID;
+  return run(async () => {
+    revalidateChange(await setChampion(db, parsed.data.level, parsed.data.divisionId, parsed.data.fighterId, admin.userId));
+    return { success: "Campeón actualizado" };
+  });
+}
+
+export async function vacateTitleAction(level: unknown, divisionId: unknown): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  const parsed = vacateSchema.safeParse({ level, divisionId });
+  if (!parsed.success) return INVALID;
+  return run(async () => {
+    revalidateChange(await vacateTitle(db, parsed.data.level, parsed.data.divisionId, admin.userId));
+    return { success: "Título vacante" };
+  });
+}
+
+export async function dismissSuggestionAction(eventId: unknown, fighterId: unknown, scopeKey: unknown): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  const parsed = dismissSchema.safeParse({ eventId, fighterId, scopeKey });
+  if (!parsed.success) return INVALID;
+  return run(async () => {
+    await dismissSuggestion(db, parsed.data.eventId, parsed.data.fighterId, parsed.data.scopeKey, admin.userId);
+    revalidatePath("/admin/rankings/[level]/[scope]", "page");
+    return {};
+  });
+}

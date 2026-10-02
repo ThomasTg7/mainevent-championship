@@ -1,0 +1,29 @@
+import type { Movement } from "@/domain/rankings";
+import type { BoutLevel } from "@/domain/bout-enums";
+import type { ManualRecord } from "@/features/fighters/dto";
+import type { MediaDTO } from "@/features/media/dto";
+
+export type RankedFighterDTO = {
+  id: string;
+  slug: string;
+  name: string;
+  nationality: string;
+  /** Récord cargado a mano del nivel del ranking. */
+  record: ManualRecord;
+  /** Solo el campeón y el primero de un libra por libra traen foto (las demás filas no la muestran). */
+  bodyMedia: MediaDTO | null;
+};
+
+export type RankingEntryDTO = { position: number; fighter: RankedFighterDTO; movement: Movement };
+
+export type RankingCardDTO = {
+  level: BoutLevel;
+  /** `null` = libra por libra. */
+  division: { id: string; name: string; slug: string; gender: "male" | "female" } | null;
+  champion: (RankedFighterDTO & { since: string | null }) | null;
+  entries: RankingEntryDTO[];
+  /** ISO de la versión vigente; `null` si la división tiene campeón pero aún ningún ranking. */
+  updatedAt: string | null;
+};
+
+export type RankingsPageDTO = { level: BoutLevel; cards: RankingCardDTO[] };
