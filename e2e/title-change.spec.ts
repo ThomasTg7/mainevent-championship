@@ -51,6 +51,12 @@ test("el retador gana la pelea titular: el diálogo pide confirmar y corona al n
   // El retador es el campeón y el campeón anterior queda en el ranking de la división.
   await expect.poll(async () => (await db.select().from(titles).where(and(eq(titles.divisionId, division), eq(titles.level, "pro"))))[0]?.championFighterId).toBe(challenger.id);
   expect((await getCurrentRanking(db, { level: "pro", divisionId: division }))?.fighterIds).toEqual([champion.id]);
+
+  // En el sitio: el retador es el campeón y el campeón anterior aparece en el ranking de la división.
+  await page.goto("/rankings");
+  const ranking = page.getByRole("article", { name: "Ranking Peso Semipesado" });
+  await expect(ranking.getByRole("link", { name: "Retador TituloDos" })).toBeVisible();
+  await expect(ranking.getByRole("listitem").first()).toContainText("Campeón TituloUno");
   await context.close();
 });
 

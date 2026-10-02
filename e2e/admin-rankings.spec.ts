@@ -78,6 +78,13 @@ test("tras cargar un resultado, la sugerencia se acepta, se guarda y queda en un
   // Ya aplicada: no vuelve a sugerirse.
   await page.reload();
   await expect(page.getByText(suggestion)).toHaveCount(0);
+
+  // En el sitio: el que entró es NUEVO en el puesto 3 y el que estaba ahí bajó un puesto.
+  await page.goto("/rankings");
+  const medio = page.getByRole("article", { name: "Ranking Peso Medio" });
+  await expect(medio.getByRole("listitem").nth(2)).toContainText("Medio SugNuevo");
+  await expect(medio.getByRole("listitem").nth(2).getByLabel("Nuevo en el ranking")).toBeVisible();
+  await expect(medio.getByRole("listitem").nth(3).getByLabel("Baja 1 puesto")).toBeVisible();
   await context.close();
 });
 

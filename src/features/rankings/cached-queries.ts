@@ -2,10 +2,11 @@ import { unstable_cache } from "next/cache";
 import { db } from "@/db";
 import type { BoutLevel } from "@/domain/bout-enums";
 import { DIVISIONS_CACHE_TAG } from "@/features/divisions/cache";
+import { eventCacheTag } from "@/features/events/cache";
 import { FIGHTERS_LIST_TAG, fighterCacheTag } from "@/features/fighters/cache";
 import { MEDIA_ANY_TAG } from "@/features/media/cache";
 import { RANKINGS_TAG } from "./cache";
-import { getFighterRankingTags, getPublicRankings } from "./queries";
+import { getBoutRankLabels, getFighterRankingTags, getPublicRankings } from "./queries";
 
 // Lecturas del sitio público cacheadas con etiquetas. Las fechas van como ISO (la caché serializa en JSON).
 
@@ -27,6 +28,17 @@ export function getCachedPublicRankings(level: BoutLevel) {
 export function getCachedFighterRankingTags(fighterId: string) {
   return unstable_cache(() => getFighterRankingTags(db, fighterId), ["fighter-ranking-tags", fighterId], {
     tags: [RANKINGS_TAG, fighterCacheTag(fighterId), DIVISIONS_CACHE_TAG],
+    revalidate: REVALIDATE_SECONDS,
+  })();
+}
+
+/**
+ * `C` o `#n` de cada peleador de la cartelera (por id) según el ranking de hoy. Va aparte de la caché del evento: guardar un
+ * ranking solo expira `rankings`, y cambiar la cartelera expira `event:<id>`. Devuelve un objeto (la caché serializa en JSON).
+ */
+export function getCachedBoutRankLabels(eventId: string, boutIds: string[]): Promise<Record<string, string>> {
+  return unstable_cache(async () => Object.fromEntries(await getBoutRankLabels(db, boutIds)), ["bout-rank-labels", eventId, ...boutIds], {
+    tags: [RANKINGS_TAG, eventCacheTag(eventId), FIGHTERS_LIST_TAG],
     revalidate: REVALIDATE_SECONDS,
   })();
 }

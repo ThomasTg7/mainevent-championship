@@ -21,7 +21,8 @@ export async function listLatestVersions(
       level: rankingVersions.level,
       divisionId: rankingVersions.divisionId,
       createdAt: rankingVersions.createdAt,
-      rank: sql<number>`row_number() over (partition by ${rankingVersions.level}, ${rankingVersions.divisionId} order by ${rankingVersions.createdAt} desc, ${rankingVersions.id} desc)`.as("rank"),
+      // `::int`: `row_number()` es bigint y postgres.js lo entrega como texto (PGlite, como número): `rank === 1` fallaría solo en Postgres real.
+      rank: sql<number>`(row_number() over (partition by ${rankingVersions.level}, ${rankingVersions.divisionId} order by ${rankingVersions.createdAt} desc, ${rankingVersions.id} desc))::int`.as("rank"),
     })
     .from(rankingVersions)
     .where(

@@ -15,9 +15,11 @@ type FighterHeroProps = {
   fighter: FighterProfileDTO;
   /** Las tres cifras grandes. */
   figures: CountFigure[];
+  /** Etiquetas de campeón y ranking ("Campeón pro · Peso Ligero", "#3 P4P"): van junto a la división y el estado. */
+  rankingTags?: string[];
 };
 
-export function FighterHero({ fighter, figures }: FighterHeroProps) {
+export function FighterHero({ fighter, figures, rankingTags = [] }: FighterHeroProps) {
   const name = `${fighter.firstName} ${fighter.lastName}`;
 
   return (
@@ -27,7 +29,11 @@ export function FighterHero({ fighter, figures }: FighterHeroProps) {
           <div className="mb-5 flex flex-wrap gap-2" data-slot="fighter-tags">
             <Tag tone="yellow">{divisionTitle(fighter.division)}</Tag>
             <Tag tone="outline">{CAREER_STATUS_LABELS[fighter.careerStatus]}</Tag>
-            {/* Etiquetas de campeón / ranking: las agrega el Plan 05 en este mismo contenedor. */}
+            {rankingTags.map((label) => (
+              <Tag key={label} tone={label.startsWith("Campeón") ? "yellow" : "outline"}>
+                {label}
+              </Tag>
+            ))}
           </div>
           {fighter.nickname ? (
             <p className="font-cond text-[clamp(16px,2.4vw,24px)] font-bold tracking-[.12em] text-yellow">“{fighter.nickname}”</p>
