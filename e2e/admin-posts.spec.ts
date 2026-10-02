@@ -217,6 +217,39 @@ test("con IA: copiar el prompt, subir una foto, pegar la respuesta, cargarla, co
   await expect(editor.locator("figure img")).toHaveCount(1);
 });
 
+test("la vista previa en vivo muestra la noticia como en el sitio y cambia al escribir, en celular y en PC", async ({ page }) => {
+  await page.goto(adminUrl("/noticias/nueva"));
+  const preview = page.locator('[data-slot="post-live-preview"]');
+  const frame = page.frameLocator('iframe[title^="Vista previa de la noticia"]');
+  // Sin título todavía: un texto de muestra para juzgar el diseño.
+  await expect(frame.getByRole("heading", { level: 1, name: "Título de la noticia" })).toBeVisible();
+
+  await page.getByLabel("Título", { exact: true }).fill("Rojas defiende en casa");
+  await page.getByLabel("Categoría").selectOption({ label: "Resultados" });
+  await page.getByLabel("Bajada").fill("La campeona vuelve a Santiago.");
+  await expect(frame.getByRole("heading", { level: 1, name: "Rojas defiende en casa" })).toBeVisible();
+  await expect(frame.getByText("La campeona vuelve a Santiago.")).toBeVisible();
+  await expect(frame.getByText("Resultados", { exact: true })).toBeVisible();
+
+  await page.getByRole("tab", { name: "Texto" }).click();
+  await page.getByRole("textbox", { name: "Cuerpo de la noticia" }).click();
+  await page.keyboard.type("Primer párrafo en vivo.");
+  await expect(frame.getByText("Primer párrafo en vivo.")).toBeVisible();
+
+  // Celular: 375 px de verdad; PC: 1440 px achicado para que quepa.
+  const iframe = page.locator('iframe[title^="Vista previa de la noticia"]');
+  expect(await iframe.evaluate((element) => (element as HTMLIFrameElement).contentWindow!.innerWidth)).toBe(375);
+  await preview.getByRole("button", { name: "PC" }).click();
+  await expect(iframe).toHaveAttribute("title", "Vista previa de la noticia en pc");
+  await expect.poll(() => iframe.evaluate((element) => (element as HTMLIFrameElement).contentWindow!.innerWidth)).toBe(1440);
+  await expect(frame.getByText("Primer párrafo en vivo.")).toBeVisible();
+
+  await preview.getByRole("button", { name: "Ocultar" }).click();
+  await expect(iframe).toHaveCount(0);
+  await preview.getByRole("button", { name: "Mostrar" }).click();
+  await expect(frame.getByRole("heading", { level: 1, name: "Rojas defiende en casa" })).toBeVisible();
+});
+
 test("el listado y el formulario no desbordan en celular ni en PC", async ({ page }) => {
   for (const size of [{ width: 375, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);

@@ -28,13 +28,16 @@ type PostEditorFieldProps = {
   initial: PostBody;
   media: Record<string, MediaDTO>;
   error?: string;
+  /** Cada cambio del cuerpo y cada imagen nueva (para la vista previa en vivo). */
+  onBodyChange?: (body: PostBody) => void;
+  onMediaAdded?: (media: MediaDTO[]) => void;
 };
 
 /**
  * El cuerpo de la noticia con dos publicadores: «Escribir» (el editor) y «Con IA» (pegar la respuesta de una IA). Los dos
  * escriben el mismo cuerpo, que viaja en el campo oculto `body` al guardar.
  */
-export function PostEditorField({ initial, media: initialMedia, error }: PostEditorFieldProps) {
+export function PostEditorField({ initial, media: initialMedia, error, onBodyChange, onMediaAdded }: PostEditorFieldProps) {
   const [body, setBody] = useState(initial);
   const [media, setMedia] = useState(initialMedia);
   // Cargar un texto desde la IA vuelve a montar el editor con ese contenido (`version`).
@@ -42,14 +45,20 @@ export function PostEditorField({ initial, media: initialMedia, error }: PostEdi
   const [mode, setMode] = useState<Mode>("write");
   const [aiOpened, setAiOpened] = useState(false);
 
+  function changeBody(next: PostBody) {
+    setBody(next);
+    onBodyChange?.(next);
+  }
+
   function addMedia(items: MediaDTO[]) {
     setMedia((current) => ({ ...current, ...Object.fromEntries(items.map((item) => [item.id, item])) }));
+    onMediaAdded?.(items);
   }
 
   function loadFromAi(doc: PostBody, photos: MediaDTO[]) {
     addMedia(photos);
     setEditorContent((current) => ({ doc, version: current.version + 1 }));
-    setBody(doc);
+    changeBody(doc);
     setMode("write");
   }
 
@@ -76,7 +85,7 @@ export function PostEditorField({ initial, media: initialMedia, error }: PostEdi
         <PostEditor
           key={editorContent.version}
           value={editorContent.doc}
-          onChange={setBody}
+          onChange={changeBody}
           onMediaAdded={(item) => addMedia([item])}
           media={media}
           invalid={Boolean(error)}

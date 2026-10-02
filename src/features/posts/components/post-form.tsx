@@ -15,6 +15,8 @@ import type { FormActionState } from "@/lib/form-errors";
 import { adminPath } from "@/lib/site-urls";
 import type { PostCategoryDTO, RelatedItemDTO } from "../dto";
 import { POST_FIELD_TABS, tabForPostField, type PostFormValues, type PostTab } from "../form-values";
+import { PostLivePreview } from "./live-preview/post-live-preview";
+import { useLivePreviewPost } from "./live-preview/use-live-preview-post";
 import { PostEditorField } from "./post-editor-field";
 import { PostDataTab, PostGalleryTab, PostRelatedTab } from "./post-tabs";
 
@@ -69,6 +71,7 @@ export function PostForm({
   }, {});
   const [, startTransition] = useTransition();
   const [publication, setPublication] = useState(initialPublication);
+  const preview = useLivePreviewPost({ defaults, categories, cover, gallery, body, bodyMedia }, publication);
   const errors = state.fieldErrors ?? {};
   const tabsWithErrors = new Set(Object.keys(errors).map(tabForPostField));
 
@@ -84,7 +87,7 @@ export function PostForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} onChange={preview.onFormChange} noValidate className="flex flex-col gap-6">
       <FormFieldsProvider value={{ defaults, errors, idPrefix: "post" }}>
         <Tabs value={tab} onValueChange={(value) => setTab(value as PostTab)}>
           <TabsList variant="line" className="h-auto w-full flex-wrap group-data-horizontal/tabs:h-auto justify-start gap-x-1 gap-y-1.5 pb-2">
@@ -97,7 +100,7 @@ export function PostForm({
           </TabsList>
           {/* Todas las pestañas quedan montadas (ocultas): sus campos se envían aunque no estén a la vista. */}
           <TabsContent value="data" forceMount className="pt-6" hidden={tab !== "data"}>
-            <PostDataTab categories={categories} cover={cover} featured={featured} showSlug={isEdit} />
+            <PostDataTab categories={categories} cover={cover} featured={featured} showSlug={isEdit} onCoverChange={preview.setCover} />
             {errors.coverMediaId ? (
               <p role="alert" className="mt-2 text-sm text-destructive">
                 {errors.coverMediaId}
@@ -105,10 +108,10 @@ export function PostForm({
             ) : null}
           </TabsContent>
           <TabsContent value="text" forceMount className="pt-6" hidden={tab !== "text"}>
-            <PostEditorField initial={body} media={bodyMedia} error={errors.body} />
+            <PostEditorField initial={body} media={bodyMedia} error={errors.body} onBodyChange={preview.setBody} onMediaAdded={preview.addMedia} />
           </TabsContent>
           <TabsContent value="gallery" forceMount className="pt-6" hidden={tab !== "gallery"}>
-            <PostGalleryTab gallery={gallery} />
+            <PostGalleryTab gallery={gallery} onGalleryChange={preview.setGallery} />
             {errors.galleryMediaIds ? (
               <p role="alert" className="mt-2 text-sm text-destructive">
                 {errors.galleryMediaIds}
@@ -128,6 +131,8 @@ export function PostForm({
           </TabsContent>
         </Tabs>
       </FormFieldsProvider>
+
+      <PostLivePreview post={preview.post} />
 
       {state.error ? (
         <p role="alert" className="text-sm text-destructive">

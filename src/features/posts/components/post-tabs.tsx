@@ -17,10 +17,11 @@ type DataTabProps = {
   cover: MediaDTO | null;
   featured: boolean;
   showSlug: boolean;
+  onCoverChange?: (cover: MediaDTO | null) => void;
 };
 
 /** Título, categoría, bajada, portada y si es la noticia destacada de la home. El enlace solo se edita en noticias ya creadas. */
-export function PostDataTab({ categories, cover, featured: initialFeatured, showSlug }: DataTabProps) {
+export function PostDataTab({ categories, cover, featured: initialFeatured, showSlug, onCoverChange }: DataTabProps) {
   const [featured, setFeatured] = useState(initialFeatured);
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -61,18 +62,18 @@ export function PostDataTab({ categories, cover, featured: initialFeatured, show
       <section className="flex flex-col gap-2 md:col-span-2">
         <h3 className="text-base font-semibold">{MEDIA_SPECS.news_cover.label}</h3>
         <p className="text-sm text-muted-foreground">Horizontal 16:9. Sin portada, la noticia usa un fondo de la marca.</p>
-        <MediaField kind="news_cover" name="coverMediaId" media={cover} />
+        <MediaField kind="news_cover" name="coverMediaId" media={cover} onChange={(_, media) => onCoverChange?.(media)} />
       </section>
     </div>
   );
 }
 
-export function PostGalleryTab({ gallery }: { gallery: MediaDTO[] }) {
+export function PostGalleryTab({ gallery, onGalleryChange }: { gallery: MediaDTO[]; onGalleryChange?: (media: MediaDTO[]) => void }) {
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-base font-semibold">Galería de la noticia</h3>
       <p className="text-sm text-muted-foreground">Fotos que se muestran al final de la noticia, con visor. Se pueden ordenar.</p>
-      <MediaGalleryField name="galleryMediaIds" media={gallery} />
+      <MediaGalleryField name="galleryMediaIds" media={gallery} onMediaChange={onGalleryChange} />
     </section>
   );
 }
