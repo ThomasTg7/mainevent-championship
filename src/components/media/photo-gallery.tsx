@@ -1,10 +1,13 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, type KeyboardEvent } from "react";
+import { useRef, useState, type KeyboardEvent, type TouchEvent } from "react";
 import { MediaImage } from "@/components/media/media-image";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { MediaDTO } from "@/features/media/dto";
+
+/** Distancia mínima (px) de un arrastre horizontal para contarlo como deslizar y no como un toque. */
+const SWIPE_DISTANCE_PX = 50;
 
 type PhotoGalleryProps = {
   media: MediaDTO[];
@@ -16,9 +19,18 @@ type PhotoGalleryProps = {
 export function PhotoGallery({ media, title }: PhotoGalleryProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const current = openIndex === null ? null : (media[openIndex] ?? null);
+  const touchStartX = useRef<number | null>(null);
 
   function step(delta: -1 | 1) {
     setOpenIndex((index) => (index === null ? null : (index + delta + media.length) % media.length));
+  }
+
+  function handleTouchEnd(event: TouchEvent) {
+    const startX = touchStartX.current;
+    touchStartX.current = null;
+    const endX = event.changedTouches[0]?.clientX;
+    if (startX === null || endX === undefined || Math.abs(endX - startX) < SWIPE_DISTANCE_PX) return;
+    step(endX < startX ? 1 : -1);
   }
 
   function handleKeyDown(event: KeyboardEvent) {
@@ -50,7 +62,14 @@ export function PhotoGallery({ media, title }: PhotoGalleryProps) {
             Foto {(openIndex ?? 0) + 1} de {media.length}. Usa las flechas izquierda y derecha para cambiar de foto.
           </DialogDescription>
           {current ? (
-            <div className="relative flex items-center justify-center">
+            <div
+              data-slot="photo-stage"
+              onTouchStart={(event) => {
+                touchStartX.current = event.touches[0]?.clientX ?? null;
+              }}
+              onTouchEnd={handleTouchEnd}
+              className="relative flex items-center justify-center"
+            >
               <MediaImage media={current} sizes="96vw" className="max-h-[78dvh] w-auto max-w-full object-contain" />
               {media.length > 1 ? (
                 <>

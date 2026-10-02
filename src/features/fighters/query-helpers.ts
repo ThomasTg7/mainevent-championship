@@ -11,7 +11,7 @@ import type { FighterFilters } from "./schema";
 
 export type PageOptions = { page?: number; pageSize?: number };
 
-function escapeLike(text: string): string {
+export function escapeLike(text: string): string {
   return text.replace(/[\\%_]/g, (character) => `\\${character}`);
 }
 

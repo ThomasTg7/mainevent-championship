@@ -35,6 +35,12 @@ describe("listAdminEvents", () => {
     expect(counts).toMatchObject({ "Guerra Campal 5": 5, "Guerra Campal 1": 4, "Evento borrador": 0 });
   });
 
+  it("filters by name text without regard to case, and treats wildcards as plain text", async () => {
+    expect((await listAdminEvents(db, { q: "campal 4" })).items.map((event) => event.name)).toEqual(["Guerra Campal 4"]);
+    expect((await listAdminEvents(db, { q: "BORRADOR" })).items.map((event) => event.name)).toEqual(["Evento borrador"]);
+    expect((await listAdminEvents(db, { q: "%" })).items).toEqual([]);
+  });
+
   it("filters by publication state", async () => {
     const { items } = await listAdminEvents(db, { publication: "draft" });
     expect(items.map((event) => event.name)).toEqual(["Evento borrador"]);

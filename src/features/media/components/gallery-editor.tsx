@@ -16,11 +16,19 @@ type GalleryEditorProps = {
   /** Fotos ya guardadas, en orden (las carga el servidor con `getMediaByIds`). */
   media?: MediaDTO[];
   onChange?: (mediaIds: string[]) => void;
+  /** Igual que `onChange`, con las fotos completas (para mostrarlas en otro lado sin pedirlas). */
+  onMediaChange?: (media: MediaDTO[]) => void;
+  /** Texto del botón para subir: sin fotos y con fotos. */
+  uploadLabels?: { empty: string; more: string };
+  /** Muestra «FOTO N» sobre cada miniatura, también en celular (cuando el número importa, como en «Con IA»). */
+  numbered?: boolean;
 };
 
 const SPEC = MEDIA_SPECS.gallery;
 
-export function GalleryEditor({ media: initialMedia = [], onChange }: GalleryEditorProps) {
+const DEFAULT_UPLOAD_LABELS = { empty: "Subir fotos de la galería", more: "Agregar más fotos" };
+
+export function GalleryEditor({ media: initialMedia = [], onChange, onMediaChange, uploadLabels = DEFAULT_UPLOAD_LABELS, numbered = false }: GalleryEditorProps) {
   const [items, setItems] = useState<MediaDTO[]>(initialMedia);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -30,8 +38,9 @@ export function GalleryEditor({ media: initialMedia = [], onChange }: GalleryEdi
     (next: MediaDTO[]) => {
       setItems(next);
       onChange?.(next.map((item) => item.id));
+      onMediaChange?.(next);
     },
-    [onChange],
+    [onChange, onMediaChange],
   );
 
   const handleEdited = useCallback(
@@ -88,6 +97,7 @@ export function GalleryEditor({ media: initialMedia = [], onChange }: GalleryEdi
                   media={item}
                   position={index}
                   total={items.length}
+                  numbered={numbered}
                   disabled={busy}
                   onMove={(delta) => move(index, index + delta)}
                   onEdit={() => editing.reopen(item)}
@@ -103,7 +113,7 @@ export function GalleryEditor({ media: initialMedia = [], onChange }: GalleryEdi
         multiple
         accept={SPEC.accepts}
         disabled={busy}
-        label={items.length > 0 ? "Agregar más fotos" : "Subir fotos de la galería"}
+        label={items.length > 0 ? uploadLabels.more : uploadLabels.empty}
         hint="Arrastra las fotos aquí o toca para elegirlas · JPG, PNG o WebP · máx. 15 MB cada una"
         onFiles={addFiles}
       />

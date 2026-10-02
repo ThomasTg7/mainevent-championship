@@ -112,6 +112,8 @@ Por peleador y nivel: victorias, derrotas, empates, NC; victorias y derrotas por
 
 ### 4.8 Noticias
 Título, slug, bajada, portada 16:9, cuerpo en texto enriquecido (Tiptap JSON) con embeds de Instagram/YouTube/TikTok por URL, galería, categoría (catálogo editable: Anuncios, Resultados, Entrevistas, Detrás de cámaras), peleadores y eventos relacionados.
+Fecha de una noticia = el momento en que se publica (o la fecha programada). La home muestra como principal la destacada más reciente o, sin destacada, la más reciente.
+Panel: dos publicadores para el cuerpo — el editor y «Con IA» (se copia un prompt para una IA externa, sin API, y se pega su respuesta en un formato fijo: título, bajada, `##`, listas, citas, `[FOTO N]`, link de una red solo en su línea) — y una vista previa en vivo bajo el formulario, en celular (375 px) y PC (1440 px), dibujada con los mismos componentes de la página pública. En el panel las publicaciones de redes se ven con el reproductor real; en el sitio, como fachada que no carga nada de la red hasta el clic. Videos solo vía YouTube, Instagram o TikTok (no se suben archivos de video).
 
 ### 4.9 Patrocinadores
 Nombre, logo (SVG/PNG sin fondo, caja 2:1), link, nivel (`principal | oficial | colaborador`), orden, vigencia (desde/hasta, se ocultan solos), alcance (todos los eventos o eventos específicos). Ubicaciones: home, página de evento, footer.
@@ -155,7 +157,7 @@ Textos de Nosotros, Contacto, Privacidad, FAQ de entradas, redes, email, WhatsAp
 - Metadatos por página (`generateMetadata`), URLs limpias, canonical.
 - `sitemap.xml` y `robots.txt` dinámicos.
 - JSON-LD: `SportsEvent` (eventos), `Person` (peleadores), `NewsArticle` (noticias), `Organization` (home).
-- Open Graph con la imagen fija de marca.
+- Open Graph con la imagen fija de marca; las noticias con portada usan su portada.
 - Google Search Console (verificación por meta tag configurable).
 - Política de privacidad (Ley 19.628; alinear con Ley 21.719, vigente desde dic 2026) + casilla de consentimiento en formularios.
 - Rendimiento: LCP < 2.5 s en 4G para home y ficha; imágenes con `next/image` y variantes propias.

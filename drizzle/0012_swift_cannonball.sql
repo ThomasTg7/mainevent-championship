@@ -1,0 +1,1 @@
+CREATE INDEX "posts_date_idx" ON "posts" USING btree (coalesce("publish_at", "created_at") desc,"id" desc);
