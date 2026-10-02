@@ -10,25 +10,25 @@ export function MovementBadge({ movement }: { movement: Movement }) {
   switch (movement.kind) {
     case "up":
       return (
-        <span aria-label={`Sube ${places(movement.by)}`} className="font-cond text-sm font-extrabold text-green-400">
+        <span role="img" aria-label={`Sube ${places(movement.by)}`} className="font-cond text-sm font-extrabold text-green-400">
           ▲{movement.by}
         </span>
       );
     case "down":
       return (
-        <span aria-label={`Baja ${places(movement.by)}`} className="font-cond text-sm font-extrabold text-red-400">
+        <span role="img" aria-label={`Baja ${places(movement.by)}`} className="font-cond text-sm font-extrabold text-red-400">
           ▼{movement.by}
         </span>
       );
     case "new":
       return (
-        <span aria-label="Nuevo en el ranking" className="bg-yellow px-1.5 py-0.5 font-cond text-[11px] font-extrabold tracking-[.1em] text-black">
+        <span role="img" aria-label="Nuevo en el ranking" className="bg-yellow px-1.5 py-0.5 font-cond text-[11px] font-extrabold tracking-[.1em] text-black">
           NUEVO
         </span>
       );
     case "same":
       return (
-        <span aria-label="Sin cambios" className="font-cond text-sm font-bold text-muted-foreground">
+        <span role="img" aria-label="Sin cambios" className="font-cond text-sm font-bold text-muted-foreground">
           —
         </span>
       );

@@ -30,7 +30,7 @@ export function RankingRow({ fighter, position, total, disabled, onMove, onRemov
       <Button type="button" variant="ghost" size="icon" className="cursor-grab touch-none" aria-label={`Arrastrar a ${fighter.name} para reordenar`} {...attributes} {...listeners}>
         <GripVertical aria-hidden />
       </Button>
-      <span className="w-8 text-center font-display text-xl text-primary" aria-label={`Puesto ${position + 1}`}>
+      <span className="w-8 text-center font-display text-xl text-primary">
         {position + 1}
       </span>
       <div className="flex min-w-0 flex-1 basis-40 flex-wrap items-center gap-x-2 gap-y-1">

@@ -61,7 +61,8 @@ test("tras cargar un resultado, la sugerencia se acepta, se guarda y queda en un
 
   const suggestion = "SugNuevo (sin ranking) venció a SugTres (#3)";
   await expect(page.getByRole("heading", { name: /Sugerencias tras Noche E2E Sugerencias/ })).toBeVisible();
-  await expect(page.getByText(suggestion)).toBeVisible();
+  // `.first()`: mientras Next transmite la página el texto puede existir dos veces por un instante (strict mode falla sin reintentar).
+  await expect(page.getByText(suggestion).first()).toBeVisible();
   await expectNoHorizontalScroll(page);
 
   await page.getByRole("button", { name: `Aceptar: ${suggestion}` }).click();
@@ -96,7 +97,8 @@ test("descartar una sugerencia la quita y no vuelve a salir", async ({ page }) =
   await page.goto(EDITOR_URL);
 
   const suggestion = "DescNuevo (sin ranking) venció a DescTres (#3)";
-  await expect(page.getByText(suggestion)).toBeVisible();
+  // `.first()`: mientras Next transmite la página el texto puede existir dos veces por un instante (strict mode falla sin reintentar).
+  await expect(page.getByText(suggestion).first()).toBeVisible();
   await page.getByRole("button", { name: `Descartar: ${suggestion}` }).click();
   await expect(page.getByText(suggestion)).toHaveCount(0);
 

@@ -606,3 +606,55 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Impacto:** los indicados.
 - **Estado:** aplicado
 
+
+---
+
+# Ejecución del Plan 05 (Sonnet) — 2026-10-02
+
+## [Plan 05 · Task 2] Servicios con auditoría dentro; actions delgadas — 2026-10-02
+- **Qué:** el plan nombra `saveRanking`, `setChampion`, `vacateTitle`, `dismissSuggestion` como «actions». La lógica va en `rankings/service.ts` (`(db, input, actorId)`, auditoría en la misma transacción, `UserFacingError`) y `actions.ts` solo hace `requireAdmin()`, Zod y `revalidateRankings()` + `revalidateFighter(id)` de quienes entran, salen o se mueven (los servicios devuelven `affectedFighterIds`). Archivos extra para respetar el tope de líneas: `eligibility.ts`, `versions.ts`, `warnings.ts` (`listIneligibleWarnings`, `getFighterRankingStanding`), `suggestions.ts`, `admin-queries.ts`, `title-change.ts`, `ranking-draft.ts`.
+- **Por qué:** `docs/convenciones.md` manda sobre el plan.
+- **Impacto:** ninguno en planes siguientes.
+- **Estado:** aplicado
+
+## [Plan 05 · Task 2] `ranking_entries` y `dismissed_suggestions` con `ON DELETE CASCADE` hacia el peleador — 2026-10-02
+- **Qué:** el plan pedía `restrict`. Con `restrict`, un peleador que salió del ranking vigente pero sigue en versiones viejas pasaría la guarda de `deleteFighter` y la purga de la papelera (cron, 30 días) fallaría por la FK. Con `cascade`, la purga lo borra también de las versiones viejas. `titles.champion_fighter_id` sí queda `restrict`. `deleteFighter` rechaza a un campeón («Es campeón: deja vacante el título primero») y a quien está en una versión vigente («Está en el ranking: quítalo primero»); la guarda de peleas del Plan 03 va antes.
+- **Por qué:** evitar un fallo del cron.
+- **Impacto:** el movimiento ▲▼ de versiones antiguas pierde la fila de un peleador purgado (irrelevante: solo se compara vigente contra anterior).
+- **Estado:** aplicado
+
+## [Plan 05 · Task 2] Coronar guarda también una versión del ranking — 2026-10-02
+- **Qué:** `setChampion` (misma transacción) crea una versión nueva del ranking de la división si cambia: saca al nuevo campeón del ranking numerado y pone al campeón anterior, si sigue elegible, en el #1. `vacateTitle` no toca el ranking. Coronar al campeón actual no hace nada.
+- **Por qué:** el plan pide «Pérez en el ranking sugerido» tras el cambio y el Review Focus exige que el campeón no esté en el ranking numerado; sin esto el sitio mostraría al campeón dos veces hasta que alguien guardara a mano (la vista pública además filtra al campeón de la lista, por si una versión vieja lo trae).
+- **Impacto:** el admin puede reordenar después; el diálogo de cambio de título lo avisa. Si prefieren que el excampeón no entre solo, es quitar una línea en `setChampion`.
+- **Estado:** aplicado
+
+## [Plan 05 · Task 2] Elegibilidad, libra por libra y seed — 2026-10-02
+- **Qué:** elegible = activo + público ahora + del género de la división + (al menos una pelea terminada del nivel **o** récord manual > 0 en ese nivel). El libra por libra es **una sola lista** (hombres y mujeres, sin filtro de género): el alcance del plan solo distingue nivel y división. Guardar siempre crea versión (aunque no cambie nada). Las posiciones guardadas son 1, 2, …; la vista pública **compacta** los puestos si alguien ya no se ve (movimiento calculado sobre esas listas), la ficha y la cartelera usan el puesto guardado. `seedRankings` (por los servicios): pro con campeón y 1–2 puestos en Pluma, Ligero, Wélter y Paja fem. + P4P de 5; amateur solo Paja fem. (única división con peleas amateur en el seed). No hace nada si ya hay títulos o versiones. Para un P4P por género habría que agregar `gender` al alcance (migración).
+- **Por qué:** reglas del plan + decisiones mínimas donde el plan no decía.
+- **Impacto:** Plan 06 puede leer `getCachedPublicRankings(level)` (`cards[0]` = P4P) para «rankings resumidos».
+- **Estado:** aplicado · aplicada a planes siguientes (vía `docs/convenciones.md`)
+
+## [Plan 05 · Task 3] Confirmación del cambio de título — 2026-10-02
+- **Qué:** `recordBoutResultAction` convierte el candidato en `TitleChangePrompt` (nombres, división, campeón actual) con `describeTitleChange` y devuelve `null` si el campeón guardado ya es ese peleador (una corrección posterior no vuelve a preguntar, como pedía la revisión del Plan 03). `TitleChangeDialog` llama `setChampionAction` y avisa con `onConfirm`; «Ahora no» deja todo igual. El estado vive en `BoutResultDialog` (el diálogo del resultado se cierra al guardar) y en `LiveConsole`. El e2e usa peleadores y divisiones propias (Semipesado/Pesado): cambiar a Pérez en GC 5 rompería los specs públicos que esperan al campeón del seed.
+- **Por qué:** el texto del diálogo necesita nombres; aislar los e2e.
+- **Impacto:** los specs de rankings usan solo Medio, Semipesado y Pesado (`e2e/fixtures/rankings.ts`); ningún otro spec los toca. Mover Mosca/Gallo masculinos rompe `admin-divisions`.
+- **Estado:** aplicado
+
+## [Plan 05 · Task 4] Editor, sugerencias y buscador de elegibles — 2026-10-02
+- **Qué:** (1) El editor no recibe `eligibleFighters` (cientos de peleadores al navegador): busca con `searchEligibleFightersAction` (hasta 10). `FighterPicker` se generalizó (`corner` opcional, `search`, `busyLabel`, `emptyText`; `PickedFighter` trae `name` y `nationality`). (2) Sugerencias: del **último evento** con peleas decididas en la división y nivel, contra el ranking vigente, sin las descartadas (evento + peleador + alcance) ni ganadores no elegibles; el libra por libra no tiene sugerencias. Una ya aplicada deja de salir sola. «Entrar al puesto n» empuja al que estaba ahí al n+1 (`applySuggestion`). (3) Lista de alcances `/rankings?nivel=pro|amateur` y editor en `/rankings/<nivel>/<p4p|slug>`; pestañas como enlaces. (4) Campeón: `ChampionPicker` reutiliza `TitleChangeDialog`; «Dejar vacante» pide confirmar. (5) Avisos de peleadores rankeados que ya no se ven (retirado, inactivo, no publicado, papelera) arriba de la lista y del editor, y una insignia roja en la fila.
+- **Por qué:** CLAUDE.md (consultas acotadas, panel móvil y PC, alternativas a arrastrar).
+- **Impacto:** el e2e de aceptar la sugerencia comprueba también el sitio público.
+- **Estado:** aplicado
+
+## [Plan 05 · Task 5] Sitio público — 2026-10-02
+- **Qué:** `/rankings` (pestañas Pro/Amateur como enlaces `?nivel=`, «Actualizado <fecha>», P4P primero; las divisiones sin campeón ni puestos no salen; estado vacío), `RankingCard`, `MovementBadge` (▲ verde-400 / ▼ rojo-400 sobre el fondo oscuro, `NUEVO` negro sobre amarillo, `role="img"` + `aria-label`), etiquetas en `data-slot="fighter-tags"` (`Campeón pro · Peso Ligero`, `#3 Peso Wélter`, `#5 P4P`; el nivel amateur agrega `· Amateur` a los puestos y dice `Campeón amateur`) y `C`/`#n` en `data-slot="bout-rank"`, cada una con su propia lectura cacheada (`getCachedFighterRankingTags`, `getCachedBoutRankLabels`). `FighterCard` recibe `backdrop` (el `.bgnum` de la maqueta; sin uso hasta el Plan 06).
+- **Por qué:** plan.
+- **Impacto:** `revalidateFighter` expira también `rankings`.
+- **Estado:** aplicado
+
+## [Plan 05 · e2e] Trampas encontradas por los e2e — 2026-10-02
+- **Qué:** (1) `row_number()` es `bigint`: postgres.js lo entrega como texto y PGlite como número, así que `rank === 1` solo fallaba en Postgres real; ahora `::int` (`versions.ts`). Los tests con PGlite no ven esta clase de diferencias: lo que dependa de tipos numéricos de SQL debe pasar por un e2e. (2) La caché de `unstable_cache` del servidor e2e persiste en `.next-e2e/dev/cache/fetch-cache` entre corridas (hasta 5 min): tras cambiar el código de una lectura cacheada, borrar esa carpeta antes de correr. (3) Con la página transmitiéndose, un mismo texto puede existir dos veces por un instante y `toBeVisible` en modo estricto falla sin reintentar: usar `.first()`.
+- **Por qué:** documentar.
+- **Impacto:** `docs/convenciones.md`.
+- **Estado:** aplicado

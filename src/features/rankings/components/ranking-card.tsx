@@ -50,7 +50,7 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
         <ol>
           {entries.map((entry) => (
             <li key={entry.fighter.id} className="grid grid-cols-[34px_1fr_auto] items-center gap-2.5 border-b border-border px-[22px] py-3 font-cond text-[17px] font-bold uppercase tracking-[.03em] text-white">
-              <span className="text-muted-foreground" aria-label={`Puesto ${entry.position}`}>
+              <span className="text-muted-foreground">
                 {entry.position}
               </span>
               <span className="flex min-w-0 items-center gap-2">
