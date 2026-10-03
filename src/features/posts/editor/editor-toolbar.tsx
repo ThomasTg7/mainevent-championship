@@ -50,10 +50,12 @@ type EditorToolbarProps = {
   panel: ToolbarPanel;
   onPanelChange: (panel: ToolbarPanel) => void;
   onInsertImage: () => void;
+  /** `false` oculta «Foto» y «Video / Post» (textos de Configuración). */
+  allowMedia?: boolean;
 };
 
 /** Barra del editor: títulos, formato, listas, cita, enlace, separador, imagen y publicación de una red. Se envuelve en celular. */
-export function EditorToolbar({ editor, panel, onPanelChange, onInsertImage }: EditorToolbarProps) {
+export function EditorToolbar({ editor, panel, onPanelChange, onInsertImage, allowMedia = true }: EditorToolbarProps) {
   return (
     <div role="toolbar" aria-label="Formato del texto" className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-card p-2">
       <Group label="Títulos">
@@ -71,10 +73,12 @@ export function EditorToolbar({ editor, panel, onPanelChange, onInsertImage }: E
         <ToolButton label="Cita" icon={Quote} active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
         <ToolButton label="Separador" icon={Minus} onClick={() => editor.chain().focus().setHorizontalRule().run()} />
       </Group>
-      <Group label="Insertar">
-        <ToolButton label="Imagen" text="Foto" icon={ImagePlus} onClick={onInsertImage} />
-        <ToolButton label="Video o publicación de YouTube, Instagram, TikTok o Facebook" text="Video / Post" icon={Clapperboard} active={panel === "embed"} onClick={() => onPanelChange(panel === "embed" ? null : "embed")} />
-      </Group>
+      {allowMedia ? (
+        <Group label="Insertar">
+          <ToolButton label="Imagen" text="Foto" icon={ImagePlus} onClick={onInsertImage} />
+          <ToolButton label="Video o publicación de YouTube, Instagram, TikTok o Facebook" text="Video / Post" icon={Clapperboard} active={panel === "embed"} onClick={() => onPanelChange(panel === "embed" ? null : "embed")} />
+        </Group>
+      ) : null}
     </div>
   );
 }

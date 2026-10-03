@@ -28,6 +28,10 @@ type PostEditorProps = {
   /** Para enlazar la etiqueta y los errores del campo. */
   id?: string;
   invalid?: boolean;
+  /** `false` en los textos de Configuración: sin imágenes ni publicaciones de redes (ni sus botones). */
+  allowMedia?: boolean;
+  /** Nombre accesible del cuadro de texto. */
+  label?: string;
 };
 
 /**
@@ -35,14 +39,14 @@ type PostEditorProps = {
  * negrita, cursiva, listas, cita, enlace, separador, imagen y publicación de Instagram/YouTube/TikTok/Facebook. Pesa: se carga
  * con `next/dynamic` solo en el formulario de noticias.
  */
-export function PostEditor({ value, onChange, media = {}, onMediaAdded, onAiDraftPaste, id = "post-body", invalid }: PostEditorProps) {
+export function PostEditor({ value, onChange, media = {}, onMediaAdded, onAiDraftPaste, id = "post-body", invalid, allowMedia = true, label = "Cuerpo de la noticia" }: PostEditorProps) {
   const [panel, setPanel] = useState<ToolbarPanel>(null);
   const [imageOpen, setImageOpen] = useState(false);
   // Un solo mapa para toda la vida del editor: las imágenes que se suben después se agregan sin recrearlo.
   const [mediaById] = useState(() => new Map(Object.entries(media)));
 
   const editor = useEditor({
-    extensions: createPostExtensions((mediaId) => mediaById.get(mediaId)),
+    extensions: createPostExtensions((mediaId) => mediaById.get(mediaId), { media: allowMedia }),
     content: value,
     // El primer render no toca el DOM del editor: evita desajustes de hidratación.
     immediatelyRender: false,
@@ -50,7 +54,7 @@ export function PostEditor({ value, onChange, media = {}, onMediaAdded, onAiDraf
     shouldRerenderOnTransaction: true,
     onUpdate: ({ editor: current }) => onChange(current.getJSON() as PostBody),
     editorProps: {
-      attributes: { id, role: "textbox", "aria-multiline": "true", "aria-label": "Cuerpo de la noticia", class: CONTENT_CLASS },
+      attributes: { id, role: "textbox", "aria-multiline": "true", "aria-label": label, class: CONTENT_CLASS },
     },
   });
 
@@ -77,21 +81,23 @@ export function PostEditor({ value, onChange, media = {}, onMediaAdded, onAiDraf
 
   return (
     <div className={`border bg-background ${invalid ? "border-destructive" : "border-border"}`}>
-      <EditorToolbar editor={editor} panel={panel} onPanelChange={setPanel} onInsertImage={() => setImageOpen(true)} />
+      <EditorToolbar editor={editor} panel={panel} onPanelChange={setPanel} onInsertImage={() => setImageOpen(true)} allowMedia={allowMedia} />
       {panel === "link" ? <LinkPanel editor={editor} onClose={closePanel} /> : null}
-      {panel === "embed" ? <EmbedPanel editor={editor} onClose={closePanel} /> : null}
+      {panel === "embed" && allowMedia ? <EmbedPanel editor={editor} onClose={closePanel} /> : null}
       <EditorContent editor={editor} onPasteCapture={catchAiDraftPaste} />
 
-      <Dialog open={imageOpen} onOpenChange={setImageOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Insertar imagen</DialogTitle>
-            <DialogDescription>Sube la foto: se agrega al texto donde dejaste el cursor.</DialogDescription>
-          </DialogHeader>
-          {/* Dentro del diálogo (fuera del formulario): este campo no se envía con la noticia. */}
-          <MediaField kind="gallery" name="postBodyImage" onChange={insertImage} />
-        </DialogContent>
-      </Dialog>
+      {allowMedia ? (
+        <Dialog open={imageOpen} onOpenChange={setImageOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Insertar imagen</DialogTitle>
+              <DialogDescription>Sube la foto: se agrega al texto donde dejaste el cursor.</DialogDescription>
+            </DialogHeader>
+            {/* Dentro del diálogo (fuera del formulario): este campo no se envía con la noticia. */}
+            <MediaField kind="gallery" name="postBodyImage" onChange={insertImage} />
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

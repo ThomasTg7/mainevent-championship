@@ -69,6 +69,21 @@ describe("validatePostBody", () => {
   });
 });
 
+describe("validatePostBody without media", () => {
+  const withoutMedia = { allowMedia: false };
+
+  it("rejects images and embeds but keeps every other node", () => {
+    expect(validatePostBody(doc({ type: "image", attrs: { mediaId: MEDIA_A } }), withoutMedia)).toBe(false);
+    expect(validatePostBody(doc({ type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } }), withoutMedia)).toBe(false);
+    expect(validatePostBody(doc({ type: "blockquote", content: [{ type: "image", attrs: { mediaId: MEDIA_A } }] }), withoutMedia)).toBe(false);
+    expect(validatePostBody(doc({ type: "paragraph", content: [text("Hola")] }, { type: "horizontalRule" }), withoutMedia)).toBe(true);
+  });
+
+  it("still accepts them by default", () => {
+    expect(validatePostBody(doc({ type: "image", attrs: { mediaId: MEDIA_A } }))).toBe(true);
+  });
+});
+
 describe("collectBodyMediaIds", () => {
   it("lists each image once, in the order it appears, including inside quotes", () => {
     const body = doc(

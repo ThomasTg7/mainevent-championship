@@ -19,6 +19,8 @@ const INLINE = new Set(["text", "hardBreak"]);
 const LISTS = new Set(["bulletList", "orderedList"]);
 const BLOCKS = new Set(["paragraph", "heading", "bulletList", "orderedList", "blockquote", "horizontalRule", "image", "embed"]);
 const MARKS = new Set(["bold", "italic", "link"]);
+/** Nodos que apuntan a imágenes o redes: los textos de Configuración (Nosotros, Privacidad) no los llevan. */
+const MEDIA_NODES = new Set(["image", "embed"]);
 
 /** Qué nodos pueden ir dentro de cada nodo; los que no figuran no llevan contenido. */
 const CHILDREN: Record<string, ReadonlySet<string>> = {
@@ -68,10 +70,13 @@ function isValidAttrs(node: Record<string, unknown>): boolean {
   }
 }
 
-function isValidNode(node: unknown, allowed: ReadonlySet<string>, depth: number, counter: { nodes: number }): boolean {
+type Walk = { nodes: number; allowMedia: boolean };
+
+function isValidNode(node: unknown, allowed: ReadonlySet<string>, depth: number, walk: Walk): boolean {
   if (depth > MAX_DEPTH || !isRecord(node) || typeof node.type !== "string" || !allowed.has(node.type)) return false;
-  counter.nodes += 1;
-  if (counter.nodes > MAX_NODES) return false;
+  if (!walk.allowMedia && MEDIA_NODES.has(node.type)) return false;
+  walk.nodes += 1;
+  if (walk.nodes > MAX_NODES) return false;
 
   if (node.type === "text") {
     return typeof node.text === "string" && node.text.length > 0 && node.text.length <= MAX_TEXT_LENGTH && isValidMarks(node.marks);
@@ -81,16 +86,19 @@ function isValidNode(node: unknown, allowed: ReadonlySet<string>, depth: number,
   const childTypes = CHILDREN[node.type];
   if (node.content === undefined) return true;
   if (!childTypes || !Array.isArray(node.content)) return false;
-  return node.content.every((child) => isValidNode(child, childTypes, depth + 1, counter));
+  return node.content.every((child) => isValidNode(child, childTypes, depth + 1, walk));
 }
 
-/** `true` solo si el JSON es un documento hecho únicamente de los nodos, marcas y atributos permitidos. */
-export function validatePostBody(body: unknown): body is PostBody {
+/**
+ * `true` solo si el JSON es un documento hecho únicamente de los nodos, marcas y atributos permitidos. Con
+ * `allowMedia: false` (textos de Configuración) tampoco se aceptan imágenes ni publicaciones de redes.
+ */
+export function validatePostBody(body: unknown, { allowMedia = true }: { allowMedia?: boolean } = {}): body is PostBody {
   if (!isRecord(body) || body.type !== "doc") return false;
   if (body.content === undefined) return true;
   if (!Array.isArray(body.content)) return false;
-  const counter = { nodes: 0 };
-  return body.content.every((child) => isValidNode(child, BLOCKS, 1, counter));
+  const walk: Walk = { nodes: 0, allowMedia };
+  return body.content.every((child) => isValidNode(child, BLOCKS, 1, walk));
 }
 
 /** Ids de las imágenes que aparecen dentro del cuerpo, sin repetir y en el orden en que salen. */
