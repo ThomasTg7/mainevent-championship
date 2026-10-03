@@ -1,9 +1,10 @@
 "use client";
 
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ClipboardEvent } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { PostBody } from "@/domain/post-body";
+import { looksLikeAiDraft } from "@/domain/post-markdown";
 import { MediaField } from "@/features/media/components/media-field";
 import type { MediaDTO } from "@/features/media/dto";
 import { EditorToolbar, type ToolbarPanel } from "./editor-toolbar";
@@ -22,6 +23,8 @@ type PostEditorProps = {
   media?: Record<string, MediaDTO>;
   /** Al subir una imagen desde la barra (para que el resto del formulario la conozca). */
   onMediaAdded?: (media: MediaDTO) => void;
+  /** Se pegó una respuesta de la IA (con «TÍTULO:»): en vez de pegarla como texto, la carga el formulario. */
+  onAiDraftPaste?: (text: string) => void;
   /** Para enlazar la etiqueta y los errores del campo. */
   id?: string;
   invalid?: boolean;
@@ -29,10 +32,10 @@ type PostEditorProps = {
 
 /**
  * Editor de texto enriquecido (Tiptap). Solo ofrece los nodos permitidos para el cuerpo de una noticia: títulos H2/H3,
- * negrita, cursiva, listas, cita, enlace, separador, imagen y publicación de Instagram/YouTube/TikTok. Pesa: se carga
+ * negrita, cursiva, listas, cita, enlace, separador, imagen y publicación de Instagram/YouTube/TikTok/Facebook. Pesa: se carga
  * con `next/dynamic` solo en el formulario de noticias.
  */
-export function PostEditor({ value, onChange, media = {}, onMediaAdded, id = "post-body", invalid }: PostEditorProps) {
+export function PostEditor({ value, onChange, media = {}, onMediaAdded, onAiDraftPaste, id = "post-body", invalid }: PostEditorProps) {
   const [panel, setPanel] = useState<ToolbarPanel>(null);
   const [imageOpen, setImageOpen] = useState(false);
   // Un solo mapa para toda la vida del editor: las imágenes que se suben después se agregan sin recrearlo.
@@ -53,6 +56,15 @@ export function PostEditor({ value, onChange, media = {}, onMediaAdded, id = "po
 
   const closePanel = useCallback(() => setPanel(null), []);
 
+  // En la fase de captura, antes que el editor: la respuesta de la IA no llega a pegarse como texto.
+  function catchAiDraftPaste(event: ClipboardEvent<HTMLDivElement>) {
+    const text = event.clipboardData.getData("text/plain");
+    if (!onAiDraftPaste || !looksLikeAiDraft(text)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    onAiDraftPaste(text);
+  }
+
   function insertImage(mediaId: string | null, item: MediaDTO | null) {
     if (!mediaId || !item || !editor) return;
     mediaById.set(mediaId, item);
@@ -68,7 +80,7 @@ export function PostEditor({ value, onChange, media = {}, onMediaAdded, id = "po
       <EditorToolbar editor={editor} panel={panel} onPanelChange={setPanel} onInsertImage={() => setImageOpen(true)} />
       {panel === "link" ? <LinkPanel editor={editor} onClose={closePanel} /> : null}
       {panel === "embed" ? <EmbedPanel editor={editor} onClose={closePanel} /> : null}
-      <EditorContent editor={editor} />
+      <EditorContent editor={editor} onPasteCapture={catchAiDraftPaste} />
 
       <Dialog open={imageOpen} onOpenChange={setImageOpen}>
         <DialogContent>

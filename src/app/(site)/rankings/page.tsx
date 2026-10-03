@@ -1,0 +1,64 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import type { BoutLevel } from "@/domain/bout-enums";
+import { getCachedPublicRankings } from "@/features/rankings/cached-queries";
+import { RankingCard } from "@/features/rankings/components/ranking-card";
+import { formatDate } from "@/lib/format-date";
+
+export const metadata: Metadata = {
+  title: "Rankings | Guerra Campal",
+  description: "Campeones y rankings de Guerra Campal: libra por libra y por división, profesional y amateur.",
+};
+
+const LEVELS: { level: BoutLevel; label: string; href: string }[] = [
+  { level: "pro", label: "Pro", href: "/rankings" },
+  { level: "amateur", label: "Amateur", href: "/rankings?nivel=amateur" },
+];
+
+export default async function RankingsPage({ searchParams }: PageProps<"/rankings">) {
+  const { nivel } = await searchParams;
+  const level: BoutLevel = nivel === "amateur" ? "amateur" : "pro";
+  const { cards } = await getCachedPublicRankings(level);
+  const updated = cards.flatMap((card) => (card.updatedAt ? [card.updatedAt] : [])).sort().at(-1);
+
+  return (
+    <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] pb-24 pt-[calc(76px+clamp(32px,6vw,72px))]">
+      <header className="mb-10 flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">
+            Campeones y clasificación
+          </p>
+          <h1 className="font-display text-[clamp(44px,8vw,96px)] uppercase leading-[.9] text-white">Rankings</h1>
+          {updated ? <p className="mt-4 font-cond text-sm font-semibold uppercase tracking-[.1em] text-muted-foreground">Actualizado {formatDate(new Date(updated))}</p> : null}
+        </div>
+        <nav aria-label="Nivel" className="inline-flex border-2 border-border">
+          {LEVELS.map((option) => (
+            <Link
+              key={option.level}
+              href={option.href}
+              aria-current={option.level === level ? "page" : undefined}
+              className={`inline-flex min-h-11 items-center px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-yellow ${
+                option.level === level ? "bg-yellow text-black" : "text-muted-foreground hover:text-white"
+              }`}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </nav>
+      </header>
+
+      {cards.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {cards.map((card) => (
+            <RankingCard key={card.division?.id ?? "p4p"} {...card} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-5 border border-dashed border-border px-6 py-16 text-center">
+          <p className="font-display text-[clamp(28px,5vw,44px)] uppercase leading-none text-white">Pronto publicaremos los rankings</p>
+          <p className="max-w-md font-cond uppercase tracking-[.06em] text-muted-foreground">Estamos preparando la clasificación {level === "pro" ? "profesional" : "amateur"}. Vuelve pronto.</p>
+        </div>
+      )}
+    </div>
+  );
+}

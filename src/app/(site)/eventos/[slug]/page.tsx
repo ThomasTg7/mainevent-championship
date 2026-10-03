@@ -19,6 +19,7 @@ import { pickMainBout } from "@/features/events/main-bout";
 import { showsCountdown } from "@/features/events/public-format";
 import { PreviewBanner } from "@/features/fighters/components/preview-banner";
 import { getCachedPostsForEvent } from "@/features/posts/cached-queries";
+import { getCachedBoutRankLabels } from "@/features/rankings/cached-queries";
 import { RelatedNewsRail } from "@/features/posts/components/related-news-rail";
 import { verifyPreviewToken } from "@/features/publication/preview";
 import { formatShortDate, formatTime } from "@/lib/format-date";
@@ -69,7 +70,13 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
   const ticketHref = canBuy ? (event.ticketUrl ?? "/entradas") : undefined;
   const ticketExternal = Boolean(canBuy && event.ticketUrl);
   const segments = event.segments.filter((segment) => segment.bouts.length > 0);
-  const news = await getCachedPostsForEvent(event.id);
+  const [news, rankLabels] = await Promise.all([
+    getCachedPostsForEvent(event.id),
+    getCachedBoutRankLabels(
+      event.id,
+      segments.flatMap((segment) => segment.bouts.map((bout) => bout.id)),
+    ),
+  ]);
 
   return (
     <>
@@ -92,7 +99,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
                 segments={segments.map((segment) => ({
                   id: segment.id,
                   name: segment.name,
-                  content: segment.bouts.map((bout) => <BoutRow key={bout.id} bout={bout} />),
+                  content: segment.bouts.map((bout) => <BoutRow key={bout.id} bout={bout} rankLabels={rankLabels} />),
                 }))}
               />
             </BoutAccordion>

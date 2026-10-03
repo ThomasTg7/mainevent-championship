@@ -75,12 +75,28 @@ describe("pasting a link from a network on its own", () => {
     expect(types(instance)).toEqual(["embed", "paragraph"]);
   });
 
-  it("leaves the paste alone inside a paragraph that already has text, for other links and for longer text", () => {
-    const withText = editorWith({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Mira esto" }] }] });
-    withText.commands.focus("end");
-    expect(paste(withText, "https://youtu.be/dQw4w9WgXcQ")).toBe(false);
-    withText.destroy();
+  it("inside a sentence, keeps the link in the text and puts the video right after the paragraph", () => {
+    const withText = editorWith({
+      type: "doc",
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: "Mira esto " }] },
+        { type: "paragraph", content: [{ type: "text", text: "Después" }] },
+      ],
+    });
+    withText.commands.setTextSelection(11);
+    expect(paste(withText, "https://www.facebook.com/watch/?v=1234567890123")).toBe(true);
+    const content = (withText.getJSON() as PostBody).content!;
+    expect(content.map((node) => node.type)).toEqual(["paragraph", "embed", "paragraph"]);
+    expect(content[0]!.content?.at(-1)).toEqual({
+      type: "text",
+      text: "https://www.facebook.com/watch/?v=1234567890123",
+      marks: [{ type: "link", attrs: { href: "https://www.facebook.com/watch/?v=1234567890123" } }],
+    });
+    expect(content[1]!.attrs).toEqual({ provider: "facebook", id: "watch/1234567890123" });
+    expect(validatePostBody(withText.getJSON())).toBe(true);
+  });
 
+  it("leaves the paste alone for other links and for longer text", () => {
     const empty = editorWith({ type: "doc", content: [{ type: "paragraph" }] });
     empty.commands.focus("start");
     expect(paste(empty, "https://example.com/nota")).toBe(false);

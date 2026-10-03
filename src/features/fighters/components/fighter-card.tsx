@@ -13,8 +13,10 @@ type FighterCardProps = {
   fighter: FighterCardDTO;
   /** Solo la foto de la primera fila (la que aparece sin hacer scroll) se pide con prioridad. */
   priority?: boolean;
-  /** Etiqueta sobre la foto ("Campeón", "#3"): la entregan los rankings (Plan 05). */
+  /** Etiqueta sobre la foto ("Campeón", "#3"). */
   badge?: string;
+  /** Número grande de fondo (la `.bgnum` de la maqueta): "C" o el puesto. Solo decorativo. */
+  backdrop?: string;
 };
 
 function recordFigures({ record }: FighterCardDTO) {
@@ -30,7 +32,7 @@ function divisionLabel(division: FighterCardDTO["division"]): string {
 }
 
 /** Tarjeta del listado (estilo `.fcard` de la maqueta). Toda la tarjeta es un solo enlace a la ficha. */
-export function FighterCard({ fighter, priority = false, badge }: FighterCardProps) {
+export function FighterCard({ fighter, priority = false, badge, backdrop }: FighterCardProps) {
   const name = `${fighter.firstName} ${fighter.lastName}`;
 
   return (
@@ -46,6 +48,15 @@ export function FighterCard({ fighter, priority = false, badge }: FighterCardPro
         ) : (
           <FighterSilhouette className="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-yellow transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105" />
         )}
+        {backdrop ? (
+          <span
+            data-slot="fighter-card-backdrop"
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3.5 top-1.5 font-display text-[clamp(72px,12vw,120px)] leading-none text-transparent [-webkit-text-stroke:1px_rgba(255,180,0,.25)]"
+          >
+            {backdrop}
+          </span>
+        ) : null}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0c0c0c] to-transparent" />
         {badge ? (
           <span className="absolute left-3 top-3 z-10 bg-yellow px-2 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] text-black">

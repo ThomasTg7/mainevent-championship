@@ -26,7 +26,13 @@ export function PostDataTab({ categories, cover, featured: initialFeatured, show
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <div className="md:col-span-2">
-        <TextField name="title" label="Título" maxLength={140} autoComplete="off" />
+        <TextField
+          name="title"
+          label="Título"
+          maxLength={140}
+          autoComplete="off"
+          help="El titular grande de la noticia: corto y con lo más importante. Ej.: «Pérez retiene el cinturón por KO en el segundo round». Si usas «Con IA», se llena solo."
+        />
       </div>
       <SelectField name="categoryId" label="Categoría">
         <option value="">Elige una categoría</option>
@@ -46,7 +52,14 @@ export function PostDataTab({ categories, cover, featured: initialFeatured, show
         />
       ) : null}
       <div className="md:col-span-2">
-        <TextAreaField name="excerpt" label="Bajada" rows={3} maxLength={300} hint="Una o dos frases que resumen la noticia. Se ve en las tarjetas y bajo el título." />
+        <TextAreaField
+          name="excerpt"
+          label="Bajada"
+          rows={3}
+          maxLength={300}
+          hint="Una o dos frases que resumen la noticia. Se ve en las tarjetas y bajo el título."
+          help="Aparece bajo el título y en las tarjetas del inicio y del listado. Cuenta en una o dos frases qué pasó, sin repetir el título. Si usas «Con IA», se llena sola."
+        />
       </div>
       <div className="md:col-span-2">
         {/* La etiqueta entera es el área táctil (44 px): el interruptor solo mide 18. */}

@@ -2,15 +2,15 @@ import Link from "@tiptap/extension-link";
 import { Extension, mergeAttributes, Node, type AnyExtension } from "@tiptap/react";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
-import { embedCanonicalUrl, embedFromAttrs, embedSrc, parseEmbedUrl } from "@/domain/embed";
-import { isSafeHref } from "@/domain/post-body";
+import { embedCanonicalUrl, embedFromAttrs, embedSrc, isVerticalEmbed, parseEmbedUrl } from "@/domain/embed";
+import { isSafeHref, withProtocol } from "@/domain/post-body";
 import type { MediaDTO } from "@/features/media/dto";
-import { EMBED_FRAME_ATTRIBUTES, EMBED_FRAME_CLASS, EMBED_PROVIDER_NAME } from "../embed-frame";
+import { EMBED_FRAME_ATTRIBUTES, EMBED_PROVIDER_NAME, embedFrameClass } from "../embed-frame";
 
 // Los únicos nodos y marcas del editor son los de `domain/post-body.ts`. Lo que se pega (Word, Google Docs, una web) se
 // lee con estas mismas reglas: lo que no está aquí (estilos, tablas, subrayado, código, imágenes de otro sitio) se pierde.
 
-/** Publicación de Instagram, YouTube o TikTok: guarda solo `{ provider, id }`. En el editor se ve el reproductor real. */
+/** Publicación de Instagram, YouTube, TikTok o Facebook: guarda solo `{ provider, id }`. En el editor se ve el reproductor real. */
 export const EmbedNode = Node.create({
   name: "embed",
   group: "block",
@@ -67,8 +67,8 @@ export const EmbedNode = Node.create({
         const frame = document.createElement("iframe");
         frame.src = embedSrc(embed);
         frame.title = title.textContent;
-        // El video, al ancho de la columna de lectura del sitio (720 px); Instagram y TikTok ya traen su ancho.
-        frame.className = `${EMBED_FRAME_CLASS[embed.provider]} ${embed.provider === "youtube" ? "mx-auto max-w-[720px]" : ""} border-0 bg-background`;
+        // El video, al ancho de la columna de lectura del sitio (720 px); las publicaciones verticales ya traen su ancho.
+        frame.className = `${embedFrameClass(embed)} ${isVerticalEmbed(embed) ? "" : "mx-auto max-w-[720px]"} border-0 bg-background`;
         frame.loading = "lazy";
         frame.allowFullscreen = true;
         frame.setAttribute("allow", EMBED_FRAME_ATTRIBUTES.allow);
@@ -130,7 +130,10 @@ export function createImageNode(getMedia: MediaLookup) {
   });
 }
 
-/** Pegar un enlace de una red sola, en un párrafo vacío, lo convierte en una publicación incrustada. */
+/**
+ * Pegar el enlace de una red (solo, sin otro texto): en un párrafo vacío se convierte en la publicación; dentro de una
+ * frase queda como enlace y la publicación se agrega justo debajo del párrafo.
+ */
 export const PasteEmbed = Extension.create({
   name: "pasteEmbed",
 
@@ -145,9 +148,16 @@ export const PasteEmbed = Extension.create({
             if (!text || /\s/.test(text)) return false;
             const embed = parseEmbedUrl(text);
             const { selection } = view.state;
-            if (!embed || !selection.empty || selection.$from.parent.type.name !== "paragraph" || selection.$from.parent.content.size !== 0) return false;
-            const { $from } = selection;
-            return editor.chain().focus().insertContentAt({ from: $from.before(), to: $from.after() }, { type: "embed", attrs: embed }).run();
+            const { $from, from, to } = selection;
+            // Solo en un párrafo suelto: dentro de una lista o una cita la publicación no tiene dónde ir.
+            if (!embed || $from.depth !== 1 || $from.parent.type.name !== "paragraph" || !$from.sameParent(selection.$to)) return false;
+            const node = { type: "embed", attrs: embed };
+            if (selection.empty && $from.parent.content.size === 0) {
+              return editor.chain().focus().insertContentAt({ from: $from.before(), to: $from.after() }, node).run();
+            }
+            // Primero la publicación tras el párrafo (no mueve lo de antes), después el enlace donde está el cursor.
+            const link = { type: "text", text, marks: [{ type: "link", attrs: { href: withProtocol(text) } }] };
+            return editor.chain().focus().insertContentAt($from.after(), node).insertContentAt({ from, to }, link).run();
           },
         },
       }),

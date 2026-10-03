@@ -8,6 +8,7 @@ import { normalizeSearchText } from "@/domain/search";
 import { slugify, uniqueSlug } from "@/domain/slug";
 import { logAudit } from "@/features/audit/log";
 import { assertUsableMedia } from "@/features/media/service";
+import { getFighterRankingStanding } from "@/features/rankings/warnings";
 import { normalizePublishAt, publicationInputSchema, type PublicationInput } from "@/features/publication/schema";
 import { softDelete } from "@/features/trash/trash";
 import { UserFacingError } from "@/lib/user-facing-error";
@@ -204,6 +205,10 @@ export async function deleteFighter(db: Db, id: string, actorId: string): Promis
     .where(or(eq(bouts.redFighterId, id), eq(bouts.blueFighterId, id)))
     .limit(1);
   if (hasBouts) throw new UserFacingError("Tiene peleas registradas: márcalo como Retirado o sácalo de la cartelera primero");
+
+  const standing = await getFighterRankingStanding(db, id);
+  if (standing === "champion") throw new UserFacingError("Es campeón: deja vacante el título primero");
+  if (standing === "ranked") throw new UserFacingError("Está en el ranking: quítalo primero");
 
   try {
     await softDelete(db, "fighter", id, actorId);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePostMarkdown, postToMarkdown } from "./post-markdown";
+import { looksLikeAiDraft, parsePostMarkdown, postToMarkdown } from "./post-markdown";
 import { validatePostBody, type PostBody, type PostNode } from "./post-body";
 
 const PHOTO_1 = "11111111-1111-4111-8111-111111111111";
@@ -28,6 +28,19 @@ describe("parsePostMarkdown: title and excerpt", () => {
     expect(draft.title).toBeNull();
     expect(draft.excerpt).toBeNull();
     expect(draft.body?.content).toEqual([paragraph(text("Texto."))]);
+  });
+
+  it("drops a short chat line the AI writes before TÍTULO (it never ends up in the body)", () => {
+    const draft = parsePostMarkdown("¡Claro! Aquí tienes la noticia:\n\n**TÍTULO:** Uno\nBAJADA: Dos\n\nTexto.", []);
+    expect(draft.title).toBe("Uno");
+    expect(draft.excerpt).toBe("Dos");
+    expect(draft.body?.content).toEqual([paragraph(text("Texto."))]);
+  });
+
+  it("keeps the text when the TÍTULO label shows up far into it (it is part of the news, not a header)", () => {
+    const draft = parsePostMarkdown("Uno.\n\nDos.\n\nTres.\n\nCuatro.\n\nTÍTULO: tarde", []);
+    expect(draft.title).toBeNull();
+    expect(draft.body?.content).toHaveLength(5);
   });
 
   it("returns null title and excerpt when the text has none", () => {
@@ -87,6 +100,24 @@ describe("parsePostMarkdown: blocks", () => {
       { type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } },
       { type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } },
     ]);
+  });
+
+  it("keeps a sentence with a network link and puts the video or post right after it", () => {
+    const youtube = { type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } };
+    const bare = parsePostMarkdown("Mira el video: https://youtu.be/dQw4w9WgXcQ\n\nSigue.", []).body!;
+    expect(bare.content).toEqual([
+      paragraph(text("Mira el video: "), text("https://youtu.be/dQw4w9WgXcQ", [{ type: "link", attrs: { href: "https://youtu.be/dQw4w9WgXcQ" } }])),
+      youtube,
+      paragraph(text("Sigue.")),
+    ]);
+    const linked = parsePostMarkdown("Revive [la pelea](https://www.youtube.com/watch?v=dQw4w9WgXcQ) y [otra vez](https://youtu.be/dQw4w9WgXcQ).", []).body!;
+    expect(linked.content?.map((node) => node.type)).toEqual(["paragraph", "embed"]);
+    expect(linked.content?.[1]).toEqual(youtube);
+  });
+
+  it("turns a Facebook post alone on its line into an embed", () => {
+    const body = parsePostMarkdown("https://www.facebook.com/GuerraCampalMMA/posts/pfbid02AbC", []).body!;
+    expect(body.content).toEqual([{ type: "embed", attrs: { provider: "facebook", id: "GuerraCampalMMA/posts/pfbid02AbC" } }]);
   });
 
   it("keeps any other link alone on its line as a linked paragraph", () => {
@@ -213,5 +244,18 @@ describe("postToMarkdown", () => {
 
   it("leaves out the empty title and excerpt and an empty trailing paragraph", () => {
     expect(postToMarkdown({ title: "", excerpt: "", body: { type: "doc", content: [paragraph(text("Hola")), { type: "paragraph" }] } }, [])).toBe("Hola\n");
+  });
+});
+
+describe("looksLikeAiDraft", () => {
+  it("recognizes an answer in the AI format, even after a short chat line", () => {
+    expect(looksLikeAiDraft("TÍTULO: Uno\nBAJADA: Dos\n\nTexto.")).toBe(true);
+    expect(looksLikeAiDraft("Aquí va:\n\n**Título:** Uno\n\nTexto.")).toBe(true);
+  });
+
+  it("does not mistake ordinary text for an AI answer", () => {
+    expect(looksLikeAiDraft("Un párrafo cualquiera.")).toBe(false);
+    expect(looksLikeAiDraft("El título se definió anoche: Pérez ganó.")).toBe(false);
+    expect(looksLikeAiDraft("")).toBe(false);
   });
 });

@@ -15,6 +15,7 @@ import { RecordSummary } from "@/features/fighters/components/record-summary";
 import { divisionTitle } from "@/features/fighters/labels";
 import { getPublicFighterBySlug } from "@/features/fighters/queries";
 import { getCachedPostsForFighter } from "@/features/posts/cached-queries";
+import { getCachedFighterRankingTags } from "@/features/rankings/cached-queries";
 import { RelatedNewsRail } from "@/features/posts/components/related-news-rail";
 import { verifyPreviewToken } from "@/features/publication/preview";
 
@@ -76,10 +77,14 @@ export default async function FighterPage({ params, searchParams }: PageProps<"/
   if (!fighter) notFound();
 
   const { proRecord } = fighter;
-  const [{ computed, history, nextBout }, news] = await Promise.all([getCachedFighterBouts(fighter.id), getCachedPostsForFighter(fighter.id)]);
+  const [{ computed, history, nextBout }, news, rankingTags] = await Promise.all([
+    getCachedFighterBouts(fighter.id),
+    getCachedPostsForFighter(fighter.id),
+    getCachedFighterRankingTags(fighter.id),
+  ]);
   return (
     <>
-      <FighterHero fighter={fighter} figures={heroFigures(computed.pro, proRecord)} />
+      <FighterHero fighter={fighter} figures={heroFigures(computed.pro, proRecord)} rankingTags={rankingTags} />
       <NextBout nextBout={nextBout} lastFight={history[0] ?? null} />
       <FighterInfo fighter={fighter} />
       <RecordSummary manual={{ pro: proRecord, amateur: fighter.amateurRecord }} computed={computed} />

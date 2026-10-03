@@ -93,6 +93,19 @@ describe("FighterCard", () => {
     expect(image).toHaveAttribute("sizes", FIGHTER_CARD_SIZES);
   });
 
+  it("shows the ranking number behind the photo, hidden from assistive technology", () => {
+    const { container } = render(<FighterCard fighter={card} badge="Campeón" backdrop="C" />);
+    expect(screen.getByText("Campeón")).toBeInTheDocument();
+    const backdrop = container.querySelector('[data-slot="fighter-card-backdrop"]');
+    expect(backdrop?.textContent).toBe("C");
+    expect(backdrop).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("has no backdrop number without ranking", () => {
+    const { container } = render(<FighterCard fighter={card} />);
+    expect(container.querySelector('[data-slot="fighter-card-backdrop"]')).toBeNull();
+  });
+
   it("requests only the first-row photo with priority", () => {
     render(<FighterCard fighter={{ ...card, bodyMedia: photo }} priority />);
     expect(screen.getByRole("img", { name: "Matías Pérez de frente" })).toHaveAttribute("fetchpriority", "high");
@@ -117,6 +130,25 @@ describe("FighterHero", () => {
   it("shows the short bio inside the card, under the name", () => {
     render(<FighterHero fighter={{ ...profile, bio: "Campeón peso ligero." }} figures={figures} />);
     expect(screen.getByText("Campeón peso ligero.")).toBeInTheDocument();
+  });
+
+  it("puts the champion and ranking labels in the tags slot, next to the division and status", () => {
+    const tags = [
+      { label: "Campeón pro · Peso Ligero", isTitle: true },
+      { label: "#1 P4P", isTitle: false },
+    ];
+    const { container } = render(<FighterHero fighter={profile} figures={figures} rankingTags={tags} />);
+    const slot = container.querySelector('[data-slot="fighter-tags"]')!;
+    // El título se destaca con una estrella; el puesto no.
+    expect(slot.textContent).toContain("★ Campeón pro · Peso Ligero");
+    expect(slot.textContent).not.toContain("★ #1 P4P");
+    expect(slot.textContent).toContain("#1 P4P");
+    expect(slot.textContent).toContain("Peso Ligero");
+  });
+
+  it("shows only division and status when the fighter has no ranking", () => {
+    const { container } = render(<FighterHero fighter={profile} figures={figures} />);
+    expect(container.querySelector('[data-slot="fighter-tags"]')?.children).toHaveLength(2);
   });
 
   it("omits the bio paragraph when there is none", () => {

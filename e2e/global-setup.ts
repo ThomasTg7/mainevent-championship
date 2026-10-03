@@ -9,6 +9,7 @@ import { seedEvents } from "@/features/events/seed";
 import { createFighter, deleteFighter } from "@/features/fighters/service";
 import { seedFighters } from "@/features/fighters/seed";
 import { seedPosts } from "@/features/posts/seed";
+import { seedRankings } from "@/features/rankings/seed";
 import { daysAgo, insertPost } from "@/features/posts/test-helpers";
 import { divisions } from "@/db/schema/divisions";
 import { eq } from "drizzle-orm";
@@ -51,6 +52,7 @@ export default async function globalSetup(): Promise<void> {
   await seedFighters(db);
   await seedEvents(db);
   await seedPosts(db);
+  await seedRankings(db);
   await seedPaginationPosts();
   await seedHiddenFighters();
   await seedCardFighters();

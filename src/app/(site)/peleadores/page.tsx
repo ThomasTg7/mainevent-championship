@@ -6,6 +6,7 @@ import { FighterCard } from "@/features/fighters/components/fighter-card";
 import { FighterFilters } from "@/features/fighters/components/fighter-filters";
 import { getCachedPublicFighters, getCachedPublicFilterOptions } from "@/features/fighters/cached-queries";
 import { fightersHref, parsePublicFilters } from "@/features/fighters/public-filters";
+import { getCachedChampionBadges } from "@/features/rankings/cached-queries";
 
 export const metadata: Metadata = {
   title: "Peleadores | Guerra Campal",
@@ -17,7 +18,7 @@ const FIRST_ROW = 4;
 
 export default async function PeleadoresPage({ searchParams }: PageProps<"/peleadores">) {
   const { filters, page } = parsePublicFilters(await searchParams);
-  const [{ items, hasMore }, options] = await Promise.all([getCachedPublicFighters(filters, page), getCachedPublicFilterOptions()]);
+  const [{ items, hasMore }, options, championBadges] = await Promise.all([getCachedPublicFighters(filters, page), getCachedPublicFilterOptions(), getCachedChampionBadges()]);
 
   const countries = options.nationalities.map((code) => ({ code, name: countryName(code) })).sort((a, b) => a.name.localeCompare(b.name, "es"));
   const isFiltered = Boolean(filters.q || filters.division || filters.nationality || filters.gender || filters.status !== "active");
@@ -39,7 +40,7 @@ export default async function PeleadoresPage({ searchParams }: PageProps<"/pelea
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
           {items.map((fighter, index) => (
             <li key={fighter.id}>
-              <FighterCard fighter={fighter} priority={index < FIRST_ROW && page === 1} />
+              <FighterCard fighter={fighter} priority={index < FIRST_ROW && page === 1} badge={championBadges[fighter.id]} />
             </li>
           ))}
         </ul>
