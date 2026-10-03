@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collectBodyMediaIds, EMPTY_POST_BODY, validatePostBody } from "./post-body";
+import { collectBodyMediaIds, EMPTY_POST_BODY, hasPostBodyContent, validatePostBody } from "./post-body";
 
 const MEDIA_A = "0b6f0c40-7d4c-4f3a-9d0a-5f1d2b8f6a11";
 const MEDIA_B = "9a1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d";
@@ -81,6 +81,24 @@ describe("validatePostBody without media", () => {
 
   it("still accepts them by default", () => {
     expect(validatePostBody(doc({ type: "image", attrs: { mediaId: MEDIA_A } }))).toBe(true);
+  });
+});
+
+describe("hasPostBodyContent", () => {
+  it("is false for the empty document, blank paragraphs and anything that is not a document", () => {
+    expect(hasPostBodyContent(EMPTY_POST_BODY)).toBe(false);
+    expect(hasPostBodyContent(doc({ type: "paragraph", content: [text("   ")] }, { type: "paragraph" }))).toBe(false);
+    expect(hasPostBodyContent(doc({ type: "horizontalRule" }))).toBe(false);
+    expect(hasPostBodyContent(null)).toBe(false);
+    expect(hasPostBodyContent("texto")).toBe(false);
+  });
+
+  it("is true when there is text, also inside a list or a quote, or an image or embed", () => {
+    expect(hasPostBodyContent(doc({ type: "paragraph", content: [text("Hola")] }))).toBe(true);
+    expect(hasPostBodyContent(doc({ type: "bulletList", content: [{ type: "listItem", content: [{ type: "paragraph", content: [text("uno")] }] }] }))).toBe(true);
+    expect(hasPostBodyContent(doc({ type: "blockquote", content: [{ type: "paragraph", content: [text("cita")] }] }))).toBe(true);
+    expect(hasPostBodyContent(doc({ type: "image", attrs: { mediaId: MEDIA_A } }))).toBe(true);
+    expect(hasPostBodyContent(doc({ type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } }))).toBe(true);
   });
 });
 

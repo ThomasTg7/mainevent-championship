@@ -112,3 +112,17 @@ export function collectBodyMediaIds(body: unknown): string[] {
   visit(body, 0);
   return [...ids];
 }
+
+/**
+ * `true` si el cuerpo dice algo: texto que no sea solo espacios, una imagen o una publicación. Una página de Configuración
+ * con el cuerpo vacío no se dibuja (se muestra un aviso en vez de un bloque en blanco).
+ */
+export function hasPostBodyContent(body: unknown): boolean {
+  const visit = (node: unknown, depth: number): boolean => {
+    if (depth > MAX_DEPTH + 1 || !isRecord(node)) return false;
+    if (node.type === "image" || node.type === "embed") return true;
+    if (node.type === "text" && typeof node.text === "string" && node.text.trim() !== "") return true;
+    return Array.isArray(node.content) && node.content.some((child) => visit(child, depth + 1));
+  };
+  return visit(body, 0);
+}
