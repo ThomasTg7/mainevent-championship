@@ -59,6 +59,7 @@
 - Modify: `generateMetadata` en `src/app/(site)/**/page.tsx` (home, eventos, evento, peleadores, peleador, rankings, noticias, noticia, entradas, quiero-pelear, patrocinar, nosotros, contacto, privacidad); `src/app/(site)/layout.tsx` (`metadataBase`, plantilla de título, verificación de Google desde settings, `<html lang="es-CL">`)
 - Test: `e2e/seo.spec.ts`
 
+- Rankings (Plan 05 ya construido): `/rankings` hoy exporta un `metadata` fijo; pasarlo a `generateMetadata` con `pageMetadata`. `?nivel=amateur` es otra página (otro contenido): canónica propia `/rankings?nivel=amateur` y título «Rankings amateur»; cualquier otro valor de `nivel` canoniza a `/rankings`. Sin JSON-LD propio.
 - Noticias (Plan 04 ya construido): `/noticias/[slug]` ya tiene `generateMetadata` (título, bajada, `noindex` con `?preview=`) que comparte `loadPost` (`cache()` de React): pasarlo a `pageMetadata` y agregar `og:type=article`, `article:published_time`, `article:section` y la portada como imagen. `/noticias`: canónica propia con solo los parámetros válidos (`categoria` existente y `pagina` > 1; nunca uno inventado), título «Noticias» o «<Categoría> · Noticias». El JSON-LD va en `page.tsx`, no dentro de `PostArticle`: así la vista previa en vivo del panel no lo dibuja.
 - [ ] **Step 1: Test e2e que falla:** cada ruta pública tiene `<title>` único con plantilla, `meta[name=description]`, `link[rel=canonical]` sin query (salvo `/noticias?categoria=…&pagina=…`, autocanónica), `og:image`; ficha de peleador, evento y noticia tienen JSON-LD parseable del tipo correcto (`NewsArticle` con `datePublished`); una noticia con portada usa esa imagen en `og:image`; `?preview=` agrega `noindex`.
 - [ ] **Step 2:** FAIL → implementar → PASS.
@@ -70,10 +71,10 @@
 - Create: `src/app/sitemap.ts`, `src/app/robots.ts`, `src/features/seo/sitemap-entries.ts`, `sitemap-entries.test.ts`
 
 **Interfaces:**
-- Produces: `getSitemapEntries(db, siteUrl): Promise<MetadataRoute.Sitemap>` — rutas fijas (incluye `/noticias`) + peleadores, eventos y noticias públicos (`publicScope(posts)` de `src/db/public-scope.ts`; `/noticias/<slug>`) con `lastModified = updated_at`; una consulta por entidad (solo `slug` y `updated_at`), nunca las fichas completas. Las categorías con alguna noticia visible (`listPublicPostCategories`) entran como `/noticias?categoria=<slug>`. Nada del panel (`/vista-previa-noticia` vive en el subdominio del panel, que ya responde `Disallow: /`).
+- Produces: `getSitemapEntries(db, siteUrl): Promise<MetadataRoute.Sitemap>` — rutas fijas (incluye `/noticias` y `/rankings`; `/rankings?nivel=amateur` solo si `getPublicRankings(db, "amateur")` trae tarjetas; `lastModified` de cada una = `max(ranking_versions.created_at)` del nivel, una consulta agrupada) + peleadores, eventos y noticias públicos (`publicScope(posts)` de `src/db/public-scope.ts`; `/noticias/<slug>`) con `lastModified = updated_at`; una consulta por entidad (solo `slug` y `updated_at`), nunca las fichas completas. Las categorías con alguna noticia visible (`listPublicPostCategories`) entran como `/noticias?categoria=<slug>`. Nada del panel (`/vista-previa-noticia` vive en el subdominio del panel, que ya responde `Disallow: /`).
 - Decidir (y anotar en `docs/decisions.md`) si 5 min de retraso para lo programado basta; si no, el cron diario no alcanza: agregar un cron cada 5 min que expire los tags de los listados (en un route handler no existe `updateTag`: usar `revalidateTag` con expiración inmediata, verificando en la documentación de Next 16 que no sirva contenido viejo) cuando hay `publish_at` vencido desde la última corrida.
 
-- [ ] **Step 1: Tests que fallan:** entradas incluyen `/peleadores/matias-perez`, excluyen borradores, programados futuros y papelera; `robots` con `SITE_URL=https://gc.vercel.app` y sin `ALLOW_INDEXING` → `disallow: '/'`; con `ALLOW_INDEXING=true` → solo `/admin` y `/api`.
+- [ ] **Step 1: Tests que fallan:** entradas incluyen `/peleadores/matias-perez` y `/rankings` (con `lastModified` = la versión de ranking pro más nueva), excluyen borradores, programados futuros y papelera; `robots` con `SITE_URL=https://gc.vercel.app` y sin `ALLOW_INDEXING` → `disallow: '/'`; con `ALLOW_INDEXING=true` → solo `/admin` y `/api`.
 - [ ] **Step 2:** FAIL → implementar → PASS.
 - [ ] **Step 3: Commit** `feat(seo): dynamic sitemap and robots`
 
@@ -95,7 +96,7 @@
 - Create: `lighthouserc.json`, `e2e/a11y.spec.ts`
 - Modify: componentes según hallazgos
 
-- [ ] **Step 1: Test que falla:** `e2e/a11y.spec.ts` corre axe en home, `/peleadores`, ficha, `/eventos/<slug>`, `/rankings`, `/noticias`, `/noticias/<slug>` (una con video: la fachada «Ver en YouTube» debe pasar), `/quiero-pelear` y el login del panel (`adminUrl("/login")` de `e2e/fixtures/admin.ts`): 0 violaciones `serious`/`critical`.
+- [ ] **Step 1: Test que falla:** `e2e/a11y.spec.ts` corre axe en home, `/peleadores`, ficha, `/eventos/<slug>`, `/rankings`, `/noticias`, `/noticias/<slug>` (una con video: la portada de YouTube —botón «Reproducir video de YouTube»— y el recuadro «Ver en Instagram/TikTok/Facebook» deben pasar), `/quiero-pelear` y el login del panel (`adminUrl("/login")` de `e2e/fixtures/admin.ts`): 0 violaciones `serious`/`critical`.
 - [ ] **Step 2:** Corregir hasta PASS (contraste amarillo sobre blanco solo en textos grandes, foco visible, `aria-label` en controles de ícono, orden de encabezados).
 - [ ] **Step 3:** `pnpm build && pnpm start` + `lhci autorun` con los presupuestos de Global Constraints en perfil móvil. Corregir (imagen del hero con `priority` y `fetchPriority`, GSAP/Lenis cargados en cliente de forma diferida, fuentes con `display: swap`) hasta cumplir.
 - [ ] **Step 4: Commit** `perf/a11y: meet lighthouse budgets and axe checks`
@@ -121,7 +122,7 @@
 ### Task 7: Guías de operación y migración a VPS
 
 **Files:**
-- Create: `docs/guia-admin.md` (para la promotora: cómo crear evento, armar cartelera, noche de pelea, cargar resultados, rankings, noticias —editor, pegar un link de Instagram/YouTube/TikTok, publicador «Con IA» con su prompt (`src/features/posts/ai-prompt.ts`) y la vista previa en vivo en celular y PC—, formatos de imagen con la tabla del spec, papelera)
+- Create: `docs/guia-admin.md` (para la promotora: cómo crear evento, armar cartelera, noche de pelea, cargar resultados, rankings —cada guardado es una versión nueva y las flechas ▲▼ comparan con la anterior; sugerencias tras un evento (Aceptar/Descartar); confirmar el cambio de título; «Dejar vacante»; el aviso «Otra persona guardó este ranking…» y los avisos de peleadores retirados—, noticias —editor, pegar un link de Instagram/YouTube/TikTok/Facebook (dentro de una frase también: la publicación va debajo del párrafo), publicador «Con IA» con su prompt (`src/features/posts/ai-prompt.ts`) y la vista previa en vivo en celular y PC—, formatos de imagen con la tabla del spec, papelera)
 - Create: `docs/vps-migration.md`, `deploy/docker-compose.prod.yml` (app Next standalone, postgres:17, minio, umami, caddy con HTTPS para `guerracampal.cl` **y** `admin.guerracampal.cl` hacia la misma app, conservando el `Host`), `deploy/Dockerfile`, `deploy/cron` (purga diaria con `curl` + `CRON_SECRET`; incluye subidas abandonadas e imágenes sin uso), CORS de MinIO y encabezados del dominio de medios en Caddy iguales a los del Step 1b de la Task 6
 
 - [ ] **Step 1:** `next.config.ts` con `output: 'standalone'`; `docker compose -f deploy/docker-compose.prod.yml up` levanta el sitio localmente con MinIO y `STORAGE_DRIVER=s3` apuntando a MinIO. **Verificación:** home carga e imágenes se sirven desde MinIO.

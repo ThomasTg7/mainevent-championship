@@ -105,15 +105,16 @@ Por peleador y nivel: victorias, derrotas, empates, NC; victorias y derrotas por
 - Dos niveles independientes: **pro** y **amateur**, cada uno con P4P y ranking por división.
 - Ranking = versión con fecha; entradas ordenadas (posición, peleador). El movimiento (▲n, ▼n, NUEVO, =) se calcula contra la versión anterior del mismo alcance.
 - Campeón: uno por división y nivel; solo campeón actual (sin linaje). Puede estar vacante.
+- Libra por libra: una sola lista por nivel (hombres y mujeres). Al coronar a un retador, el campeón anterior (si sigue activo) pasa al #1 de su división. Si un rankeado deja de verse (retirado, inactivo, borrador, papelera), el sitio corre los puestos (el mismo número en `/rankings`, la ficha y la cartelera) y el panel avisa para quitarlo.
 - El campeón no ocupa número en su división. Un peleador puede estar en su división y en P4P.
 - Solo peleadores activos; si pasan a inactivo/retirado, el panel avisa.
 - Sugerencias tras cargar resultados: si un ganador vence a alguien mejor rankeado, sugerir moverlo a la posición del perdedor; si gana un no rankeado a un rankeado, sugerir entrada. El admin acepta o descarta cada una.
 - Cambio de título: si en pelea titular gana el retador, el panel pide confirmar el nuevo campeón. Botón "dejar vacante".
 
 ### 4.8 Noticias
-Título, slug, bajada, portada 16:9, cuerpo en texto enriquecido (Tiptap JSON) con embeds de Instagram/YouTube/TikTok por URL, galería, categoría (catálogo editable: Anuncios, Resultados, Entrevistas, Detrás de cámaras), peleadores y eventos relacionados.
+Título, slug, bajada, portada 16:9, cuerpo en texto enriquecido (Tiptap JSON) con embeds de Instagram/YouTube/TikTok/Facebook por URL, galería, categoría (catálogo editable: Anuncios, Resultados, Entrevistas, Detrás de cámaras), peleadores y eventos relacionados.
 Fecha de una noticia = el momento en que se publica (o la fecha programada). La home muestra como principal la destacada más reciente o, sin destacada, la más reciente.
-Panel: dos publicadores para el cuerpo — el editor y «Con IA» (se copia un prompt para una IA externa, sin API, y se pega su respuesta en un formato fijo: título, bajada, `##`, listas, citas, `[FOTO N]`, link de una red solo en su línea) — y una vista previa en vivo bajo el formulario, en celular (375 px) y PC (1440 px), dibujada con los mismos componentes de la página pública. En el panel las publicaciones de redes se ven con el reproductor real; en el sitio, como fachada que no carga nada de la red hasta el clic. Videos solo vía YouTube, Instagram o TikTok (no se suben archivos de video).
+Panel: dos publicadores para el cuerpo — el editor y «Con IA» (se copia un prompt para una IA externa, sin API, y se pega su respuesta en un formato fijo: título, bajada, `##`, listas, citas, `[FOTO N]`, link de una red solo en su línea) — y una vista previa en vivo bajo el formulario, en celular (375 px) y PC (1440 px), dibujada con los mismos componentes de la página pública. En el panel las publicaciones de redes se ven con el reproductor real; en el sitio, como fachada que no carga el reproductor de la red hasta el clic (YouTube muestra antes su imagen fija, servida por `i.ytimg.com` sin cookies; el resto, un recuadro con la marca). Videos solo vía YouTube, Instagram, TikTok o Facebook (no se suben archivos de video).
 
 ### 4.9 Patrocinadores
 Nombre, logo (SVG/PNG sin fondo, caja 2:1), link, nivel (`principal | oficial | colaborador`), orden, vigencia (desde/hasta, se ocultan solos), alcance (todos los eventos o eventos específicos). Ubicaciones: home, página de evento, footer.
