@@ -84,7 +84,7 @@ export default async function FighterPage({ params, searchParams }: PageProps<"/
   ]);
   return (
     <>
-      <FighterHero fighter={fighter} figures={heroFigures(computed.pro, proRecord)} rankingTags={rankingTags.map((tag) => tag.label)} />
+      <FighterHero fighter={fighter} figures={heroFigures(computed.pro, proRecord)} rankingTags={rankingTags} />
       <NextBout nextBout={nextBout} lastFight={history[0] ?? null} />
       <FighterInfo fighter={fighter} />
       <RecordSummary manual={{ pro: proRecord, amateur: fighter.amateurRecord }} computed={computed} />

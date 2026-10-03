@@ -5,7 +5,9 @@ import { db } from "@/db";
 import type { BoutLevel } from "@/domain/bout-enums";
 import { listScopeOverview } from "@/features/rankings/admin-queries";
 import { RankingScopeList } from "@/features/rankings/components/ranking-scope-list";
+import { RankingVisibility } from "@/features/rankings/components/ranking-visibility";
 import { RankingWarnings } from "@/features/rankings/components/ranking-warnings";
+import { isLevelPublic } from "@/features/rankings/visibility";
 import { listIneligibleWarnings } from "@/features/rankings/warnings";
 import { requireAdmin } from "@/lib/require-admin";
 import { adminPath } from "@/lib/site-urls";
@@ -21,7 +23,7 @@ export default async function AdminRankingsPage({ searchParams }: PageProps<"/ad
   await requireAdmin();
   const { nivel } = await searchParams;
   const level: BoutLevel = nivel === "amateur" ? "amateur" : "pro";
-  const [overview, warnings] = await Promise.all([listScopeOverview(db, level), listIneligibleWarnings(db, { level })]);
+  const [overview, warnings, isPublic] = await Promise.all([listScopeOverview(db, level), listIneligibleWarnings(db, { level }), isLevelPublic(db, level)]);
 
   return (
     <AdminPage title="Rankings y títulos">
@@ -42,6 +44,7 @@ export default async function AdminRankingsPage({ searchParams }: PageProps<"/ad
           </Link>
         ))}
       </nav>
+      <RankingVisibility level={level} isPublic={isPublic} />
       <RankingWarnings warnings={warnings} />
       <RankingScopeList items={overview} />
     </AdminPage>

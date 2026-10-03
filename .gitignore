@@ -20,7 +20,7 @@
 # next.js
 /.next/
 /.next-e2e/
-/.next-review/
+/.next-review*/
 /out/
 
 # production

@@ -1,4 +1,5 @@
 import type { Db } from "@/db";
+import { rankingLevels } from "@/db/schema/rankings";
 import type { BoutLevel } from "@/domain/bout-enums";
 import { createFighter } from "@/features/fighters/service";
 import { divisionIdBySlug, validFighterInput } from "@/features/fighters/test-helpers";
@@ -26,6 +27,11 @@ export async function insertRankableFighter(
     "admin-1",
   );
   return created.id;
+}
+
+/** Los dos niveles a la vista del público (sin fila están ocultos). */
+export async function showRankingLevels(db: Db): Promise<void> {
+  await db.insert(rankingLevels).values([{ level: "pro", isPublic: true }, { level: "amateur", isPublic: true }]).onConflictDoNothing();
 }
 
 export { divisionIdBySlug };

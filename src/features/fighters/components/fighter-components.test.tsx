@@ -133,9 +133,15 @@ describe("FighterHero", () => {
   });
 
   it("puts the champion and ranking labels in the tags slot, next to the division and status", () => {
-    const { container } = render(<FighterHero fighter={profile} figures={figures} rankingTags={["Campeón pro · Peso Ligero", "#1 P4P"]} />);
+    const tags = [
+      { label: "Campeón pro · Peso Ligero", isTitle: true },
+      { label: "#1 P4P", isTitle: false },
+    ];
+    const { container } = render(<FighterHero fighter={profile} figures={figures} rankingTags={tags} />);
     const slot = container.querySelector('[data-slot="fighter-tags"]')!;
-    expect(slot.textContent).toContain("Campeón pro · Peso Ligero");
+    // El título se destaca con una estrella; el puesto no.
+    expect(slot.textContent).toContain("★ Campeón pro · Peso Ligero");
+    expect(slot.textContent).not.toContain("★ #1 P4P");
     expect(slot.textContent).toContain("#1 P4P");
     expect(slot.textContent).toContain("Peso Ligero");
   });

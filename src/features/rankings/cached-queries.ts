@@ -6,6 +6,7 @@ import { eventCacheTag } from "@/features/events/cache";
 import { FIGHTERS_LIST_TAG, fighterCacheTag } from "@/features/fighters/cache";
 import { MEDIA_ANY_TAG } from "@/features/media/cache";
 import { RANKINGS_TAG } from "./cache";
+import { getChampionBadges } from "./champion-badges";
 import { getBoutRankLabels, getFighterRankingTags, getPublicRankings } from "./queries";
 
 // Lecturas del sitio público cacheadas con etiquetas. Las fechas van como ISO (la caché serializa en JSON).
@@ -39,6 +40,14 @@ export function getCachedFighterRankingTags(fighterId: string) {
 export function getCachedBoutRankLabels(eventId: string, boutIds: string[]): Promise<Record<string, string>> {
   return unstable_cache(async () => Object.fromEntries(await getBoutRankLabels(db, boutIds)), ["bout-rank-labels", eventId, ...boutIds], {
     tags: [RANKINGS_TAG, eventCacheTag(eventId), FIGHTERS_LIST_TAG],
+    revalidate: REVALIDATE_SECONDS,
+  })();
+}
+
+/** «Campeón»/«Campeona» por id de peleador para las tarjetas de `/peleadores` (y la home). */
+export function getCachedChampionBadges(): Promise<Record<string, string>> {
+  return unstable_cache(() => getChampionBadges(db), ["champion-badges"], {
+    tags: [RANKINGS_TAG, DIVISIONS_CACHE_TAG, FIGHTERS_LIST_TAG],
     revalidate: REVALIDATE_SECONDS,
   })();
 }

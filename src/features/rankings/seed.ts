@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
 import { fighters } from "@/db/schema/fighters";
-import { rankingVersions, titles } from "@/db/schema/rankings";
+import { rankingLevels, rankingVersions, titles } from "@/db/schema/rankings";
 import type { BoutLevel } from "@/domain/bout-enums";
 import { seedEvents } from "@/features/events/seed";
 import { saveRanking, setChampion } from "./service";
@@ -25,6 +25,8 @@ const SEED_SCOPES: SeedScope[] = [
 /** Campeones y rankings del seed (los de GC 1–4). No hace nada si ya hay títulos o rankings: no pisa lo que cargó la promotora. */
 export async function seedRankings(db: Db): Promise<void> {
   await seedEvents(db);
+  // El seed muestra los dos niveles (una instalación nueva los tiene ocultos hasta que la promotora los muestre).
+  await db.insert(rankingLevels).values([{ level: "pro", isPublic: true }, { level: "amateur", isPublic: true }]).onConflictDoNothing();
   const [existingTitle] = await db.select({ id: titles.id }).from(titles).limit(1);
   const [existingVersion] = await db.select({ id: rankingVersions.id }).from(rankingVersions).limit(1);
   if (existingTitle || existingVersion) return;

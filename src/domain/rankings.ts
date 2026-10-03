@@ -11,6 +11,11 @@ export function rankingScopeKey(scope: RankingScope): string {
   return `${scope.level}:${scope.divisionId ?? "p4p"}`;
 }
 
+/** «Campeón» o «Campeona» según la división (género del título, no del texto). */
+export function championWord(gender: "male" | "female"): string {
+  return gender === "female" ? "Campeona" : "Campeón";
+}
+
 export type Movement = { kind: "up" | "down"; by: number } | { kind: "new" } | { kind: "same" };
 
 /** Movimiento de cada peleador de la versión actual contra la anterior (arreglos de id por posición). Sin anterior, todos son nuevos. */

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  championWord,
   P4P_SLOTS,
   applySuggestion,
   computeMovement,
@@ -136,5 +137,12 @@ describe("validateRanking", () => {
 describe("P4P_SLOTS", () => {
   it("is ten", () => {
     expect(P4P_SLOTS).toBe(10);
+  });
+});
+
+describe("championWord", () => {
+  it("says Campeona for a women's division and Campeón otherwise", () => {
+    expect(championWord("female")).toBe("Campeona");
+    expect(championWord("male")).toBe("Campeón");
   });
 });

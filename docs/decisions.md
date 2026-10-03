@@ -693,3 +693,17 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 ## [Revisión Plan 05] `.next-review/` ignorado por ESLint y git — 2026-10-03
 - **Qué:** el servidor de revisión (`E2E_DIST_DIR=.next-review`) deja su build en la raíz; `pnpm lint` lo revisaba (1.054 errores en código generado). Agregado a `globalIgnores` y a `.gitignore`.
 - **Estado:** aplicado
+
+# Pedidos del usuario tras la revisión del Plan 05 — 2026-10-03
+
+## [Post Plan 05] Ocultar del sitio los rankings de un nivel mientras se arman — 2026-10-03
+- **Qué:** tabla `ranking_levels(level pk, is_public, updated_at)` (migración 0014). Sin fila, el nivel está **oculto**: una instalación nueva arma rankings y corona campeones en el panel sin que el público los vea. La migración deja visibles los niveles que ya tenían versiones o títulos (nada desaparece en bases existentes); `seedRankings` los muestra. Botón «Ocultar del sitio» / «Mostrar en el sitio» por nivel en Rankings y títulos (`RankingVisibility`, `setRankingVisibilityAction`, servicio `setRankingVisibility` con auditoría); el editor de un nivel oculto lo recuerda arriba. Oculto = nada de ese nivel en el sitio: `/rankings` muestra «Pronto publicaremos los rankings», y las fichas, la cartelera (`C`/`#n`) y `/peleadores` no llevan títulos ni puestos de ese nivel. Todo lee `listPublicLevels` (`rankings/visibility.ts`) dentro de lecturas que ya tienen el tag `rankings`, así que la action solo llama `revalidateRankings()`.
+- **Por qué:** pedido del usuario («cuando esté recién comenzando puedan editar los rankings pero el público no los vea»). Se eligió por nivel (Pro/Amateur) y no por división: un solo toque para el arranque. Tabla propia porque la configuración del sitio (`settings`) llega en el Plan 06.
+- **Impacto:** Plan 06 (home: `getCachedPublicRankings` ya devuelve `cards: []` si el nivel está oculto; ocultar la sección o la pestaña) y Plan 07 (sitemap sin `/rankings` de un nivel oculto).
+- **Estado:** aplicado · aplicada a planes siguientes
+
+## [Post Plan 05] Insignia de campeón en `/peleadores` y «Campeona» para las mujeres — 2026-10-03
+- **Qué:** las tarjetas de `/peleadores` muestran «Campeón», «Campeona» o «Campeón/Campeona amateur» (`getCachedChampionBadges`, `rankings/champion-badges.ts`: una consulta, tags `rankings`, `divisions`, `fighters`; el pro gana si tiene los dos). La ficha ya mostraba el título; ahora va con «★» y se marca por dato (`RankingTag.isTitle`), no por el texto. Todos los textos públicos dicen «Campeona» en divisiones femeninas (`championWord` en `src/domain/rankings.ts`: ficha, tarjeta de ranking «★ Campeona», «Campeona desde»).
+- **Por qué:** pedido del usuario; el sitio decía «Campeón amateur» de Valentina Cortés.
+- **Impacto:** Plan 06 (destacados de la home: `badge` desde `getCachedChampionBadges` o desde las tarjetas de ranking, con `championWord`).
+- **Estado:** aplicado · aplicada a planes siguientes

@@ -1,6 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { adminUrl, signInAsAdmin } from "./fixtures/admin";
 
-// Dependen del seed (`seedRankings`): ningún otro spec toca a Pérez, Soto ni la división Ligero.
+// Dependen del seed (`seedRankings`): ningún otro spec toca a Pérez, Soto ni la división Ligero. En serie: una prueba
+// oculta un momento los rankings amateur y las demás los leen.
+test.describe.configure({ mode: "serial" });
 
 async function expectNoHorizontalScroll(page: Page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -52,7 +55,7 @@ test("la ficha del campeón muestra «Campeón pro · Peso Ligero» y su puesto 
 test("la ficha de quien es campeón amateur y está rankeado muestra las tres etiquetas", async ({ page }) => {
   await page.goto("/peleadores/valentina-cortes");
   const tags = page.locator('[data-slot="fighter-tags"]');
-  await expect(tags.getByText("Campeón amateur · Peso Paja fem.")).toBeVisible();
+  await expect(tags.getByText("Campeona amateur · Peso Paja fem.")).toBeVisible();
   await expect(tags.getByText("#1 Peso Paja fem.")).toBeVisible();
   await expect(tags.getByText("#5 P4P")).toBeVisible();
 });
@@ -71,4 +74,36 @@ test("la cartelera de la pelea por el título muestra «C» y «#1» junto a cad
   const withLabel = (name: string, label: RegExp) => page.locator("[data-corner]").filter({ hasText: name }).filter({ has: ranks.filter({ hasText: label }) });
   await expect(withLabel("Pérez", /^C$/)).toHaveCount(1);
   await expect(withLabel("Soto", /^#1$/)).toHaveCount(1);
+});
+
+test("en Peleadores los campeones llevan su insignia: «Campeón» o «Campeona»", async ({ page }) => {
+  await page.goto("/peleadores?q=P%C3%A9rez");
+  await expect(page.getByRole("listitem").filter({ hasText: "Matías Pérez" })).toContainText("Campeón");
+  await page.goto("/peleadores?q=Rojas");
+  await expect(page.getByRole("listitem").filter({ hasText: "Camila Rojas" })).toContainText("Campeona");
+  await page.goto("/peleadores?q=Soto");
+  await expect(page.getByRole("listitem").filter({ hasText: "Diego Soto" })).not.toContainText("Campe");
+});
+
+test("ocultar los rankings amateur en el panel los saca del sitio hasta volver a mostrarlos", async ({ page }) => {
+  await signInAsAdmin(page);
+  await page.goto(adminUrl("/rankings?nivel=amateur"));
+  await expect(page.getByRole("heading", { name: "Rankings amateur visibles en el sitio" })).toBeVisible();
+  await page.getByRole("button", { name: "Ocultar del sitio" }).click();
+  await expect(page.getByRole("heading", { name: "Rankings amateur ocultos al público" })).toBeVisible();
+
+  try {
+    await page.goto("/rankings?nivel=amateur");
+    await expect(page.getByText("Pronto publicaremos los rankings")).toBeVisible();
+    await page.goto("/peleadores/valentina-cortes");
+    const tags = page.locator('[data-slot="fighter-tags"]');
+    await expect(tags.getByText("#1 Peso Paja fem.")).toBeVisible();
+    await expect(tags.getByText("Campeona amateur · Peso Paja fem.")).toHaveCount(0);
+  } finally {
+    await page.goto(adminUrl("/rankings?nivel=amateur"));
+    await page.getByRole("button", { name: "Mostrar en el sitio" }).click();
+    await expect(page.getByRole("heading", { name: "Rankings amateur visibles en el sitio" })).toBeVisible();
+  }
+  await page.goto("/rankings?nivel=amateur");
+  await expect(page.getByRole("article", { name: "Ranking Peso Paja fem." })).toBeVisible();
 });

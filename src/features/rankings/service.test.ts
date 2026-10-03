@@ -9,11 +9,12 @@ import { insertBout, insertSegment } from "@/features/events/test-helpers";
 import { createFighter, deleteFighter, updateFighter } from "@/features/fighters/service";
 import { validFighterInput } from "@/features/fighters/test-helpers";
 import { createTestDb } from "@/test/db";
-import { dismissSuggestion, saveRanking, setChampion, vacateTitle } from "./service";
-import { divisionIdBySlug, insertRankableFighter } from "./test-helpers";
+import { dismissSuggestion, saveRanking, setChampion, setRankingVisibility, vacateTitle } from "./service";
+import { divisionIdBySlug, insertRankableFighter, showRankingLevels } from "./test-helpers";
 import { getCurrentRanking } from "./versions";
 import { getFighterRankingStanding, listIneligibleWarnings } from "./warnings";
 import { getPublicRankings } from "./queries";
+import { isLevelPublic } from "./visibility";
 import { insertEvent } from "@/features/events/test-helpers";
 
 let db: Db;
@@ -23,6 +24,7 @@ let paja: string;
 
 beforeAll(async () => {
   ({ db, close } = await createTestDb());
+  await showRankingLevels(db);
   ligero = await divisionIdBySlug(db, "peso-ligero");
   paja = await divisionIdBySlug(db, "peso-paja-femenino");
 });
@@ -227,6 +229,23 @@ describe("vacateTitle", () => {
     expect(logs).toHaveLength(2);
     expect(logs.some((log) => log.summary.startsWith("Dejó vacante el título pro de Peso Semipesado"))).toBe(true);
     await expect(vacateTitle(db, "pro", division, "admin-1")).rejects.toThrow("ya está vacante");
+  });
+});
+
+describe("setRankingVisibility", () => {
+  it("starts hidden on a new install, toggles and audits", async () => {
+    const fresh = await createTestDb();
+    try {
+      expect(await isLevelPublic(fresh.db, "amateur")).toBe(false);
+      await setRankingVisibility(fresh.db, "amateur", true, "admin-1");
+      expect(await isLevelPublic(fresh.db, "amateur")).toBe(true);
+      await setRankingVisibility(fresh.db, "amateur", false, "admin-1");
+      expect(await isLevelPublic(fresh.db, "amateur")).toBe(false);
+      const logs = await fresh.db.select().from(auditLog).where(and(eq(auditLog.entityType, "ranking"), eq(auditLog.entityId, "amateur")));
+      expect(logs.map((log) => log.summary).sort()).toEqual(["Mostró en el sitio los rankings y campeones amateur", "Ocultó del sitio los rankings y campeones amateur"]);
+    } finally {
+      await fresh.close();
+    }
   });
 });
 

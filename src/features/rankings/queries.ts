@@ -5,7 +5,7 @@ import { bouts } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import { rankingEntries, titles } from "@/db/schema/rankings";
 import type { BoutLevel } from "@/domain/bout-enums";
-import { P4P_SLOTS, computeMovement } from "@/domain/rankings";
+import { P4P_SLOTS, championWord, computeMovement } from "@/domain/rankings";
 import { divisionTitle } from "@/features/fighters/labels";
 import type { MediaDTO } from "@/features/media/dto";
 import { getMediaByIds } from "@/features/media/queries";
@@ -13,6 +13,7 @@ import type { RankedFighterDTO, RankingCardDTO, RankingsPageDTO } from "./dto";
 import { visibleRankedFighter } from "./eligibility";
 import { shownRankings } from "./shown-positions";
 import { listLatestVersions } from "./versions";
+import { isLevelPublic, listPublicLevels } from "./visibility";
 
 // Lecturas públicas de rankings. Un peleador que ya no se ve (retirado, inactivo, borrador, en la papelera) no aparece:
 // los puestos se muestran compactados y el movimiento se calcula sobre esas mismas listas (versión vigente contra la anterior).
@@ -73,9 +74,11 @@ type PublicScope = { divisionId: string | null; slots: number; division: Ranking
 /**
  * Rankings públicos de un nivel: libra por libra primero y luego las divisiones activas en su orden, cada una con su
  * campeón, sus puestos con movimiento y la fecha de la versión vigente. Sin campeón ni puestos, la división no sale.
- * Consultas fijas (divisiones, títulos y versiones; puestos y campeones; imágenes), sin una por división.
+ * Un nivel oculto (`ranking_levels`) no muestra nada. Consultas fijas (divisiones, títulos y versiones; puestos y
+ * campeones; imágenes), sin una por división.
  */
 export async function getPublicRankings(db: Db, level: BoutLevel): Promise<RankingsPageDTO> {
+  if (!(await isLevelPublic(db, level))) return { level, cards: [] };
   const [divisionRows, titleRows, versionRows] = await Promise.all([
     db.select().from(divisions).where(eq(divisions.active, true)).orderBy(asc(divisions.gender), asc(divisions.sortOrder)),
     db.select({ divisionId: titles.divisionId, championId: titles.championFighterId, since: titles.since }).from(titles).where(eq(titles.level, level)),
@@ -157,22 +160,27 @@ export async function getPublicRankings(db: Db, level: BoutLevel): Promise<Ranki
 const LEVEL_SUFFIX: Record<BoutLevel, string> = { pro: "", amateur: " · Amateur" };
 const proFirst = (a: { level: BoutLevel }, b: { level: BoutLevel }) => (a.level === b.level ? 0 : a.level === "pro" ? -1 : 1);
 
+/** Una etiqueta de la ficha; `isTitle` = es campeón (se destaca). */
+export type RankingTag = { label: string; isTitle: boolean };
+
 /**
  * Etiquetas de campeón y ranking de un peleador para su ficha, ya listas para mostrar: primero los títulos, luego los
  * puestos de división y al final el libra por libra (pro antes que amateur). El número es el que muestra `/rankings`
- * (`shownRankings`); un peleador que no se ve en el sitio no lleva ninguna.
+ * (`shownRankings`); un peleador que no se ve en el sitio, o un nivel oculto, no lleva ninguna.
  */
-export async function getFighterRankingTags(db: Db, fighterId: string): Promise<{ label: string }[]> {
+export async function getFighterRankingTags(db: Db, fighterId: string): Promise<RankingTag[]> {
   const [visible] = await db.select({ id: fighters.id }).from(fighters).where(and(eq(fighters.id, fighterId), visibleRankedFighter)).limit(1);
   if (!visible) return [];
 
-  const latest = await listLatestVersions(db, {}, 1);
+  const [publicLevels, allLatest] = await Promise.all([listPublicLevels(db), listLatestVersions(db, {}, 1)]);
+  if (publicLevels.size === 0) return [];
+  const latest = allLatest.filter((version) => publicLevels.has(version.level));
   const [titleRows, entryRows, divisionRows] = await Promise.all([
     db
       .select({ level: titles.level, name: divisions.name, gender: divisions.gender })
       .from(titles)
       .innerJoin(divisions, eq(divisions.id, titles.divisionId))
-      .where(and(eq(titles.championFighterId, fighterId), eq(divisions.active, true))),
+      .where(and(eq(titles.championFighterId, fighterId), eq(divisions.active, true), inArray(titles.level, [...publicLevels]))),
     latest.length === 0
       ? []
       : db
@@ -185,7 +193,7 @@ export async function getFighterRankingTags(db: Db, fighterId: string): Promise<
   const shown = await shownRankings(db, versions);
   const divisionById = new Map(divisionRows.map((division) => [division.id, division]));
 
-  const champion = titleRows.toSorted(proFirst).map((title) => `Campeón ${title.level === "pro" ? "pro" : "amateur"} · ${divisionTitle(title)}`);
+  const champion = titleRows.toSorted(proFirst).map((title) => `${championWord(title.gender)} ${title.level === "pro" ? "pro" : "amateur"} · ${divisionTitle(title)}`);
   const ranked = versions.flatMap((version) => {
     const position = (shown.get(version.id) ?? []).indexOf(fighterId) + 1;
     if (position === 0) return [];
@@ -195,21 +203,25 @@ export async function getFighterRankingTags(db: Db, fighterId: string): Promise<
   });
   // Los puestos de división van antes que el libra por libra.
   const rankLabels = ranked.toSorted((a, b) => Number(a.p4p) - Number(b.p4p) || proFirst(a, b)).map((entry) => entry.label);
-  return [...champion, ...rankLabels].map((label) => ({ label }));
+  return [...champion.map((label) => ({ label, isTitle: true })), ...rankLabels.map((label) => ({ label, isTitle: false }))];
 }
 
 /**
  * Etiqueta de cada peleador de unas peleas según su división y nivel de hoy: `"C"` (campeón) o `"#n"` (el número de
- * `/rankings`). Las peleas sin división (peso pactado) y quien no se ve en el sitio no llevan etiqueta. Una consulta por
+ * `/rankings`). Las peleas sin división (peso pactado), las de un nivel oculto y quien no se ve en el sitio no llevan etiqueta. Una consulta por
  * tipo de dato, nunca por pelea.
  */
 export async function getBoutRankLabels(db: Db, boutIds: string[]): Promise<Map<string, string>> {
   const labels = new Map<string, string>();
   if (boutIds.length === 0) return labels;
-  const boutRows = await db
-    .select({ level: bouts.level, divisionId: bouts.divisionId, red: bouts.redFighterId, blue: bouts.blueFighterId })
-    .from(bouts)
-    .where(and(inArray(bouts.id, boutIds), isNotNull(bouts.divisionId)));
+  const [allBoutRows, publicLevels] = await Promise.all([
+    db
+      .select({ level: bouts.level, divisionId: bouts.divisionId, red: bouts.redFighterId, blue: bouts.blueFighterId })
+      .from(bouts)
+      .where(and(inArray(bouts.id, boutIds), isNotNull(bouts.divisionId))),
+    listPublicLevels(db),
+  ]);
+  const boutRows = allBoutRows.filter((bout) => publicLevels.has(bout.level));
   if (boutRows.length === 0) return labels;
 
   const scopeOf = (bout: { level: BoutLevel; divisionId: string | null }) => `${bout.level}:${bout.divisionId}`;

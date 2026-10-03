@@ -7,10 +7,11 @@ import { rankingEntries, rankingVersions } from "@/db/schema/rankings";
 import { eventIdBySlug, fighterIdBySlug, insertBout, insertEvent, insertSegment } from "@/features/events/test-helpers";
 import { updateFighter } from "@/features/fighters/service";
 import { createTestDb } from "@/test/db";
+import { getChampionBadges } from "./champion-badges";
 import { getBoutRankLabels, getFighterRankingTags, getPublicRankings } from "./queries";
 import { seedRankings } from "./seed";
-import { saveRanking, setChampion } from "./service";
-import { divisionIdBySlug, insertRankableFighter } from "./test-helpers";
+import { saveRanking, setChampion, setRankingVisibility } from "./service";
+import { divisionIdBySlug, insertRankableFighter, showRankingLevels } from "./test-helpers";
 
 describe("rankings of the seed", () => {
   let db: Db;
@@ -50,19 +51,22 @@ describe("rankings of the seed", () => {
   it("gives the three expected tags to a fighter who is amateur champion, ranked in the division and in P4P", async () => {
     const cortes = await fighterIdBySlug(db, "valentina-cortes");
     expect(await getFighterRankingTags(db, cortes)).toEqual([
-      { label: "Campeón amateur · Peso Paja fem." },
-      { label: "#1 Peso Paja fem." },
-      { label: "#5 P4P" },
+      { label: "Campeona amateur · Peso Paja fem.", isTitle: true },
+      { label: "#1 Peso Paja fem.", isTitle: false },
+      { label: "#5 P4P", isTitle: false },
     ]);
   });
 
   it("tags a champion and a P4P leader", async () => {
     const perez = await fighterIdBySlug(db, "matias-perez");
-    expect(await getFighterRankingTags(db, perez)).toEqual([{ label: "Campeón pro · Peso Ligero" }, { label: "#1 P4P" }]);
+    expect(await getFighterRankingTags(db, perez)).toEqual([
+      { label: "Campeón pro · Peso Ligero", isTitle: true },
+      { label: "#1 P4P", isTitle: false },
+    ]);
   });
 
   it("tags only the division for a ranked fighter and nothing for a retired one", async () => {
-    expect(await getFighterRankingTags(db, await fighterIdBySlug(db, "joaquin-nunez"))).toEqual([{ label: "#2 Peso Wélter" }]);
+    expect(await getFighterRankingTags(db, await fighterIdBySlug(db, "joaquin-nunez"))).toEqual([{ label: "#2 Peso Wélter", isTitle: false }]);
     expect(await getFighterRankingTags(db, await fighterIdBySlug(db, "nicolas-ibarra"))).toEqual([]);
   });
 
@@ -79,6 +83,31 @@ describe("rankings of the seed", () => {
     expect(labels.has(catchweight.blue)).toBe(false);
   });
 
+  it("badges each visible champion for the fighter list, «Campeona» for women and pro before amateur", async () => {
+    const badges = await getChampionBadges(db);
+    expect(badges[await fighterIdBySlug(db, "matias-perez")]).toBe("Campeón");
+    expect(badges[await fighterIdBySlug(db, "camila-rojas")]).toBe("Campeona");
+    expect(badges[await fighterIdBySlug(db, "valentina-cortes")]).toBe("Campeona amateur");
+    expect(badges[await fighterIdBySlug(db, "diego-soto")]).toBeUndefined();
+  });
+
+  it("hides a level everywhere on the site while it can still be edited", async () => {
+    const perez = await fighterIdBySlug(db, "matias-perez");
+    const eventId = await eventIdBySlug(db, "guerra-campal-5");
+    const boutIds = (await db.select({ id: bouts.id }).from(bouts).where(eq(bouts.eventId, eventId))).map((row) => row.id);
+
+    await setRankingVisibility(db, "pro", false, "admin-1");
+    expect((await getPublicRankings(db, "pro")).cards).toEqual([]);
+    expect(await getFighterRankingTags(db, perez)).toEqual([]);
+    expect((await getBoutRankLabels(db, boutIds)).has(perez)).toBe(false);
+    expect((await getChampionBadges(db))[perez]).toBeUndefined();
+    // El amateur sigue a la vista.
+    expect((await getPublicRankings(db, "amateur")).cards).toHaveLength(1);
+
+    await setRankingVisibility(db, "pro", true, "admin-1");
+    expect((await getBoutRankLabels(db, boutIds)).get(perez)).toBe("C");
+  });
+
   it("returns no labels without bouts", async () => {
     expect((await getBoutRankLabels(db, [])).size).toBe(0);
   });
@@ -91,6 +120,7 @@ describe("movement and visibility", () => {
 
   beforeAll(async () => {
     ({ db, close } = await createTestDb());
+    await showRankingLevels(db);
     division = await divisionIdBySlug(db, "peso-ligero");
   });
   afterAll(() => close());
@@ -149,7 +179,7 @@ describe("movement and visibility", () => {
 
     const card = (await getPublicRankings(db, "pro")).cards.find((candidate) => candidate.division?.id === welter);
     expect(card?.entries.map((entry) => [entry.position, entry.fighter.id])).toEqual([[1, stays]]);
-    expect(await getFighterRankingTags(db, stays)).toEqual([{ label: "#1 Peso Wélter" }]);
+    expect(await getFighterRankingTags(db, stays)).toEqual([{ label: "#1 Peso Wélter", isTitle: false }]);
 
     const event = await insertEvent(db);
     const segmentId = await insertSegment(db, event.id);

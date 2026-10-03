@@ -1,4 +1,4 @@
-import { date, index, integer, pgTable, primaryKey, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, index, integer, pgTable, primaryKey, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { divisions } from "./divisions";
 import { boutLevel, events } from "./events";
 import { fighters } from "./fighters";
@@ -70,6 +70,16 @@ export const dismissedSuggestions = pgTable(
   },
   (table) => [primaryKey({ columns: [table.eventId, table.fighterId, table.scopeKey] }), index("dismissed_suggestions_fighter_id_idx").on(table.fighterId)],
 );
+
+/**
+ * Si el sitio muestra los rankings y campeones de un nivel. Sin fila, el nivel está oculto: una instalación nueva arma
+ * sus rankings en el panel sin que el público los vea hasta que la promotora toca «Mostrar en el sitio».
+ */
+export const rankingLevels = pgTable("ranking_levels", {
+  level: boutLevel("level").primaryKey(),
+  isPublic: boolean("is_public").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export type RankingVersion = typeof rankingVersions.$inferSelect;
 export type Title = typeof titles.$inferSelect;

@@ -17,3 +17,5 @@ export const vacateSchema = z.object({ level: z.enum(BOUT_LEVELS), divisionId: z
 export const scopeKeySchema = z.string().regex(/^(pro|amateur):(p4p|[0-9a-f-]{36})$/);
 
 export const dismissSchema = z.object({ eventId: z.uuid(), fighterId: z.uuid(), scopeKey: scopeKeySchema });
+
+export const visibilitySchema = z.object({ level: z.enum(BOUT_LEVELS), isPublic: z.boolean() });

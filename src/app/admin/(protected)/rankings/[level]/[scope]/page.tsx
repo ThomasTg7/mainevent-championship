@@ -9,7 +9,9 @@ import { BOUT_LEVELS, type BoutLevel } from "@/domain/bout-enums";
 import { getRankingEditorData, resolveScope } from "@/features/rankings/admin-queries";
 import { ChampionPicker } from "@/features/rankings/components/champion-picker";
 import { RankingEditor } from "@/features/rankings/components/ranking-editor";
+import { RankingVisibility } from "@/features/rankings/components/ranking-visibility";
 import { RankingWarnings } from "@/features/rankings/components/ranking-warnings";
+import { isLevelPublic } from "@/features/rankings/visibility";
 import { listSuggestions } from "@/features/rankings/suggestions";
 import { listIneligibleWarnings } from "@/features/rankings/warnings";
 import { requireAdmin } from "@/lib/require-admin";
@@ -26,10 +28,11 @@ export default async function AdminRankingEditorPage({ params }: PageProps<"/adm
   const scope = await resolveScope(db, level, scopeSlug);
   if (!scope) notFound();
 
-  const [data, suggestions, warnings] = await Promise.all([
+  const [data, suggestions, warnings, isPublic] = await Promise.all([
     getRankingEditorData(db, scope),
     scope.divisionId ? listSuggestions(db, level, scope.divisionId) : new Map(),
     listIneligibleWarnings(db, scope),
+    isLevelPublic(db, level),
   ]);
 
   return (
@@ -46,6 +49,8 @@ export default async function AdminRankingEditorPage({ params }: PageProps<"/adm
       <p className="max-w-prose text-sm text-muted-foreground">
         {data.updatedAt ? "Ordena los puestos y guarda: se crea una versión nueva y el sitio compara contra la anterior (▲▼)." : "Todavía no hay ranking: el primero que guardes aparece en el sitio con todos los puestos como «Nuevo»."}
       </p>
+      {/* Oculto, se avisa aquí también: quien edita sabe que nadie lo ve todavía. */}
+      {isPublic ? null : <RankingVisibility level={level} isPublic={false} />}
       <RankingWarnings warnings={warnings} />
       {scope.divisionId ? <ChampionPicker level={level} divisionId={scope.divisionId} divisionLabel={scope.label} champion={data.champion} /> : null}
       <RankingEditor

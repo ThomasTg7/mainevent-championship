@@ -110,6 +110,7 @@ Por peleador y nivel: victorias, derrotas, empates, NC; victorias y derrotas por
 - Solo peleadores activos; si pasan a inactivo/retirado, el panel avisa.
 - Sugerencias tras cargar resultados: si un ganador vence a alguien mejor rankeado, sugerir moverlo a la posición del perdedor; si gana un no rankeado a un rankeado, sugerir entrada. El admin acepta o descarta cada una.
 - Cambio de título: si en pelea titular gana el retador, el panel pide confirmar el nuevo campeón. Botón "dejar vacante".
+- Visibilidad por nivel: "Ocultar del sitio" / "Mostrar en el sitio". Oculto (lo normal en una instalación nueva), el panel edita todo y el público no ve rankings ni campeones de ese nivel. Los campeones visibles llevan insignia ("Campeón"/"Campeona") en el listado de peleadores y en su ficha.
 
 ### 4.8 Noticias
 Título, slug, bajada, portada 16:9, cuerpo en texto enriquecido (Tiptap JSON) con embeds de Instagram/YouTube/TikTok/Facebook por URL, galería, categoría (catálogo editable: Anuncios, Resultados, Entrevistas, Detrás de cámaras), peleadores y eventos relacionados.

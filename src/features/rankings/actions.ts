@@ -9,8 +9,8 @@ import { requireAdmin } from "@/lib/require-admin";
 import { runFormAction } from "@/lib/run-form-action";
 import { revalidateRankings } from "./cache";
 import { searchEligibleFighters, getDivisionGender } from "./admin-queries";
-import { championSchema, dismissSchema, rankingScopeSchema, saveRankingSchema, vacateSchema } from "./schema";
-import { dismissSuggestion, saveRanking, setChampion, vacateTitle, type RankingChange } from "./service";
+import { championSchema, dismissSchema, rankingScopeSchema, saveRankingSchema, vacateSchema, visibilitySchema } from "./schema";
+import { dismissSuggestion, saveRanking, setChampion, setRankingVisibility, vacateTitle, type RankingChange } from "./service";
 
 const INVALID: FormActionState = { error: "Datos inválidos" };
 const run = (task: () => Promise<FormActionState>) => runFormAction("Error en rankings", task);
@@ -62,6 +62,20 @@ export async function dismissSuggestionAction(eventId: unknown, fighterId: unkno
     await dismissSuggestion(db, parsed.data.eventId, parsed.data.fighterId, parsed.data.scopeKey, admin.userId);
     revalidatePath("/admin/rankings/[level]/[scope]", "page");
     return {};
+  });
+}
+
+/** Muestra u oculta los rankings y campeones de un nivel en el sitio (fichas, cartelera y `/peleadores` incluidos: todo lee `rankings`). */
+export async function setRankingVisibilityAction(level: unknown, isPublic: unknown): Promise<FormActionState> {
+  const admin = await requireAdmin();
+  const parsed = visibilitySchema.safeParse({ level, isPublic });
+  if (!parsed.success) return INVALID;
+  return run(async () => {
+    await setRankingVisibility(db, parsed.data.level, parsed.data.isPublic, admin.userId);
+    revalidateRankings();
+    revalidatePath("/admin/rankings");
+    revalidatePath("/admin/rankings/[level]/[scope]", "page");
+    return { success: parsed.data.isPublic ? "Rankings visibles en el sitio" : "Rankings ocultos: el público ya no los ve" };
   });
 }
 

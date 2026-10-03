@@ -3,7 +3,7 @@ import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
 import { events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
-import { dismissedSuggestions, rankingEntries, rankingVersions, titles } from "@/db/schema/rankings";
+import { dismissedSuggestions, rankingEntries, rankingLevels, rankingVersions, titles } from "@/db/schema/rankings";
 import type { Executor } from "@/db/types";
 import type { BoutLevel } from "@/domain/bout-enums";
 import { P4P_SLOTS, rankingScopeKey, validateRanking, type RankingScope } from "@/domain/rankings";
@@ -201,5 +201,22 @@ export async function dismissSuggestion(db: Db, eventId: string, fighterId: stri
   await db.transaction(async (tx) => {
     await tx.insert(dismissedSuggestions).values({ eventId, fighterId, scopeKey }).onConflictDoNothing();
     await logAudit(tx, { actorId, action: "update", entityType: "ranking", entityId: eventId, summary: `Descartó la sugerencia de ranking para ${name} tras ${event.name} (${scopeKey})` });
+  });
+}
+
+/** Muestra u oculta en el sitio los rankings y campeones de un nivel (se pueden seguir editando en el panel). */
+export async function setRankingVisibility(db: Db, level: BoutLevel, isPublic: boolean, actorId: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(rankingLevels)
+      .values({ level, isPublic })
+      .onConflictDoUpdate({ target: rankingLevels.level, set: { isPublic, updatedAt: sql`now()` } });
+    await logAudit(tx, {
+      actorId,
+      action: "update",
+      entityType: "ranking",
+      entityId: level,
+      summary: `${isPublic ? "Mostró en el sitio" : "Ocultó del sitio"} los rankings y campeones ${LEVEL_LABEL[level]}`,
+    });
   });
 }

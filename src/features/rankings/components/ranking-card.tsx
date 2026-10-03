@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
+import { championWord } from "@/domain/rankings";
 import { divisionTitle } from "@/features/fighters/labels";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import { formatDate } from "@/lib/format-date";
@@ -17,7 +18,8 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
   const leader = isP4p ? entries[0]?.fighter : champion;
   const leaderMovement = isP4p ? entries[0]?.movement : undefined;
   const listed = isP4p ? entries.slice(1) : entries;
-  const belt = isP4p ? "★ Libra por libra" : "★ Campeón";
+  const championLabel = isP4p ? null : championWord(division.gender);
+  const belt = championLabel ? `★ ${championLabel}` : "★ Libra por libra";
   const leaderName = leader?.name ?? "Vacante";
 
   return (
@@ -36,7 +38,7 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
             )}
             {leaderMovement ? <MovementBadge movement={leaderMovement} /> : null}
           </p>
-          {champion?.since ? <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-[.08em] text-muted-foreground">Campeón desde {formatDate(new Date(`${champion.since}T12:00:00Z`))}</p> : null}
+          {champion?.since ? <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-[.08em] text-muted-foreground">{championLabel} desde {formatDate(new Date(`${champion.since}T12:00:00Z`))}</p> : null}
         </div>
         <div className="relative" aria-hidden>
           {leader?.bodyMedia ? (
