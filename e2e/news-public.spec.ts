@@ -50,9 +50,9 @@ test("una noticia muestra portada de marca, cuerpo, video con fachada, peleadore
   await expect(page.locator('[data-slot="post-cover-fallback"]')).toBeVisible();
   await expect(page.getByText("La campeona peso paja no necesitó más de tres minutos")).toBeVisible();
 
-  // El video no carga nada de YouTube hasta que se toca.
+  // El reproductor de YouTube no se carga hasta que se toca (antes solo se ve la imagen fija del video).
   await expect(page.locator("iframe")).toHaveCount(0);
-  await page.getByRole("button", { name: /Ver en YouTube/ }).click();
+  await page.getByRole("button", { name: "Reproducir video de YouTube" }).click();
   await expect(page.locator("iframe")).toHaveAttribute("src", /^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
 
   const related = page.locator('[data-slot="post-related"]');
@@ -138,7 +138,7 @@ test("el listado y una noticia no desbordan en celular ni en PC", async ({ page 
     await expectNoHorizontalScroll(page);
     await page.goto("/noticias/asi-fue-rojas-somete-en-el-primer-round");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await page.getByRole("button", { name: /Ver en YouTube/ }).click();
+    await page.getByRole("button", { name: "Reproducir video de YouTube" }).click();
     await expectNoHorizontalScroll(page);
   }
 });

@@ -9,13 +9,15 @@ export type ToolbarPanel = "link" | "embed" | null;
 
 type ToolButtonProps = {
   label: string;
+  /** Texto visible junto al ícono (para lo que no se entiende solo con el ícono). */
+  text?: string;
   icon: ComponentType<{ "aria-hidden"?: boolean }>;
   active?: boolean;
   disabled?: boolean;
   onClick: () => void;
 };
 
-function ToolButton({ label, icon: Icon, active = false, disabled, onClick }: ToolButtonProps) {
+function ToolButton({ label, text, icon: Icon, active = false, disabled, onClick }: ToolButtonProps) {
   return (
     <Button
       type="button"
@@ -27,9 +29,10 @@ function ToolButton({ label, icon: Icon, active = false, disabled, onClick }: To
       // El editor pierde la selección si el botón toma el foco antes de actuar.
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
-      className="size-8 px-0"
+      className={text ? "h-8 px-2" : "size-8 px-0"}
     >
       <Icon aria-hidden />
+      {text ? <span aria-hidden>{text}</span> : null}
     </Button>
   );
 }
@@ -69,8 +72,8 @@ export function EditorToolbar({ editor, panel, onPanelChange, onInsertImage }: E
         <ToolButton label="Separador" icon={Minus} onClick={() => editor.chain().focus().setHorizontalRule().run()} />
       </Group>
       <Group label="Insertar">
-        <ToolButton label="Imagen" icon={ImagePlus} onClick={onInsertImage} />
-        <ToolButton label="Publicación de Instagram, YouTube o TikTok" icon={Clapperboard} active={panel === "embed"} onClick={() => onPanelChange(panel === "embed" ? null : "embed")} />
+        <ToolButton label="Imagen" text="Foto" icon={ImagePlus} onClick={onInsertImage} />
+        <ToolButton label="Video o publicación de YouTube, Instagram, TikTok o Facebook" text="Video / Post" icon={Clapperboard} active={panel === "embed"} onClick={() => onPanelChange(panel === "embed" ? null : "embed")} />
       </Group>
     </div>
   );

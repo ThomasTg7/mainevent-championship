@@ -87,7 +87,7 @@ export function LinkPanel({ editor, onClose }: PanelProps) {
   );
 }
 
-/** Pegar el link de una publicación de Instagram, YouTube o TikTok. */
+/** Pegar el link de una publicación de Instagram, YouTube, TikTok o Facebook. */
 export function EmbedPanel({ editor, onClose }: PanelProps) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export function EmbedPanel({ editor, onClose }: PanelProps) {
   function insert() {
     const embed = parseEmbedUrl(url);
     if (!embed) {
-      setError("Link no reconocido. Pega el link de una publicación de Instagram, YouTube o TikTok.");
+      setError("Link no reconocido. Pega el link de un video o publicación de YouTube, Instagram, TikTok o Facebook (no el de una página o perfil).");
       return;
     }
     editor.chain().focus().insertContent({ type: "embed", attrs: embed }).run();
@@ -105,7 +105,7 @@ export function EmbedPanel({ editor, onClose }: PanelProps) {
   return (
     <div role="group" aria-label="Publicación de una red social" className="flex flex-col gap-2 border-b border-border bg-card p-3">
       <label htmlFor="post-embed-url" className="text-sm font-medium">
-        Link de Instagram, YouTube o TikTok
+        Link de YouTube, Instagram, TikTok o Facebook
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input
@@ -138,7 +138,7 @@ export function EmbedPanel({ editor, onClose }: PanelProps) {
           {error}
         </p>
       ) : (
-        <p className="text-xs text-muted-foreground">También puedes pegar el link solo en una línea vacía del texto.</p>
+        <p className="text-xs text-muted-foreground">En «Compartir», toca «Copiar enlace» y pégalo aquí. También puedes pegarlo directo en el texto.</p>
       )}
     </div>
   );

@@ -3,7 +3,7 @@
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Loader2 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { MEDIA_SPECS } from "@/domain/media-specs";
 import type { MediaDTO } from "../dto";
 import { EditorDialog } from "./editor-dialog";
@@ -22,13 +22,15 @@ type GalleryEditorProps = {
   uploadLabels?: { empty: string; more: string };
   /** Muestra «FOTO N» sobre cada miniatura, también en celular (cuando el número importa, como en «Con IA»). */
   numbered?: boolean;
+  /** Contenido extra bajo cada foto (recibe la foto y su posición, desde 0). */
+  renderItemExtra?: (media: MediaDTO, index: number) => ReactNode;
 };
 
 const SPEC = MEDIA_SPECS.gallery;
 
 const DEFAULT_UPLOAD_LABELS = { empty: "Subir fotos de la galería", more: "Agregar más fotos" };
 
-export function GalleryEditor({ media: initialMedia = [], onChange, onMediaChange, uploadLabels = DEFAULT_UPLOAD_LABELS, numbered = false }: GalleryEditorProps) {
+export function GalleryEditor({ media: initialMedia = [], onChange, onMediaChange, uploadLabels = DEFAULT_UPLOAD_LABELS, numbered = false, renderItemExtra }: GalleryEditorProps) {
   const [items, setItems] = useState<MediaDTO[]>(initialMedia);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -98,6 +100,7 @@ export function GalleryEditor({ media: initialMedia = [], onChange, onMediaChang
                   position={index}
                   total={items.length}
                   numbered={numbered}
+                  extra={renderItemExtra?.(item, index)}
                   disabled={busy}
                   onMove={(delta) => move(index, index + delta)}
                   onEdit={() => editing.reopen(item)}

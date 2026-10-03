@@ -28,16 +28,26 @@ const paragraph = (...content: unknown[]) => ({ type: "paragraph", content });
 const doc = (...content: unknown[]) => ({ type: "doc", content });
 
 describe("PostBody", () => {
-  it("shows a YouTube embed as a facade and loads the no-cookie iframe only after a click", () => {
+  it("shows a YouTube video as its still with a play button, and plays it in place (no-cookie) after the tap", () => {
     const { container } = render(<PostBody doc={doc({ type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } })} media={{}} />);
 
     expect(container.querySelector("iframe")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: /Ver en YouTube/ }));
+    expect(container.querySelector("img")?.getAttribute("src")).toBe("https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg");
+    fireEvent.click(screen.getByRole("button", { name: "Reproducir video de YouTube" }));
 
     const frame = container.querySelector("iframe");
     expect(frame).not.toBeNull();
-    expect(frame!.getAttribute("src")).toMatch(/^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
+    expect(frame!.getAttribute("src")).toBe("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1");
+    expect(frame!.getAttribute("allow")).toContain("autoplay");
     expect(frame!.getAttribute("title")).toBeTruthy();
+  });
+
+  it("shows a Facebook video behind a facade and loads Facebook's own player after the tap", () => {
+    const { container } = render(<PostBody doc={doc({ type: "embed", attrs: { provider: "facebook", id: "watch/1234567890123" } })} media={{}} />);
+    expect(container.querySelector("iframe, img")).toBeNull();
+    expect(screen.getByRole("link").getAttribute("href")).toBe("https://www.facebook.com/watch/?v=1234567890123");
+    fireEvent.click(screen.getByRole("button", { name: /Ver en Facebook/ }));
+    expect(container.querySelector("iframe")?.getAttribute("src")).toMatch(/^https:\/\/www\.facebook\.com\/plugins\/video\.php\?href=/);
   });
 
   it("keeps a link to the original post next to each facade, and loads nothing from the network before the click", () => {

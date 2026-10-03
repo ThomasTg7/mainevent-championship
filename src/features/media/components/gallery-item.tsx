@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ArrowDown, ArrowUp, GripVertical, Pencil, Trash2 } from "lucide-react";
+import type { ReactNode } from "react";
 import { MediaImage } from "@/components/media/media-image";
 import { Button } from "@/components/ui/button";
 import type { MediaDTO } from "../dto";
@@ -14,13 +15,15 @@ type GalleryItemProps = {
   total: number;
   /** «FOTO N» sobre la miniatura (visible también en celular). */
   numbered?: boolean;
+  /** Algo más de la foto, a todo el ancho bajo la fila (p. ej. «¿Qué muestra?» en «Con IA»). */
+  extra?: ReactNode;
   disabled: boolean;
   onMove: (delta: -1 | 1) => void;
   onEdit: () => void;
   onRemove: () => void;
 };
 
-export function GalleryItem({ media, position, total, numbered = false, disabled, onMove, onEdit, onRemove }: GalleryItemProps) {
+export function GalleryItem({ media, position, total, numbered = false, extra, disabled, onMove, onEdit, onRemove }: GalleryItemProps) {
   // Sin arrastrar mientras se suben fotos: la lista que se guarda al terminar pisaría el nuevo orden.
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: media.id, disabled });
 
@@ -28,7 +31,7 @@ export function GalleryItem({ media, position, total, numbered = false, disabled
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`flex items-center gap-2 border border-border bg-card p-2 ${isDragging ? "relative z-10 opacity-80" : ""}`}
+      className={`flex flex-wrap items-center gap-2 border border-border bg-card p-2 ${isDragging ? "relative z-10 opacity-80" : ""}`}
     >
       <Button
         type="button"
@@ -61,6 +64,7 @@ export function GalleryItem({ media, position, total, numbered = false, disabled
           <Trash2 aria-hidden />
         </Button>
       </div>
+      {extra ? <div className="basis-full">{extra}</div> : null}
     </li>
   );
 }

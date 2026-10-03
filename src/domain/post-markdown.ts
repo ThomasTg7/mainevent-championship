@@ -1,9 +1,13 @@
 import { embedCanonicalUrl, embedFromAttrs, parseEmbedUrl } from "./embed";
 import { EMPTY_POST_BODY, isSafeHref, validatePostBody, withProtocol, type PostBody, type PostNode } from "./post-body";
+import { readDraftHeader, RULE, stripCodeFence } from "./post-markdown-header";
 import { formatInline, parseInline } from "./post-markdown-inline";
 
+export { looksLikeAiDraft } from "./post-markdown-header";
+
 // Texto que entrega una IA (Markdown simple) ⇄ cuerpo de una noticia. El formato es el que pide el prompt del panel:
-// TÍTULO/BAJADA arriba, ## y ### para títulos, listas, citas, ---, [FOTO N] y el link de una red solo en su línea.
+// TÍTULO/BAJADA arriba, ## y ### para títulos, listas, citas, ---, [FOTO N] y el link de una red solo en su línea (o
+// dentro de una frase: la publicación va debajo del párrafo).
 // El resultado pasa por `validatePostBody`, igual que lo que se guarda desde el editor.
 
 export const TITLE_MAX = 140;
@@ -19,10 +23,6 @@ export type PostDraft = {
   error?: string;
 };
 
-const TITLE_LINE = /^t[ií]tulo\s*:\s*(.*)$/i;
-const EXCERPT_LINE = /^bajada\s*:\s*(.*)$/i;
-const BODY_LABEL = /^(texto|cuerpo)\s*:?\s*$/i;
-const RULE = /^(-{3,}|\*{3,}|_{3,})$/;
 const HEADING = /^(#{1,6})\s+(.*)$/;
 const PHOTO = /^\[foto\s*(\d+)\]$/i;
 const BULLET = /^[-*+•]\s+(.*)$/;
@@ -30,41 +30,6 @@ const ORDERED = /^\d+[.)]\s+(.*)$/;
 const QUOTE = /^>\s?(.*)$/;
 const LONE_URL = /^<?((?:https?:\/\/|www\.)\S+?)>?$/i;
 const LONE_LINK = /^\[[^\]]+\]\(([^)\s]+)\)$/;
-
-/** Una línea de encabezado sin adornos (`**Título:**`, `# Título:`). */
-const plainLabel = (line: string) => line.replace(/\*\*/g, "").replace(/^#+\s*/, "").trim();
-
-function stripCodeFence(lines: string[]): string[] {
-  const first = lines.findIndex((line) => line.trim() !== "");
-  if (first < 0 || !lines[first]!.trim().startsWith("```")) return lines;
-  const rest = lines.slice(first + 1);
-  const last = rest.findLastIndex((line) => line.trim() !== "");
-  return last >= 0 && rest[last]!.trim().startsWith("```") ? rest.slice(0, last) : rest;
-}
-
-/**
- * Lee TÍTULO y BAJADA del principio; devuelve desde qué línea empieza el cuerpo. Una etiqueta vacía cuenta como
- * encabezado pero vale `null`: cargar el texto nunca borra lo que ya está escrito en el formulario.
- */
-function readHeader(lines: string[]) {
-  let title: string | undefined;
-  let excerpt: string | undefined;
-  let index = 0;
-  for (; index < lines.length; index++) {
-    const line = plainLabel(lines[index]!);
-    if (!line) continue;
-    const titleMatch = line.match(TITLE_LINE);
-    const excerptMatch = line.match(EXCERPT_LINE);
-    if (titleMatch && title === undefined) title = titleMatch[1]!.trim();
-    else if (excerptMatch && excerpt === undefined) excerpt = excerptMatch[1]!.trim();
-    else break;
-  }
-  if (title === undefined && excerpt === undefined) return { title: null, excerpt: null, start: 0 };
-  // Tras el encabezado, una línea «---» o «Texto:» separa el cuerpo: no es parte de él.
-  const next = lines.findIndex((line, position) => position >= index && line.trim() !== "");
-  if (next >= 0 && (RULE.test(lines[next]!.trim()) || BODY_LABEL.test(plainLabel(lines[next]!)))) index = next + 1;
-  return { title: title || null, excerpt: excerpt || null, start: index };
-}
 
 /** Un link solo en su línea: publicación de una red si se reconoce; si no, un párrafo con el enlace. */
 function loneLinkBlock(line: string): PostNode | null {
@@ -82,6 +47,17 @@ const paragraphOf = (text: string): PostNode => {
   return content.length > 0 ? { type: "paragraph", content } : { type: "paragraph" };
 };
 
+/** Las publicaciones de redes enlazadas dentro de un párrafo (sin repetir): se muestran justo debajo de él. */
+function embedsLinkedIn(node: PostNode): PostNode[] {
+  const embeds = new Map<string, PostNode>();
+  for (const child of node.content ?? []) {
+    const href = child.marks?.find((mark) => mark.type === "link")?.attrs?.href;
+    const embed = typeof href === "string" ? parseEmbedUrl(href) : null;
+    if (embed) embeds.set(`${embed.provider}:${embed.id}`, { type: "embed", attrs: { provider: embed.provider, id: embed.id } });
+  }
+  return [...embeds.values()];
+}
+
 function parseBlocks(lines: string[], photoIds: readonly string[], warnings: string[]): PostNode[] {
   const blocks: PostNode[] = [];
   let paragraph: string[] = [];
@@ -90,7 +66,10 @@ function parseBlocks(lines: string[], photoIds: readonly string[], warnings: str
   let list = null as PostNode | null;
 
   const flushParagraph = () => {
-    if (paragraph.length > 0) blocks.push(paragraphOf(paragraph.join(" ")));
+    if (paragraph.length > 0) {
+      const node = paragraphOf(paragraph.join(" "));
+      blocks.push(node, ...embedsLinkedIn(node));
+    }
     paragraph = [];
   };
   const flushQuote = () => {
@@ -164,7 +143,7 @@ function parseBlocks(lines: string[], photoIds: readonly string[], warnings: str
 /** Texto de la IA a título, bajada y cuerpo. `photoIds[0]` es la «[FOTO 1]». */
 export function parsePostMarkdown(text: string, photoIds: readonly string[]): PostDraft {
   const lines = stripCodeFence(text.replace(/\r\n?/g, "\n").split("\n"));
-  const { title, excerpt, start } = readHeader(lines);
+  const { title, excerpt, start } = readDraftHeader(lines);
   const warnings: string[] = [];
   if (title && title.length > TITLE_MAX) warnings.push(`El título tiene ${title.length} caracteres (máximo ${TITLE_MAX}).`);
   if (excerpt && excerpt.length > EXCERPT_MAX) warnings.push(`La bajada tiene ${excerpt.length} caracteres (máximo ${EXCERPT_MAX}).`);

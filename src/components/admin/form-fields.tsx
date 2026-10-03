@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ComponentProps } from "react";
+import { createContext, useContext, useState, type ComponentProps, type ReactNode } from "react";
 import { FormField, formFieldErrorId } from "@/components/admin/form-field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -20,7 +20,7 @@ const FieldsContext = createContext<FieldsContextValue>({ defaults: {}, errors: 
 /** Campos de un formulario del panel (`TextField`, `TextAreaField`, `SelectField`) con valor inicial y error del servidor. */
 export const FormFieldsProvider = FieldsContext.Provider;
 
-type BaseProps = { name: string; label: string; hint?: string };
+type BaseProps = { name: string; label: string; hint?: string; help?: ReactNode };
 
 /** Datos comunes de un campo: id estable, valor inicial y error del servidor junto al input. */
 function useField(name: string) {
@@ -35,20 +35,20 @@ function useField(name: string) {
   };
 }
 
-export function TextField({ name, label, hint, ...inputProps }: BaseProps & Omit<ComponentProps<typeof Input>, "name" | "id" | "defaultValue">) {
+export function TextField({ name, label, hint, help, ...inputProps }: BaseProps & Omit<ComponentProps<typeof Input>, "name" | "id" | "defaultValue">) {
   const { id, error, defaultValue, aria } = useField(name);
   return (
-    <FormField id={id} label={label} error={error} hint={hint}>
+    <FormField id={id} label={label} error={error} hint={hint} help={help}>
       <Input id={id} name={name} defaultValue={defaultValue} {...aria} {...inputProps} />
     </FormField>
   );
 }
 
-export function TextAreaField({ name, label, hint, maxLength, onChange, ...props }: BaseProps & Omit<ComponentProps<typeof Textarea>, "name" | "id" | "defaultValue">) {
+export function TextAreaField({ name, label, hint, help, maxLength, onChange, ...props }: BaseProps & Omit<ComponentProps<typeof Textarea>, "name" | "id" | "defaultValue">) {
   const { id, error, defaultValue, aria } = useField(name);
   const [length, setLength] = useState(defaultValue.length);
   return (
-    <FormField id={id} label={label} error={error} hint={hint}>
+    <FormField id={id} label={label} error={error} hint={hint} help={help}>
       <Textarea
         id={id}
         name={name}

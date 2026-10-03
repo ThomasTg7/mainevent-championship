@@ -61,18 +61,18 @@ test("crear una noticia con portada, un video de YouTube y un peleador, y progra
 
   await page.getByLabel("Título", { exact: true }).fill(title);
   await page.getByLabel("Categoría").selectOption({ label: "Anuncios" });
-  await page.getByLabel("Bajada").fill("Una bajada de prueba para la noticia.");
+  await page.getByLabel("Bajada", { exact: true }).fill("Una bajada de prueba para la noticia.");
   await uploadCover(page);
 
   await page.getByRole("tab", { name: "Texto" }).click();
   const editor = page.getByRole("textbox", { name: "Cuerpo de la noticia" });
   await editor.click();
   await page.keyboard.type("Primer párrafo de la noticia.");
-  await page.getByRole("button", { name: "Publicación de Instagram, YouTube o TikTok" }).click();
-  await page.getByLabel("Link de Instagram, YouTube o TikTok").fill("https://example.com/no-es-una-red");
+  await page.getByRole("button", { name: "Video o publicación de YouTube, Instagram, TikTok o Facebook" }).click();
+  await page.getByLabel("Link de YouTube, Instagram, TikTok o Facebook").fill("https://example.com/no-es-una-red");
   await page.getByRole("button", { name: "Insertar" }).click();
   await expect(page.getByText("Link no reconocido")).toBeVisible();
-  await page.getByLabel("Link de Instagram, YouTube o TikTok").fill("https://youtu.be/dQw4w9WgXcQ?t=10");
+  await page.getByLabel("Link de YouTube, Instagram, TikTok o Facebook").fill("https://youtu.be/dQw4w9WgXcQ?t=10");
   await page.getByRole("button", { name: "Insertar" }).click();
   await expect(editor.getByText("Publicación de YouTube")).toBeVisible();
 
@@ -126,7 +126,7 @@ test("crear una noticia con portada, un video de YouTube y un peleador, y progra
   await page.goto(`/noticias/${slug}`);
   await expect(page.getByRole("heading", { name: title, level: 1 })).toBeVisible();
   await expect(page.getByText("Primer párrafo de la noticia.")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Ver en YouTube/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Reproducir video de YouTube" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Matías Pérez/ })).toHaveAttribute("href", "/peleadores/matias-perez");
   await expect(page.locator("main img, article img").first()).toBeVisible();
 });
@@ -150,35 +150,45 @@ test("en el editor se ve la publicación real: pegar un reel de Instagram lo mue
   await expect(editor.getByText("Mira el reel:")).toBeVisible();
 });
 
-test("con IA: copiar el prompt, subir una foto, pegar la respuesta, cargarla, copiarla de vuelta, deshacer y guardar", async ({ page, context }) => {
+test("con IA: subir una foto y describirla, copiar las instrucciones, pegar la respuesta, cargarla, copiarla de vuelta, deshacer y guardar", async ({ page, context }) => {
   test.setTimeout(90_000);
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   const title = `Noticia IA E2E ${Date.now()}`;
   await page.goto(adminUrl("/noticias/nueva"));
   await page.getByRole("tab", { name: "Texto" }).click();
 
-  await page.getByRole("button", { name: "¿Cómo lo hago con IA?" }).click();
-  const help = page.getByRole("dialog", { name: "Escribir la noticia con IA" });
-  await help.getByRole("button", { name: "Copiar prompt" }).click();
-  await expect(page.getByText("Prompt copiado")).toBeVisible();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("[FOTO 1]");
-  await page.keyboard.press("Escape");
-  await expect(help).toBeHidden();
-
   await page.getByRole("button", { name: "Con IA", exact: true }).click();
   const writer = page.locator('[data-slot="ai-writer"]');
+  await expect(writer.getByText("La IA no puede ver, crear ni subir fotos.")).toBeVisible();
+
+  // Paso 1: la foto y lo que muestra.
   await writer.locator('input[type="file"]').setInputFiles({ name: "foto-ia.png", mimeType: "image/png", buffer: await png(1200, 800, "#3a6") });
   await expect(writer.getByText("FOTO 1", { exact: true })).toBeVisible();
+  await writer.getByLabel("¿Qué muestra la foto 1?").fill("Pérez levantando el cinturón");
 
-  await writer.getByLabel("2. Respuesta de la IA").fill(
-    [`TÍTULO: ${title}`, "BAJADA: Una bajada escrita por la IA.", "", "## La previa", "", "Pérez llega **invicto** al combate.", "", "[FOTO 1]", "", "https://youtu.be/dQw4w9WgXcQ", "", "[FOTO 2]"].join("\n"),
+  // Paso 2: lo que pasó y las instrucciones completas, con los datos y la foto.
+  await writer.getByLabel("¿Qué pasó?").fill("Pérez venció a Soto por KO en el segundo round.");
+  await writer.getByRole("button", { name: "Copiar instrucciones para la IA" }).click();
+  await expect(page.getByText("Instrucciones copiadas")).toBeVisible();
+  const prompt = await page.evaluate(() => navigator.clipboard.readText());
+  expect(prompt).toContain("Pérez venció a Soto por KO en el segundo round.");
+  expect(prompt).toContain("FOTO 1: Pérez levantando el cinturón");
+
+  // Paso 3: la respuesta (con un saludo antes, como suele hacer la IA) y lo que se detectó.
+  await writer.getByRole("textbox", { name: "Respuesta de la IA" }).fill(
+    ["¡Claro! Aquí tienes la noticia:", "", `TÍTULO: ${title}`, "BAJADA: Una bajada escrita por la IA.", "", "## La previa", "", "Pérez llega **invicto** al combate.", "", "[FOTO 1]", "", "Mira el KO: https://youtu.be/dQw4w9WgXcQ", "", "[FOTO 2]"].join("\n"),
   );
+  const detected = writer.getByRole("list", { name: "Lo que se cargará" });
+  await expect(detected.getByText(`Título: «${title}»`)).toBeVisible();
+  await expect(detected.getByText("1 video de YouTube")).toBeVisible();
   await writer.getByRole("button", { name: "Cargar en la noticia" }).click();
   await expect(page.getByText("Texto cargado en la noticia")).toBeVisible();
   await expect(writer.getByText("[FOTO 2] no se insertó")).toBeAttached();
 
-  // Vuelve al editor con el texto convertido.
+  // Vuelve al editor con el texto convertido; el saludo y «TÍTULO:» no quedan en el cuerpo.
   const editor = page.getByRole("textbox", { name: "Cuerpo de la noticia" });
+  await expect(editor).not.toContainText("TÍTULO");
+  await expect(editor).not.toContainText("Aquí tienes");
   await expect(editor.getByRole("heading", { name: "La previa" })).toBeVisible();
   await expect(editor.locator("strong", { hasText: "invicto" })).toBeVisible();
   await expect(editor.locator("figure img")).toHaveCount(1);
@@ -196,7 +206,7 @@ test("con IA: copiar el prompt, subir una foto, pegar la respuesta, cargarla, co
   // Deshacer deja todo como estaba; volver a cargar lo repone.
   await page.getByRole("tab", { name: "Datos" }).click();
   await expect(page.getByLabel("Título", { exact: true })).toHaveValue(title);
-  await expect(page.getByLabel("Bajada")).toHaveValue("Una bajada escrita por la IA.");
+  await expect(page.getByLabel("Bajada", { exact: true })).toHaveValue("Una bajada escrita por la IA.");
   await page.getByRole("button", { name: "Deshacer" }).click();
   await expect(page.getByLabel("Título", { exact: true })).toHaveValue("");
   // Al cerrarse, el aviso devuelve el foco a la pestaña Datos (y Radix la activa): se espera a que termine.
@@ -217,6 +227,25 @@ test("con IA: copiar el prompt, subir una foto, pegar la respuesta, cargarla, co
   await expect(editor.locator("figure img")).toHaveCount(1);
 });
 
+test("pegar la respuesta de la IA en «Escribir» la carga entera: el título y la bajada van a Datos, no al cuerpo", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto(adminUrl("/noticias/nueva"));
+  await page.getByRole("tab", { name: "Texto" }).click();
+  const editor = page.getByRole("textbox", { name: "Cuerpo de la noticia" });
+  await editor.click();
+  await page.evaluate(() =>
+    navigator.clipboard.writeText("Aquí está la noticia:\n\nTÍTULO: Rojas defiende en casa\nBAJADA: La campeona vuelve a Santiago.\n\nPrimer párrafo pegado."),
+  );
+  await page.keyboard.press("ControlOrMeta+v");
+
+  await expect(page.getByText("Texto cargado en la noticia")).toBeVisible();
+  await expect(editor.getByText("Primer párrafo pegado.")).toBeVisible();
+  await expect(editor).not.toContainText("TÍTULO");
+  await page.getByRole("tab", { name: "Datos" }).click();
+  await expect(page.getByLabel("Título", { exact: true })).toHaveValue("Rojas defiende en casa");
+  await expect(page.getByLabel("Bajada", { exact: true })).toHaveValue("La campeona vuelve a Santiago.");
+});
+
 test("la vista previa en vivo muestra la noticia como en el sitio y cambia al escribir, en celular y en PC", async ({ page }) => {
   await page.goto(adminUrl("/noticias/nueva"));
   const preview = page.locator('[data-slot="post-live-preview"]');
@@ -226,7 +255,7 @@ test("la vista previa en vivo muestra la noticia como en el sitio y cambia al es
 
   await page.getByLabel("Título", { exact: true }).fill("Rojas defiende en casa");
   await page.getByLabel("Categoría").selectOption({ label: "Resultados" });
-  await page.getByLabel("Bajada").fill("La campeona vuelve a Santiago.");
+  await page.getByLabel("Bajada", { exact: true }).fill("La campeona vuelve a Santiago.");
   await expect(frame.getByRole("heading", { level: 1, name: "Rojas defiende en casa" })).toBeVisible();
   await expect(frame.getByText("La campeona vuelve a Santiago.")).toBeVisible();
   await expect(frame.getByText("Resultados", { exact: true })).toBeVisible();
