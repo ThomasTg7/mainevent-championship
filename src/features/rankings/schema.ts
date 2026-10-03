@@ -6,7 +6,8 @@ export const rankingScopeSchema = z.object({ level: z.enum(BOUT_LEVELS), divisio
 /** Tope defensivo: ninguna división ni el libra por libra tiene más de unas decenas de puestos. */
 export const rankingIdsSchema = z.array(z.uuid()).max(50);
 
-export const saveRankingSchema = z.object({ scope: rankingScopeSchema, fighterIds: rankingIdsSchema });
+/** `baseVersionId`: la versión sobre la que se armó el borrador (`null` si no había); si otra persona guardó entretanto, se rechaza. */
+export const saveRankingSchema = z.object({ scope: rankingScopeSchema, fighterIds: rankingIdsSchema, baseVersionId: z.uuid().nullable() });
 
 export const championSchema = z.object({ level: z.enum(BOUT_LEVELS), divisionId: z.uuid(), fighterId: z.uuid() });
 

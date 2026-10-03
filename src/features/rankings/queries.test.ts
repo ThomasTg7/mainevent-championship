@@ -1,9 +1,10 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
+import { divisions } from "@/db/schema/divisions";
 import { bouts } from "@/db/schema/events";
 import { rankingEntries, rankingVersions } from "@/db/schema/rankings";
-import { fighterIdBySlug, eventIdBySlug } from "@/features/events/test-helpers";
+import { eventIdBySlug, fighterIdBySlug, insertBout, insertEvent, insertSegment } from "@/features/events/test-helpers";
 import { updateFighter } from "@/features/fighters/service";
 import { createTestDb } from "@/test/db";
 import { getBoutRankLabels, getFighterRankingTags, getPublicRankings } from "./queries";
@@ -132,6 +133,40 @@ describe("movement and visibility", () => {
 
     const page = await getPublicRankings(db, "pro");
     expect(page.cards.find((card) => card.division?.id === solo)).toBeUndefined();
+  });
+
+  it("numbers the site, the fighter tags and the card the same way when someone above stops being visible", async () => {
+    const welter = await divisionIdBySlug(db, "peso-welter");
+    const [gone, champ, stays] = [
+      await insertRankableFighter(db, welter, { firstName: "Ido", lastName: "Retirado" }),
+      await insertRankableFighter(db, welter),
+      await insertRankableFighter(db, welter, { firstName: "Sube", lastName: "Solo" }),
+    ];
+    await saveRanking(db, { level: "pro", divisionId: welter }, [gone, champ, stays], "admin-1");
+    // El #2 se corona (sale del ranking numerado) y el #1 se retira: «Sube Solo» se ve como #1 en todas partes.
+    await setChampion(db, "pro", welter, champ, "admin-1");
+    await updateFighter(db, gone, { firstName: "Ido", lastName: "Retirado", gender: "male", nationality: "CL", divisionId: welter, careerStatus: "retired", proWins: 3 }, "admin-1");
+
+    const card = (await getPublicRankings(db, "pro")).cards.find((candidate) => candidate.division?.id === welter);
+    expect(card?.entries.map((entry) => [entry.position, entry.fighter.id])).toEqual([[1, stays]]);
+    expect(await getFighterRankingTags(db, stays)).toEqual([{ label: "#1 Peso Wélter" }]);
+
+    const event = await insertEvent(db);
+    const segmentId = await insertSegment(db, event.id);
+    const boutId = await insertBout(db, { eventId: event.id, segmentId, redFighterId: champ, blueFighterId: stays, divisionId: welter });
+    const labels = await getBoutRankLabels(db, [boutId]);
+    expect(Object.fromEntries(labels)).toEqual({ [champ]: "C", [stays]: "#1" });
+  });
+
+  it("drops the tags and labels of an inactive division", async () => {
+    const mosca = await divisionIdBySlug(db, "peso-mosca");
+    const [champ, ranked] = [await insertRankableFighter(db, mosca), await insertRankableFighter(db, mosca)];
+    await setChampion(db, "pro", mosca, champ, "admin-1");
+    await saveRanking(db, { level: "pro", divisionId: mosca }, [ranked], "admin-1");
+    await db.update(divisions).set({ active: false }).where(eq(divisions.id, mosca));
+
+    expect(await getFighterRankingTags(db, champ)).toEqual([]);
+    expect(await getFighterRankingTags(db, ranked)).toEqual([]);
   });
 
   it("omits a division with neither champion nor ranking", async () => {

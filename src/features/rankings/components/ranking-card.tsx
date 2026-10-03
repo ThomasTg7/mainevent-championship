@@ -8,13 +8,15 @@ import type { RankingCardDTO } from "../dto";
 import { MovementBadge } from "./movement-badge";
 
 /**
- * Una tarjeta de ranking (estilo `.rank-card` de la maqueta): arriba, el campeón de la división (o el líder del libra por
- * libra) con su foto; abajo, los puestos con su movimiento contra la versión anterior.
+ * Una tarjeta de ranking (estilo `.rank-card` de la maqueta): arriba, el campeón de la división (o el #1 del libra por
+ * libra, que entonces no se repite en la lista) con su foto; abajo, los puestos con su movimiento contra la versión anterior.
  */
 export function RankingCard({ division, champion, entries, updatedAt }: RankingCardDTO) {
   const isP4p = division === null;
   const title = isP4p ? "P4P" : divisionTitle(division);
   const leader = isP4p ? entries[0]?.fighter : champion;
+  const leaderMovement = isP4p ? entries[0]?.movement : undefined;
+  const listed = isP4p ? entries.slice(1) : entries;
   const belt = isP4p ? "★ Libra por libra" : "★ Campeón";
   const leaderName = leader?.name ?? "Vacante";
 
@@ -24,7 +26,7 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
         <div className="relative z-10 p-[22px]">
           <p className="font-cond text-xs font-extrabold uppercase tracking-[.12em] text-yellow">{belt}</p>
           <h2 className="my-2 font-display text-[30px] uppercase leading-[1.05] text-white">{title}</h2>
-          <p className="font-cond text-xl font-bold uppercase text-white">
+          <p className="flex flex-wrap items-center gap-x-2.5 font-cond text-xl font-bold uppercase text-white">
             {leader ? (
               <Link href={`/peleadores/${leader.slug}`} className="underline-offset-4 outline-none hover:underline focus-visible:underline focus-visible:decoration-yellow focus-visible:decoration-[3px]">
                 {leaderName}
@@ -32,6 +34,7 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
             ) : (
               <span className="text-muted-foreground">{leaderName}</span>
             )}
+            {leaderMovement ? <MovementBadge movement={leaderMovement} /> : null}
           </p>
           {champion?.since ? <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-[.08em] text-muted-foreground">Campeón desde {formatDate(new Date(`${champion.since}T12:00:00Z`))}</p> : null}
         </div>
@@ -44,11 +47,11 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
         </div>
       </div>
 
-      {entries.length === 0 ? (
-        <p className="px-[22px] py-5 font-cond text-sm font-semibold uppercase tracking-[.06em] text-muted-foreground">Aún sin ranking numerado.</p>
+      {listed.length === 0 ? (
+        isP4p ? null : <p className="px-[22px] py-5 font-cond text-sm font-semibold uppercase tracking-[.06em] text-muted-foreground">Aún sin ranking numerado.</p>
       ) : (
         <ol>
-          {entries.map((entry) => (
+          {listed.map((entry) => (
             <li key={entry.fighter.id} className="grid grid-cols-[34px_1fr_auto] items-center gap-2.5 border-b border-border px-[22px] py-3 font-cond text-[17px] font-bold uppercase tracking-[.03em] text-white">
               <span className="text-muted-foreground">
                 {entry.position}

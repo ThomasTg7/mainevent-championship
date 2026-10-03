@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".next-e2e/**",
+    // Servidor de revisión (`E2E_DIST_DIR=.next-review`, docs/WORKFLOW.md).
+    ".next-review/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

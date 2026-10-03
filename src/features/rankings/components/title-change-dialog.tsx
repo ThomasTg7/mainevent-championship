@@ -42,7 +42,7 @@ export function TitleChangeDialog({ prompt, onConfirm, onSkip }: TitleChangeDial
         </DialogHeader>
         {currentChampionName ? (
           <p className="text-sm text-muted-foreground">
-            Hoy el título es de {currentChampionName}. Si sigue activo, pasa al primer puesto del ranking de la división (lo puedes mover después).
+            Hoy el título es de {currentChampionName}. Si sigue activo, pasa al primer puesto del ranking de la división (si el ranking está completo, sale el último); lo puedes mover después.
           </p>
         ) : null}
         {error ? (

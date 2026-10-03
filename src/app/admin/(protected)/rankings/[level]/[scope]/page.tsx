@@ -52,6 +52,7 @@ export default async function AdminRankingEditorPage({ params }: PageProps<"/adm
         key={data.updatedAt ?? "sin-version"}
         scope={{ level, divisionId: scope.divisionId, label: scope.label, slots: scope.slots }}
         initial={data.entries}
+        baseVersionId={data.versionId}
         suggestions={scope.divisionId ? (suggestions.get(scope.divisionId) ?? []) : []}
         championId={data.champion?.id ?? null}
       />

@@ -11,6 +11,7 @@ import type { MediaDTO } from "@/features/media/dto";
 import { getMediaByIds } from "@/features/media/queries";
 import type { RankedFighterDTO, RankingCardDTO, RankingsPageDTO } from "./dto";
 import { visibleRankedFighter } from "./eligibility";
+import { shownRankings } from "./shown-positions";
 import { listLatestVersions } from "./versions";
 
 // Lecturas públicas de rankings. Un peleador que ya no se ve (retirado, inactivo, borrador, en la papelera) no aparece:
@@ -158,11 +159,12 @@ const proFirst = (a: { level: BoutLevel }, b: { level: BoutLevel }) => (a.level 
 
 /**
  * Etiquetas de campeón y ranking de un peleador para su ficha, ya listas para mostrar: primero los títulos, luego los
- * puestos de división y al final el libra por libra (pro antes que amateur). Un peleador que no está activo no lleva ninguna.
+ * puestos de división y al final el libra por libra (pro antes que amateur). El número es el que muestra `/rankings`
+ * (`shownRankings`); un peleador que no se ve en el sitio no lleva ninguna.
  */
 export async function getFighterRankingTags(db: Db, fighterId: string): Promise<{ label: string }[]> {
-  const [fighter] = await db.select({ careerStatus: fighters.careerStatus }).from(fighters).where(eq(fighters.id, fighterId)).limit(1);
-  if (fighter?.careerStatus !== "active") return [];
+  const [visible] = await db.select({ id: fighters.id }).from(fighters).where(and(eq(fighters.id, fighterId), visibleRankedFighter)).limit(1);
+  if (!visible) return [];
 
   const latest = await listLatestVersions(db, {}, 1);
   const [titleRows, entryRows, divisionRows] = await Promise.all([
@@ -170,25 +172,26 @@ export async function getFighterRankingTags(db: Db, fighterId: string): Promise<
       .select({ level: titles.level, name: divisions.name, gender: divisions.gender })
       .from(titles)
       .innerJoin(divisions, eq(divisions.id, titles.divisionId))
-      .where(eq(titles.championFighterId, fighterId)),
+      .where(and(eq(titles.championFighterId, fighterId), eq(divisions.active, true))),
     latest.length === 0
       ? []
       : db
-          .select({ versionId: rankingEntries.versionId, position: rankingEntries.position })
+          .select({ versionId: rankingEntries.versionId })
           .from(rankingEntries)
           .where(and(eq(rankingEntries.fighterId, fighterId), inArray(rankingEntries.versionId, latest.map((version) => version.id)))),
     db.select({ id: divisions.id, name: divisions.name, gender: divisions.gender }).from(divisions),
   ]);
+  const versions = latest.filter((version) => entryRows.some((entry) => entry.versionId === version.id));
+  const shown = await shownRankings(db, versions);
   const divisionById = new Map(divisionRows.map((division) => [division.id, division]));
-  const versionById = new Map(latest.map((version) => [version.id, version]));
 
   const champion = titleRows.toSorted(proFirst).map((title) => `Campeón ${title.level === "pro" ? "pro" : "amateur"} · ${divisionTitle(title)}`);
-  const ranked = entryRows.flatMap((entry) => {
-    const version = versionById.get(entry.versionId);
-    if (!version) return [];
+  const ranked = versions.flatMap((version) => {
+    const position = (shown.get(version.id) ?? []).indexOf(fighterId) + 1;
+    if (position === 0) return [];
     const division = version.divisionId ? divisionById.get(version.divisionId) : null;
     const place = division ? divisionTitle(division) : "P4P";
-    return [{ level: version.level, p4p: version.divisionId === null, label: `#${entry.position} ${place}${LEVEL_SUFFIX[version.level]}` }];
+    return [{ level: version.level, p4p: version.divisionId === null, label: `#${position} ${place}${LEVEL_SUFFIX[version.level]}` }];
   });
   // Los puestos de división van antes que el libra por libra.
   const rankLabels = ranked.toSorted((a, b) => Number(a.p4p) - Number(b.p4p) || proFirst(a, b)).map((entry) => entry.label);
@@ -196,8 +199,9 @@ export async function getFighterRankingTags(db: Db, fighterId: string): Promise<
 }
 
 /**
- * Etiqueta de cada peleador de unas peleas según su división y nivel de hoy: `"C"` (campeón) o `"#n"`. Las peleas sin
- * división (peso pactado) y quien ya no está activo no llevan etiqueta. Una consulta por tipo de dato, nunca por pelea.
+ * Etiqueta de cada peleador de unas peleas según su división y nivel de hoy: `"C"` (campeón) o `"#n"` (el número de
+ * `/rankings`). Las peleas sin división (peso pactado) y quien no se ve en el sitio no llevan etiqueta. Una consulta por
+ * tipo de dato, nunca por pelea.
  */
 export async function getBoutRankLabels(db: Db, boutIds: string[]): Promise<Map<string, string>> {
   const labels = new Map<string, string>();
@@ -208,34 +212,31 @@ export async function getBoutRankLabels(db: Db, boutIds: string[]): Promise<Map<
     .where(and(inArray(bouts.id, boutIds), isNotNull(bouts.divisionId)));
   if (boutRows.length === 0) return labels;
 
+  const scopeOf = (bout: { level: BoutLevel; divisionId: string | null }) => `${bout.level}:${bout.divisionId}`;
   const divisionIds = [...new Set(boutRows.flatMap((bout) => (bout.divisionId ? [bout.divisionId] : [])))];
   const fighterIds = [...new Set(boutRows.flatMap((bout) => [bout.red, bout.blue]))];
-  const [activeRows, titleRows, latest] = await Promise.all([
-    db.select({ id: fighters.id }).from(fighters).where(and(inArray(fighters.id, fighterIds), eq(fighters.careerStatus, "active"))),
-    db.select({ level: titles.level, divisionId: titles.divisionId, championId: titles.championFighterId }).from(titles).where(inArray(titles.divisionId, divisionIds)),
+  const [visibleRows, titleRows, latest] = await Promise.all([
+    db.select({ id: fighters.id }).from(fighters).where(and(inArray(fighters.id, fighterIds), visibleRankedFighter)),
+    db
+      .select({ level: titles.level, divisionId: titles.divisionId, championId: titles.championFighterId })
+      .from(titles)
+      .innerJoin(divisions, eq(divisions.id, titles.divisionId))
+      .where(and(inArray(titles.divisionId, divisionIds), eq(divisions.active, true))),
     listLatestVersions(db, {}, 1),
   ]);
-  const active = new Set(activeRows.map((row) => row.id));
-  const versionOf = new Map(latest.flatMap((version) => (version.divisionId ? [[`${version.level}:${version.divisionId}`, version.id] as const] : [])));
-  const versionIds = [...new Set(boutRows.flatMap((bout) => versionOf.get(`${bout.level}:${bout.divisionId}`) ?? []))];
-  const entryRows =
-    versionIds.length === 0
-      ? []
-      : await db
-          .select({ versionId: rankingEntries.versionId, position: rankingEntries.position, fighterId: rankingEntries.fighterId })
-          .from(rankingEntries)
-          .where(and(inArray(rankingEntries.versionId, versionIds), inArray(rankingEntries.fighterId, fighterIds)));
+  const boutScopes = new Set(boutRows.map(scopeOf));
+  const versions = latest.filter((version) => version.divisionId && boutScopes.has(scopeOf(version)));
+  const shown = await shownRankings(db, versions);
+  const visible = new Set(visibleRows.map((row) => row.id));
+  const championOf = new Map(titleRows.map((title) => [scopeOf(title), title.championId]));
+  const shownOf = new Map(versions.map((version) => [scopeOf(version), shown.get(version.id) ?? []]));
 
   for (const bout of boutRows) {
-    const championId = titleRows.find((title) => title.level === bout.level && title.divisionId === bout.divisionId)?.championId;
-    const versionId = versionOf.get(`${bout.level}:${bout.divisionId}`);
     for (const fighterId of [bout.red, bout.blue]) {
-      if (!active.has(fighterId)) continue;
-      if (championId === fighterId) labels.set(fighterId, "C");
-      else {
-        const entry = entryRows.find((row) => row.versionId === versionId && row.fighterId === fighterId);
-        if (entry) labels.set(fighterId, `#${entry.position}`);
-      }
+      if (!visible.has(fighterId)) continue;
+      const position = (shownOf.get(scopeOf(bout)) ?? []).indexOf(fighterId) + 1;
+      if (championOf.get(scopeOf(bout)) === fighterId) labels.set(fighterId, "C");
+      else if (position > 0) labels.set(fighterId, `#${position}`);
     }
   }
   return labels;

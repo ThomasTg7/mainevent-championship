@@ -22,6 +22,8 @@ type RankingEditorProps = {
   scope: { level: BoutLevel; divisionId: string | null; label: string; slots: number };
   /** El ranking vigente, tal como se guardó. */
   initial: EditorFighter[];
+  /** La versión vigente: si otra persona guarda mientras se edita, el guardado se rechaza en vez de pisarla. */
+  baseVersionId: string | null;
   suggestions: SuggestionItem[];
   /** El campeón de la división no puede estar en el ranking numerado (en libra por libra, `null`). */
   championId: string | null;
@@ -31,7 +33,7 @@ type RankingEditorProps = {
  * Editor de un ranking: se arma un borrador (arrastrar o subir/bajar, agregar, quitar, aceptar sugerencias) y «Guardar
  * nueva versión» lo publica. Cada guardado crea una versión; la anterior sirve para el movimiento ▲▼.
  */
-export function RankingEditor({ scope, initial, suggestions, championId }: RankingEditorProps) {
+export function RankingEditor({ scope, initial, baseVersionId, suggestions, championId }: RankingEditorProps) {
   const [draft, setDraft] = useState(initial);
   const [pending, setPending] = useState(suggestions);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +61,11 @@ export function RankingEditor({ scope, initial, suggestions, championId }: Ranki
   function save() {
     setError(null);
     startTransition(async () => {
-      const result = await saveRankingAction({ level: scope.level, divisionId: scope.divisionId }, draft.map((fighter) => fighter.id));
+      const result = await saveRankingAction(
+        { level: scope.level, divisionId: scope.divisionId },
+        draft.map((fighter) => fighter.id),
+        baseVersionId,
+      );
       if (result.error) {
         setError(result.error);
         return void toast.error(result.error);

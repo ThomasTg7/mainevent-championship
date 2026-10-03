@@ -2,8 +2,12 @@ import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
 import { auditLog } from "@/db/schema/audit";
+import { divisions } from "@/db/schema/divisions";
+import { fighters } from "@/db/schema/fighters";
 import { dismissedSuggestions, rankingEntries, rankingVersions, titles } from "@/db/schema/rankings";
-import { deleteFighter, updateFighter } from "@/features/fighters/service";
+import { insertBout, insertSegment } from "@/features/events/test-helpers";
+import { createFighter, deleteFighter, updateFighter } from "@/features/fighters/service";
+import { validFighterInput } from "@/features/fighters/test-helpers";
 import { createTestDb } from "@/test/db";
 import { dismissSuggestion, saveRanking, setChampion, vacateTitle } from "./service";
 import { divisionIdBySlug, insertRankableFighter } from "./test-helpers";
@@ -78,6 +82,48 @@ describe("saveRanking", () => {
     await expect(saveRanking(db, scope(ligero, "amateur"), [amateurOnly], "admin-1")).resolves.toBeDefined();
   });
 
+  it("rejects a draft built on a version that someone else replaced meanwhile", async () => {
+    const division = await divisionIdBySlug(db, "peso-mosca-femenino");
+    const [a, b] = [await fighter(division, { gender: "female" }), await fighter(division, { gender: "female" })];
+    // Sin versión todavía: la base es `null`; con una versión ya guardada, esa base queda vieja.
+    const first = await saveRanking(db, scope(division), [a], "admin-1", { baseVersionId: null });
+    await expect(saveRanking(db, scope(division), [b], "admin-2", { baseVersionId: null })).rejects.toThrow("Otra persona guardó este ranking");
+
+    const second = await saveRanking(db, scope(division), [b, a], "admin-1", { baseVersionId: first.versionId });
+    await expect(saveRanking(db, scope(division), [a], "admin-2", { baseVersionId: first.versionId })).rejects.toThrow("Otra persona guardó este ranking");
+    expect(await getCurrentRanking(db, scope(division))).toMatchObject({ versionId: second.versionId, fighterIds: [b, a] });
+  });
+
+  it("ranks men and women together in P4P, up to 10", async () => {
+    const [man, woman] = [await fighter(ligero), await fighter(paja, { gender: "female" })];
+    await expect(saveRanking(db, scope(null), [man, woman], "admin-1")).resolves.toBeDefined();
+    const eleven = await Promise.all(Array.from({ length: 11 }, () => fighter(ligero)));
+    await expect(saveRanking(db, scope(null), eleven, "admin-1")).rejects.toThrow("Máximo 10 puestos");
+  });
+
+  it("rejects a draft or trashed fighter and accepts one whose only record is a finished bout of the level", async () => {
+    const [draft, trashed] = [await fighter(ligero, { firstName: "Bo", lastName: "Rrador" }), await fighter(ligero, { firstName: "Pa", lastName: "Pelera" })];
+    await db.update(fighters).set({ status: "draft" }).where(eq(fighters.id, draft));
+    await db.update(fighters).set({ deletedAt: new Date() }).where(eq(fighters.id, trashed));
+    await expect(saveRanking(db, scope(ligero), [draft], "admin-1")).rejects.toThrow("Bo Rrador no es elegible");
+    await expect(saveRanking(db, scope(ligero), [trashed], "admin-1")).rejects.toThrow("Pa Pelera no es elegible");
+
+    const { id: rookie } = await createFighter(db, validFighterInput(ligero, { firstName: "Sin", lastName: "Récord", status: "published" }), "admin-1");
+    const rival = await fighter(ligero);
+    await expect(saveRanking(db, scope(ligero), [rookie], "admin-1")).rejects.toThrow("Sin Récord no es elegible");
+    const event = await insertEvent(db);
+    const segmentId = await insertSegment(db, event.id);
+    await insertBout(db, { eventId: event.id, segmentId, redFighterId: rookie, blueFighterId: rival, divisionId: ligero, boutStatus: "completed", outcome: "red_win" });
+    await expect(saveRanking(db, scope(ligero), [rookie], "admin-1")).resolves.toBeDefined();
+    await expect(saveRanking(db, scope(ligero, "amateur"), [rookie], "admin-1")).rejects.toThrow("no es elegible");
+  });
+
+  it("rejects an inactive division", async () => {
+    const division = await divisionIdBySlug(db, "peso-mosca-femenino");
+    await db.update(divisions).set({ active: false }).where(eq(divisions.id, division));
+    await expect(saveRanking(db, scope(division), [], "admin-1")).rejects.toThrow("Esa división está inactiva");
+  });
+
   it("rejects an unknown division and audits a valid save", async () => {
     await expect(saveRanking(db, scope("00000000-0000-4000-8000-000000000000"), [], "admin-1")).rejects.toThrow("No se encontró la división");
     const a = await fighter();
@@ -111,6 +157,23 @@ describe("setChampion", () => {
     expect((await getCurrentRanking(db, scope(division)))?.fighterIds).toEqual([old, other]);
     const [title] = await db.select().from(titles).where(and(eq(titles.divisionId, division), eq(titles.level, "pro")));
     expect(title?.championFighterId).toBe(challenger);
+  });
+
+  it("drops the last ranked fighter when the former champion enters a full ranking, and audits title and ranking", async () => {
+    const division = await divisionIdBySlug(db, "peso-pluma");
+    const [old, challenger, ...ranked] = await Promise.all(Array.from({ length: 7 }, () => fighter(division)));
+    await setChampion(db, "pro", division, old!, "admin-1");
+    await saveRanking(db, scope(division), ranked, "admin-1");
+
+    await setChampion(db, "pro", division, challenger!, "admin-1");
+
+    const current = await getCurrentRanking(db, scope(division));
+    expect(current?.fighterIds).toEqual([old, ...ranked.slice(0, 4)]);
+    const [title] = await db.select().from(titles).where(and(eq(titles.divisionId, division), eq(titles.level, "pro")));
+    const titleLogs = await db.select().from(auditLog).where(and(eq(auditLog.entityType, "title"), eq(auditLog.entityId, title!.id)));
+    expect(titleLogs.map((log) => log.summary)).toEqual(expect.arrayContaining([expect.stringContaining("campeón pro de Peso Pluma (antes:")]));
+    const [rankingLog] = await db.select().from(auditLog).where(eq(auditLog.entityId, current!.versionId));
+    expect(rankingLog?.summary).toContain("tras el cambio de título");
   });
 
   it("does not rank a former champion who is no longer eligible", async () => {
@@ -159,6 +222,10 @@ describe("vacateTitle", () => {
     expect(change.affectedFighterIds).toEqual([a]);
     const [title] = await db.select().from(titles).where(eq(titles.divisionId, division));
     expect(title).toMatchObject({ championFighterId: null, since: null });
+    // La coronación y la vacante quedan en el historial del mismo título.
+    const logs = await db.select().from(auditLog).where(and(eq(auditLog.entityType, "title"), eq(auditLog.entityId, title!.id)));
+    expect(logs).toHaveLength(2);
+    expect(logs.some((log) => log.summary.startsWith("Dejó vacante el título pro de Peso Semipesado"))).toBe(true);
     await expect(vacateTitle(db, "pro", division, "admin-1")).rejects.toThrow("ya está vacante");
   });
 });
@@ -171,6 +238,8 @@ describe("dismissSuggestion", () => {
     await dismissSuggestion(db, event.id, a, key, "admin-1");
     await dismissSuggestion(db, event.id, a, key, "admin-1");
     expect(await db.select().from(dismissedSuggestions).where(eq(dismissedSuggestions.eventId, event.id))).toHaveLength(1);
+    const [log] = await db.select().from(auditLog).where(and(eq(auditLog.entityType, "ranking"), eq(auditLog.entityId, event.id)));
+    expect(log?.summary).toContain("Descartó la sugerencia de ranking para");
     await expect(dismissSuggestion(db, "00000000-0000-4000-8000-000000000000", a, key, "admin-1")).rejects.toThrow("No se encontró el evento");
   });
 });

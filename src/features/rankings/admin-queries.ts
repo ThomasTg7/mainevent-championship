@@ -35,7 +35,8 @@ export type RankingEditorData = {
   scope: RankingScopeInfo;
   champion: EditorFighter | null;
   entries: EditorFighter[];
-  /** ISO de la versión vigente. */
+  /** La versión vigente (el borrador se arma sobre ella) y su fecha ISO. */
+  versionId: string | null;
   updatedAt: string | null;
 };
 
@@ -80,6 +81,7 @@ export async function getRankingEditorData(db: Db, scope: RankingScopeInfo): Pro
     scope,
     champion: championRows[0] ? toEditorFighter(championRows[0]) : null,
     entries: entryRows.map(toEditorFighter),
+    versionId: current?.id ?? null,
     updatedAt: current ? current.createdAt.toISOString() : null,
   };
 }

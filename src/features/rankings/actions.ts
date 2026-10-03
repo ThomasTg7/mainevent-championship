@@ -24,12 +24,12 @@ function revalidateChange({ affectedFighterIds }: RankingChange): void {
   revalidatePath("/admin/rankings/[level]/[scope]", "page");
 }
 
-export async function saveRankingAction(scope: unknown, fighterIds: unknown): Promise<FormActionState> {
+export async function saveRankingAction(scope: unknown, fighterIds: unknown, baseVersionId: unknown): Promise<FormActionState> {
   const admin = await requireAdmin();
-  const parsed = saveRankingSchema.safeParse({ scope, fighterIds });
+  const parsed = saveRankingSchema.safeParse({ scope, fighterIds, baseVersionId });
   if (!parsed.success) return INVALID;
   return run(async () => {
-    revalidateChange(await saveRanking(db, parsed.data.scope, parsed.data.fighterIds, admin.userId));
+    revalidateChange(await saveRanking(db, parsed.data.scope, parsed.data.fighterIds, admin.userId, { baseVersionId: parsed.data.baseVersionId }));
     return { success: "Nueva versión del ranking guardada" };
   });
 }

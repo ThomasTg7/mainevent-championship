@@ -1,6 +1,6 @@
 import { and, eq, isNull, lte, sql } from "drizzle-orm";
-import type { Db } from "@/db";
 import { rankingEntries, rankingVersions } from "@/db/schema/rankings";
+import type { Executor } from "@/db/types";
 import type { BoutLevel } from "@/domain/bout-enums";
 import type { RankingScope } from "@/domain/rankings";
 
@@ -11,7 +11,7 @@ export type RankedVersionRow = { id: string; level: BoutLevel; divisionId: strin
  * `filter` acota por nivel y, si se indica, por división (`null` = libra por libra).
  */
 export async function listLatestVersions(
-  db: Db,
+  db: Executor,
   filter: { level?: BoutLevel; divisionId?: string | null },
   depth: 1 | 2,
 ): Promise<RankedVersionRow[]> {
@@ -36,7 +36,7 @@ export async function listLatestVersions(
 }
 
 /** La versión vigente de un alcance y sus peleadores en orden de puesto (sin ocultar a nadie: es lo que guardó el admin). */
-export async function getCurrentRanking(db: Db, scope: RankingScope): Promise<{ versionId: string; createdAt: Date; fighterIds: string[] } | null> {
+export async function getCurrentRanking(db: Executor, scope: RankingScope): Promise<{ versionId: string; createdAt: Date; fighterIds: string[] } | null> {
   const [current] = await listLatestVersions(db, scope, 1);
   if (!current) return null;
   const entries = await db
