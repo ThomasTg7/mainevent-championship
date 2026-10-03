@@ -22,6 +22,8 @@ import { getCachedPostsForEvent } from "@/features/posts/cached-queries";
 import { getCachedBoutRankLabels } from "@/features/rankings/cached-queries";
 import { RelatedNewsRail } from "@/features/posts/components/related-news-rail";
 import { verifyPreviewToken } from "@/features/publication/preview";
+import { SponsorGrid } from "@/features/sponsors/components/sponsor-grid";
+import { getCachedSponsors } from "@/features/sponsors/cached-queries";
 import { formatShortDate, formatTime } from "@/lib/format-date";
 
 /**
@@ -70,12 +72,13 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
   const ticketHref = canBuy ? (event.ticketUrl ?? "/entradas") : undefined;
   const ticketExternal = Boolean(canBuy && event.ticketUrl);
   const segments = event.segments.filter((segment) => segment.bouts.length > 0);
-  const [news, rankLabels] = await Promise.all([
+  const [news, rankLabels, sponsors] = await Promise.all([
     getCachedPostsForEvent(event.id),
     getCachedBoutRankLabels(
       event.id,
       segments.flatMap((segment) => segment.bouts.map((bout) => bout.id)),
     ),
+    getCachedSponsors("event", event.id),
   ]);
 
   return (
@@ -138,6 +141,12 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
           </div>
         </section>
       ) : null}
+
+      <div className="bg-black">
+        <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)]">
+          <SponsorGrid sponsors={sponsors} />
+        </div>
+      </div>
 
       <RelatedNewsRail posts={news} />
 

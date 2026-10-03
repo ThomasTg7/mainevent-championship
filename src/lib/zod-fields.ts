@@ -30,6 +30,17 @@ export function optionalNumber(label: string, { min, max, integer = false }: { m
     .pipe(bounded.nullable());
 }
 
+/**
+ * Casilla de formulario: llega como `"on"`/`"true"`/`"false"` o como booleano desde el código. Ausente = `defaultValue` (un HTML
+ * no envía las casillas sin marcar: los formularios que necesitan distinguir mandan `"true"`/`"false"` en un campo oculto).
+ */
+export function checkbox(defaultValue = false) {
+  return z
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((value) => (value === undefined ? defaultValue : value === true || value === "on" || value === "true"));
+}
+
 /** Id de imagen opcional: vacío o ausente se guarda como `null`. */
 export function optionalImageId() {
   return z

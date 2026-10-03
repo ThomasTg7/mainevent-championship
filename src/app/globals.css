@@ -161,3 +161,10 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Cinta continua (texto del home, patrocinadores): la pista lleva su contenido dos veces y se desplaza media pista. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}

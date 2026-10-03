@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
 import { getCachedSetting } from "@/features/settings/cached-queries";
+import { getCachedSponsors } from "@/features/sponsors/cached-queries";
+import { SponsorLogo } from "@/features/sponsors/components/sponsor-logo";
 import { socialLinks } from "@/features/settings/social-links";
 import { NAV_LINKS } from "./nav-links";
 
@@ -27,7 +29,12 @@ function FooterLink({ href, children }: { href: string; children: ReactNode }) {
 }
 
 export async function Footer() {
-  const [socials, footer, contact] = await Promise.all([getCachedSetting("socials"), getCachedSetting("footer"), getCachedSetting("contact")]);
+  const [socials, footer, contact, sponsors] = await Promise.all([
+    getCachedSetting("socials"),
+    getCachedSetting("footer"),
+    getCachedSetting("contact"),
+    getCachedSponsors("footer"),
+  ]);
   const networks = socialLinks(socials);
 
   return (
@@ -68,6 +75,18 @@ export async function Footer() {
             <FooterLink href="/privacidad">Privacidad</FooterLink>
           </FooterColumn>
         </div>
+        {sponsors.length > 0 ? (
+          <section aria-label="Patrocinadores principales" className="mt-14 flex flex-wrap items-center gap-x-10 gap-y-5 border-t border-border pt-8">
+            <h2 className="font-cond text-[13px] font-extrabold uppercase tracking-[.16em] text-yellow">Nos patrocinan</h2>
+            <ul className="flex flex-wrap items-center gap-x-10 gap-y-5">
+              {sponsors.map((sponsor) => (
+                <li key={sponsor.id}>
+                  <SponsorLogo sponsor={sponsor} sizes="160px" className="w-32 sm:w-40" muted />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         <div className="mt-14 pt-6 border-t border-border flex flex-wrap justify-between gap-2.5 text-[#666] text-sm">
           <span>© {new Date().getFullYear()} Guerra Campal</span>
           <span>{contact.address || "Santiago, Chile"}</span>

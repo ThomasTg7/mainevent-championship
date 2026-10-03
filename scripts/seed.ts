@@ -4,6 +4,7 @@ import { seedEvents } from "@/features/events/seed";
 import { seedRankings } from "@/features/rankings/seed";
 import { seedFighters } from "@/features/fighters/seed";
 import { seedPosts } from "@/features/posts/seed";
+import { seedSponsors } from "@/features/sponsors/seed";
 
 export async function seed(db: Db): Promise<void> {
   await seedDivisions(db);
@@ -11,6 +12,7 @@ export async function seed(db: Db): Promise<void> {
   await seedEvents(db);
   await seedPosts(db);
   await seedRankings(db);
+  await seedSponsors(db);
   // Cada plan agrega aquí su propio seedX(db).
 }
 

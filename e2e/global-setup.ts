@@ -10,6 +10,7 @@ import { createFighter, deleteFighter } from "@/features/fighters/service";
 import { seedFighters } from "@/features/fighters/seed";
 import { seedPosts } from "@/features/posts/seed";
 import { seedRankings } from "@/features/rankings/seed";
+import { seedSponsors } from "@/features/sponsors/seed";
 import { daysAgo, insertPost } from "@/features/posts/test-helpers";
 import { divisions } from "@/db/schema/divisions";
 import { eq } from "drizzle-orm";
@@ -47,12 +48,13 @@ export default async function globalSetup(): Promise<void> {
   ensureE2eDatabase();
   execSync("pnpm db:migrate", { stdio: "inherit" });
 
-  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions, fighters, events, submission_techniques, posts, post_categories CASCADE`);
+  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions, fighters, events, submission_techniques, posts, post_categories, sponsors, site_settings CASCADE`);
   await seedDivisions(db);
   await seedFighters(db);
   await seedEvents(db);
   await seedPosts(db);
   await seedRankings(db);
+  await seedSponsors(db);
   await seedPaginationPosts();
   await seedHiddenFighters();
   await seedCardFighters();
