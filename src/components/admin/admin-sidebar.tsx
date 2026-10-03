@@ -27,6 +27,7 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -52,7 +53,7 @@ function isActive(pathname: string, href: string): boolean {
   return href === adminPath("/") ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AdminSidebar({ email }: { email: string }) {
+export function AdminSidebar({ email, newInbox = 0 }: { email: string; /** Mensajes de la bandeja que nadie ha respondido. */ newInbox?: number }) {
   const pathname = usePathname();
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
@@ -82,6 +83,7 @@ export function AdminSidebar({ email }: { email: string }) {
                       <span>{section.label}</span>
                     </Link>
                   </SidebarMenuButton>
+                  {section.href === adminPath("/bandeja") && newInbox > 0 ? <SidebarMenuBadge aria-label={`${newInbox} mensajes nuevos`}>{newInbox}</SidebarMenuBadge> : null}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

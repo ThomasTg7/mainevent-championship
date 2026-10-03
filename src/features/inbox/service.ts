@@ -1,14 +1,18 @@
+import { and, eq, ne } from "drizzle-orm";
 import { createElement, type ReactElement } from "react";
 import type { z } from "zod";
 import { NewApplicationEmail } from "@/emails/new-application";
 import { NewSponsorshipEmail } from "@/emails/new-sponsorship";
 import type { Db } from "@/db";
 import { inboxMessages, type FighterApplicationPayload, type SponsorshipPayload } from "@/db/schema/inbox";
+import { logAudit } from "@/features/audit/log";
 import { zodFieldErrors } from "@/lib/form-errors";
 import type { Mailer } from "@/lib/mailer";
 import { toSantiagoInputs } from "@/lib/santiago-time";
+import { UserFacingError } from "@/lib/user-facing-error";
 import { adminOrigin, adminPath } from "@/lib/site-urls";
 import { checkRateLimit } from "./rate-limit";
+import type { InboxStatus } from "./queries";
 import { fighterApplicationSchema, sponsorshipSchema, type FighterApplicationData, type SponsorshipData } from "./schema";
 
 export const RATE_LIMIT_MESSAGE = "Demasiados envíos, intenta más tarde";
@@ -88,4 +92,23 @@ export function submitFighterApplication(deps: SubmitDeps, input: Record<string,
 
 export function submitSponsorship(deps: SubmitDeps, input: Record<string, unknown>): Promise<SubmitResult> {
   return submit(deps, input, sponsorship);
+}
+
+export const INBOX_STATUS_LABELS: Record<InboxStatus, string> = { new: "nuevo", contacted: "contactado", discarded: "descartado" };
+
+/** Cambia el estado de un mensaje (nuevo, contactado, descartado) y lo deja en el historial. Sin cambio real no escribe nada. */
+export async function setInboxStatus(db: Db, id: string, status: InboxStatus, actorId: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(inboxMessages)
+      .set({ status })
+      .where(and(eq(inboxMessages.id, id), ne(inboxMessages.status, status)))
+      .returning({ name: inboxMessages.name });
+    if (row) {
+      await logAudit(tx, { actorId, action: "update", entityType: "inbox", entityId: id, summary: `Marcó como ${INBOX_STATUS_LABELS[status]} el mensaje de ${row.name}` });
+      return;
+    }
+    const [exists] = await tx.select({ id: inboxMessages.id }).from(inboxMessages).where(eq(inboxMessages.id, id)).limit(1);
+    if (!exists) throw new UserFacingError("No se encontró el mensaje");
+  });
 }
