@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isPhoneLike } from "@/domain/phone";
 import { EMPTY_POST_BODY, validatePostBody, type PostBody } from "@/domain/post-body";
 import { socialUrl, type SiteSocialNetwork } from "@/domain/socials";
 import { optionalImageId } from "@/lib/zod-fields";
@@ -7,7 +8,6 @@ import { optionalImageId } from "@/lib/zod-fields";
 // vacío por defecto: `parseSetting(key, {})` da los valores de una instalación nueva y una fila vieja con campos de menos
 // (o de más) sigue leyéndose.
 
-const PHONE_PATTERN = /^\+?[\d\s().-]{6,30}$/;
 const GOOGLE_META_CONTENT = /content\s*=\s*["']([^"']+)["']/i;
 
 function text(max: number, label: string) {
@@ -27,7 +27,7 @@ function phoneText(label: string) {
   return z
     .string()
     .trim()
-    .refine((value) => value === "" || PHONE_PATTERN.test(value), `${label} solo puede llevar números, «+», espacios y guiones (p. ej. +56 9 1234 5678)`)
+    .refine((value) => value === "" || isPhoneLike(value), `${label} solo puede llevar números, «+», espacios y guiones (p. ej. +56 9 1234 5678)`)
     .default("");
 }
 

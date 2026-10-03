@@ -1,3 +1,4 @@
+const PHONE_PATTERN = /^\+?[\d\s().-]{6,30}$/;
 const MIN_DIGITS = 8;
 const CHILE_CODE = "56";
 
@@ -19,4 +20,9 @@ export function telUrl(phone: string): string | null {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return null;
   return `tel:${phone.trim().startsWith("+") ? "+" : ""}${digits}`;
+}
+
+/** Un teléfono escrito a mano: dígitos, un «+» inicial, espacios, paréntesis, puntos y guiones (6 a 30 caracteres). */
+export function isPhoneLike(value: string): boolean {
+  return PHONE_PATTERN.test(value.trim());
 }

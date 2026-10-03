@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { telUrl, whatsappUrl } from "./phone";
+import { isPhoneLike, telUrl, whatsappUrl } from "./phone";
 
 describe("whatsappUrl", () => {
   it("keeps only the digits of a number written with the country code", () => {
@@ -29,5 +29,15 @@ describe("telUrl", () => {
   it("returns null for an empty number", () => {
     expect(telUrl("")).toBeNull();
     expect(telUrl("abc")).toBeNull();
+  });
+});
+
+describe("isPhoneLike", () => {
+  it("accepts numbers written the way people write them", () => {
+    for (const phone of ["+56 9 1234 5678", "(02) 2345-6789", "912345678", " +56912345678 "]) expect(isPhoneLike(phone), phone).toBe(true);
+  });
+
+  it("rejects text, scripts and numbers that are too short", () => {
+    for (const phone of ["llámame", "123", "<script>1</script>", "+"]) expect(isPhoneLike(phone), phone).toBe(false);
   });
 });

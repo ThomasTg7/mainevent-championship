@@ -48,7 +48,7 @@ export default async function globalSetup(): Promise<void> {
   ensureE2eDatabase();
   execSync("pnpm db:migrate", { stdio: "inherit" });
 
-  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions, fighters, events, submission_techniques, posts, post_categories, sponsors, site_settings CASCADE`);
+  await db.execute(sql`TRUNCATE allowed_emails, "user", audit_log, verification, rate_limit, divisions, fighters, events, submission_techniques, posts, post_categories, sponsors, site_settings, inbox_messages, form_rate_limits CASCADE`);
   await seedDivisions(db);
   await seedFighters(db);
   await seedEvents(db);
