@@ -69,6 +69,15 @@ export async function getHomeNews(db: Db): Promise<{ main: PostCardDTO | null; t
   return { main: main?.[0] ?? null, top: top ?? [] };
 }
 
+/**
+ * «No te lo pierdas» de la home: las últimas noticias públicas con video, publicación de una red o galería. Lo decide
+ * la columna `has_media` (calculada al guardar), así no se lee el JSON del cuerpo de cada noticia. Las portadas, en una sola lectura.
+ */
+export async function listDontMissPosts(db: Db, limit: number): Promise<PostCardDTO[]> {
+  const rows = await selectCardRows(db, and(publicScope(posts), eq(posts.hasMedia, true)), { limit });
+  return (await toCardDTOs(db, rows))[0] ?? [];
+}
+
 /** Noticias públicas donde aparece un peleador, la más reciente primero (carrusel de la ficha). */
 export async function listPostsForFighter(db: Db, fighterId: string, limit = RELATED_LIMIT): Promise<PostCardDTO[]> {
   const related = db.select({ postId: postFighters.postId }).from(postFighters).where(eq(postFighters.fighterId, fighterId));

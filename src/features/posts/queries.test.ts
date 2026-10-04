@@ -13,6 +13,7 @@ import {
   getPublicPostBySlug,
   getPublicPostRef,
   listPostsForEvent,
+  listDontMissPosts,
   listPostsForFighter,
   listPublicPostCategories,
   listPublicPosts,
@@ -246,5 +247,46 @@ describe("listPublicPostCategories", () => {
       { id: expect.any(String), slug: "anuncios", name: "Anuncios" },
       { id: expect.any(String), slug: "entrevistas", name: "Entrevistas" },
     ]);
+  });
+});
+
+describe("listDontMissPosts", () => {
+  it("lists the latest public posts that have a video, a social post or a gallery, newest first, up to the limit", async () => {
+    await clearPosts();
+    await insertPost(db, { title: "Solo texto", createdAt: daysAgo(1) });
+    await insertPost(db, { title: "Video viejo", hasMedia: true, createdAt: daysAgo(30) });
+    await insertPost(db, { title: "Galería reciente", hasMedia: true, createdAt: daysAgo(2) });
+    await insertPost(db, { title: "Video medio", hasMedia: true, createdAt: daysAgo(10) });
+
+    expect(titles(await listDontMissPosts(db, 8))).toEqual(["Galería reciente", "Video medio", "Video viejo"]);
+    expect(titles(await listDontMissPosts(db, 2))).toEqual(["Galería reciente", "Video medio"]);
+  });
+
+  it("leaves out what is not public: drafts, scheduled in the future and the trash", async () => {
+    await clearPosts();
+    await insertPost(db, { title: "Pública", hasMedia: true });
+    await insertPost(db, { title: "Borrador", hasMedia: true, status: "draft" });
+    await insertPost(db, { title: "Programada", hasMedia: true, status: "scheduled", publishAt: new Date(Date.now() + 86_400_000) });
+    await insertPost(db, { title: "En la papelera", hasMedia: true, deletedAt: new Date() });
+
+    expect(titles(await listDontMissPosts(db, 8))).toEqual(["Pública"]);
+  });
+
+  it("returns cards with their category and cover, reading the covers in one go", async () => {
+    await clearPosts();
+    const cover = await insertMedia(db, "news_cover");
+    await insertPost(db, { title: "Con portada", hasMedia: true, coverMediaId: cover, categoryId: await categoryIdBySlug(db, "resultados") });
+
+    const [card] = await listDontMissPosts(db, 8);
+
+    expect(card?.category).toEqual({ slug: "resultados", name: "Resultados" });
+    expect(card?.cover?.id).toBe(cover);
+  });
+
+  it("is empty when no post has a video or a gallery", async () => {
+    await clearPosts();
+    await insertPost(db, { title: "Solo texto" });
+
+    expect(await listDontMissPosts(db, 8)).toEqual([]);
   });
 });

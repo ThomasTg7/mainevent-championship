@@ -17,6 +17,8 @@ type FighterCardProps = {
   badge?: string;
   /** Número grande de fondo (la `.bgnum` de la maqueta): "C" o el puesto. Solo decorativo. */
   backdrop?: string;
+  /** Nivel del nombre según donde esté la tarjeta (h2 bajo el h1 de un listado, h3 dentro de una sección de la home). */
+  heading?: "h2" | "h3";
 };
 
 function recordFigures({ record }: FighterCardDTO) {
@@ -32,7 +34,7 @@ function divisionLabel(division: FighterCardDTO["division"]): string {
 }
 
 /** Tarjeta del listado (estilo `.fcard` de la maqueta). Toda la tarjeta es un solo enlace a la ficha. */
-export function FighterCard({ fighter, priority = false, badge, backdrop }: FighterCardProps) {
+export function FighterCard({ fighter, priority = false, badge, backdrop, heading: Heading = "h2" }: FighterCardProps) {
   const name = `${fighter.firstName} ${fighter.lastName}`;
 
   return (
@@ -69,11 +71,11 @@ export function FighterCard({ fighter, priority = false, badge, backdrop }: Figh
         {fighter.nickname ? (
           <p className="font-cond text-[13px] font-bold tracking-[.1em] text-yellow sm:text-sm">“{fighter.nickname}”</p>
         ) : null}
-        <h2 className="my-1 font-display text-[clamp(24px,5vw,36px)] uppercase leading-[.95] text-white">
+        <Heading className="my-1 font-display text-[clamp(24px,5vw,36px)] uppercase leading-[.95] text-white">
           <Link href={`/peleadores/${fighter.slug}`} className="outline-none after:absolute after:inset-0">
             {name}
           </Link>
-        </h2>
+        </Heading>
         <p className="flex items-start gap-2 font-cond text-[12px] font-semibold uppercase tracking-[.08em] text-muted-foreground sm:text-[13px]">
           <Flag code={fighter.nationality} className="mt-px shrink-0" />
           <span>{divisionLabel(fighter.division)}</span>

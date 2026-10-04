@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type { Db } from "@/db";
 import { publicScope } from "@/db/public-scope";
 import { divisions } from "@/db/schema/divisions";
@@ -78,6 +78,23 @@ export async function listPublicFighters(
   const page = rows.slice(0, size);
   const mediaById = await loadMedia(db, page.map((row) => row.bodyMediaId));
   return { items: page.map((row) => toCard(row, mediaById)), hasMore: rows.length > size };
+}
+
+/**
+ * Las tarjetas de estos peleadores, en el orden pedido (los destacados de la home). Solo los que se ven hoy en el sitio: un
+ * id que ya no es público se omite. Una consulta y una lectura de fotos, nunca una por peleador.
+ */
+export async function listPublicFighterCardsByIds(db: Db, ids: string[]): Promise<FighterCardDTO[]> {
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return [];
+  const rows = await db
+    .select(cardColumns)
+    .from(fighters)
+    .innerJoin(divisions, eq(fighters.divisionId, divisions.id))
+    .where(and(inArray(fighters.id, unique), publicScope(fighters)));
+  const mediaById = await loadMedia(db, rows.map((row) => row.bodyMediaId));
+  const byId = new Map(rows.map((row) => [row.id, toCard(row, mediaById)]));
+  return unique.flatMap((id) => byId.get(id) ?? []);
 }
 
 export async function getPublicFighterBySlug(

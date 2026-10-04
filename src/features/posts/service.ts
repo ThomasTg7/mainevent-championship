@@ -4,7 +4,7 @@ import { events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import { postBodyMedia, postCategories, postEvents, postFighters, postGallery, posts, type Post } from "@/db/schema/posts";
 import type { Executor } from "@/db/types";
-import { collectBodyMediaIds } from "@/domain/post-body";
+import { bodyHasEmbed, collectBodyMediaIds } from "@/domain/post-body";
 import { slugify, uniqueSlug } from "@/domain/slug";
 import { logAudit } from "@/features/audit/log";
 import { assertUsableMedia } from "@/features/media/service";
@@ -31,6 +31,8 @@ function editableColumns(data: PostData) {
     featured: data.featured,
     coverMediaId: data.coverMediaId,
     body: data.body,
+    // La galería o un video/publicación en el cuerpo la meten en «No te lo pierdas»; una foto suelta en el texto no.
+    hasMedia: data.galleryMediaIds.length > 0 || bodyHasEmbed(data.body),
   };
 }
 

@@ -127,6 +127,13 @@
       "when": 1791060213263,
       "tag": "0017_wealthy_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791061131968,
+      "tag": "0018_jazzy_rattler",
+      "breakpoints": true
     }
   ]
 }

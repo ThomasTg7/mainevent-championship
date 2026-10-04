@@ -126,3 +126,13 @@ export function hasPostBodyContent(body: unknown): boolean {
   };
   return visit(body, 0);
 }
+
+/** `true` si el cuerpo trae alguna publicación de una red o video (nodo `embed`): lo que mete una noticia en «No te lo pierdas». */
+export function bodyHasEmbed(body: unknown): boolean {
+  const visit = (node: unknown, depth: number): boolean => {
+    if (depth > MAX_DEPTH + 1 || !isRecord(node)) return false;
+    if (node.type === "embed") return true;
+    return Array.isArray(node.content) && node.content.some((child) => visit(child, depth + 1));
+  };
+  return visit(body, 0);
+}

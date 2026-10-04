@@ -168,3 +168,22 @@ body {
     transform: translateX(-50%);
   }
 }
+
+/* Presentación de la home (primera visita de la sesión): las letras suben y la barra amarilla se llena. */
+@keyframes intro-letter {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes intro-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

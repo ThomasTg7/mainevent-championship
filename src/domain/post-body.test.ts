@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collectBodyMediaIds, EMPTY_POST_BODY, hasPostBodyContent, validatePostBody } from "./post-body";
+import { bodyHasEmbed, collectBodyMediaIds, EMPTY_POST_BODY, hasPostBodyContent, validatePostBody } from "./post-body";
 
 const MEDIA_A = "0b6f0c40-7d4c-4f3a-9d0a-5f1d2b8f6a11";
 const MEDIA_B = "9a1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d";
@@ -99,6 +99,22 @@ describe("hasPostBodyContent", () => {
     expect(hasPostBodyContent(doc({ type: "blockquote", content: [{ type: "paragraph", content: [text("cita")] }] }))).toBe(true);
     expect(hasPostBodyContent(doc({ type: "image", attrs: { mediaId: MEDIA_A } }))).toBe(true);
     expect(hasPostBodyContent(doc({ type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } }))).toBe(true);
+  });
+});
+
+describe("bodyHasEmbed", () => {
+  const embed = { type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } };
+
+  it("is true when the text has a social post or video, also inside a quote", () => {
+    expect(bodyHasEmbed(doc({ type: "paragraph", content: [text("Mira")] }, embed))).toBe(true);
+    expect(bodyHasEmbed(doc({ type: "blockquote", content: [embed] }))).toBe(true);
+  });
+
+  it("is false for text, images, the empty document and anything that is not a document", () => {
+    expect(bodyHasEmbed(doc({ type: "paragraph", content: [text("Solo texto")] }, { type: "image", attrs: { mediaId: MEDIA_A } }))).toBe(false);
+    expect(bodyHasEmbed(EMPTY_POST_BODY)).toBe(false);
+    expect(bodyHasEmbed(null)).toBe(false);
+    expect(bodyHasEmbed("embed")).toBe(false);
   });
 });
 

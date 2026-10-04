@@ -3,7 +3,7 @@ import type { Db } from "@/db";
 import { events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import { postCategories, postEvents, postFighters, posts } from "@/db/schema/posts";
-import type { PostBody, PostNode } from "@/domain/post-body";
+import { bodyHasEmbed, type PostBody, type PostNode } from "@/domain/post-body";
 import { slugify } from "@/domain/slug";
 
 /** Categorías iniciales (spec §4.8); la promotora las edita desde el panel. */
@@ -161,6 +161,7 @@ export async function seedPosts(db: Db, now: Date = new Date()): Promise<void> {
         body: post.body,
         categoryId,
         featured: post.featured ?? false,
+        hasMedia: bodyHasEmbed(post.body),
         status: "published",
         createdAt: new Date(now.getTime() - post.daysAgo * DAY_MS),
       })

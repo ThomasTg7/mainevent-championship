@@ -6,7 +6,7 @@ import { EVENTS_LIST_TAG, TECHNIQUES_TAG } from "@/features/events/cache";
 import { getFighterFightHistory, getFighterNextBout, listBoutsForRecord } from "@/features/events/fighter-queries";
 import { MEDIA_ANY_TAG, mediaCacheTag } from "@/features/media/cache";
 import { FIGHTERS_LIST_TAG, fighterCacheTag } from "./cache";
-import { getPublicFighterBySlug, getPublicFighterRef, listPublicFighters, listPublicFilterOptions } from "./queries";
+import { getPublicFighterBySlug, getPublicFighterRef, listPublicFighterCardsByIds, listPublicFighters, listPublicFilterOptions } from "./queries";
 import type { FighterFilters } from "./schema";
 
 // Lecturas del sitio público, cacheadas con etiquetas para invalidarlas desde la action que escribe.
@@ -22,6 +22,14 @@ const REVALIDATE_SECONDS = 300;
 export function getCachedPublicFighters(filters: FighterFilters, page: number) {
   if (filters.q) return listPublicFighters(db, filters, { page });
   return unstable_cache(() => listPublicFighters(db, filters, { page }), ["fighters-list", JSON.stringify(filters), String(page)], {
+    tags: [FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG],
+    revalidate: REVALIDATE_SECONDS,
+  })();
+}
+
+/** Tarjetas de los peleadores destacados de la home (por id y en ese orden). Una sola lectura para todos. */
+export function getCachedFighterCardsByIds(ids: string[]) {
+  return unstable_cache(() => listPublicFighterCardsByIds(db, ids), ["fighter-cards", ...ids], {
     tags: [FIGHTERS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG],
     revalidate: REVALIDATE_SECONDS,
   })();

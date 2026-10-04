@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { useRef } from "react";
+import { useCountUp } from "@/hooks/use-count-up";
 
 export type CountFigure = { label: string; value: number; accent?: boolean };
 
@@ -12,10 +12,6 @@ type CountFiguresProps = {
   valueClassName?: string;
 };
 
-const DURATION_MS = 900;
-
-const easeOut = (progress: number) => 1 - (1 - progress) ** 3;
-
 /**
  * Cifras con contador (V-D-E de la tarjeta, cifras del hero de la ficha). El HTML del servidor ya trae los
  * valores finales (legibles sin JavaScript ni animación); al entrar en pantalla cuenta desde 0 salvo que la
@@ -23,36 +19,7 @@ const easeOut = (progress: number) => 1 - (1 - progress) ** 3;
  */
 export function CountFigures({ items, className, valueClassName = "text-[clamp(26px,5vw,36px)]" }: CountFiguresProps) {
   const rootRef = useRef<HTMLDListElement>(null);
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root || reducedMotion) return;
-
-    const numbers = [...root.querySelectorAll<HTMLElement>("[data-count]")];
-    let frame = 0;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        observer.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const progress = Math.min((now - start) / DURATION_MS, 1);
-          for (const element of numbers) element.textContent = String(Math.round(Number(element.dataset.count) * easeOut(progress)));
-          if (progress < 1) frame = requestAnimationFrame(tick);
-        };
-        frame = requestAnimationFrame(tick);
-      },
-      { threshold: 0.6 },
-    );
-    observer.observe(root);
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-      // Si se cancela a mitad de camino, vuelven los valores reales.
-      for (const element of numbers) element.textContent = element.dataset.count ?? "";
-    };
-  }, [reducedMotion, items]);
+  useCountUp(rootRef, items);
 
   return (
     <dl ref={rootRef} className={className}>
