@@ -36,7 +36,8 @@ test("una postulación enviada llega a la bandeja como «Nuevo», se marca «Con
   await signInAsAdmin(page);
   await page.goto(adminUrl("/bandeja"));
   await expect(page.getByRole("heading", { name: "Bandeja", level: 1 })).toBeVisible();
-  const row = page.locator("tr", { hasText: name });
+  // Con la página transmitiéndose, un mismo texto puede existir dos veces por un instante: `.first()` (ver decisions.md, Plan 05).
+  const row = page.locator("tr", { hasText: name }).first();
   await expect(row).toContainText("Nuevo");
   await expect(row).toContainText("Quiero pelear");
   // La barra lateral avisa que hay mensajes sin responder.
@@ -98,7 +99,7 @@ test.describe("en celular", () => {
     await signInAsAdmin(page);
     await page.goto(adminUrl("/bandeja"));
 
-    const card = page.locator("li", { hasText: name });
+    const card = page.locator("li[data-message]", { hasText: name }).first();
     await expect(card).toBeVisible();
     await expectNoHorizontalScroll(page);
     await card.getByRole("link").click();
