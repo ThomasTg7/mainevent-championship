@@ -15,3 +15,11 @@ export function getMailer(env: MailerEnv = process.env): Mailer {
   }
   return createResendMailer({ apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM });
 }
+
+/**
+ * Un correo que se arma recién al enviar: si falta una variable (`RESEND_API_KEY`, `MAIL_FROM`), falla dentro de `send` y no al
+ * construirlo. Quien envía un aviso que no debe perder nada (los formularios públicos) lo atrapa ahí y guarda igual.
+ */
+export function getLazyMailer(env: MailerEnv = process.env): Mailer {
+  return { send: async (message) => getMailer(env).send(message) };
+}

@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { db } from "@/db";
 import { getSetting } from "@/features/settings/queries";
 import { formList, formValues } from "@/lib/form-errors";
-import { getMailer } from "@/lib/mailer";
+import { getLazyMailer } from "@/lib/mailer";
 import { hashIp } from "./rate-limit";
 import { submitFighterApplication, submitSponsorship, type SubmitDeps, type SubmitResult } from "./service";
 
@@ -22,7 +22,8 @@ async function clientIpHash(): Promise<string> {
 
 async function deps(): Promise<SubmitDeps> {
   const [ipHash, contact] = await Promise.all([clientIpHash(), getSetting(db, "contact")]);
-  return { db, mailer: getMailer(), notifyEmail: contact.notifyEmail, ipHash };
+  // El mailer se arma al enviar: una configuración mala del correo no puede perder el mensaje (el servicio la tolera y la registra).
+  return { db, mailer: getLazyMailer(), notifyEmail: contact.notifyEmail, ipHash };
 }
 
 async function run(formData: FormData, submit: (context: SubmitDeps, input: Record<string, unknown>) => Promise<SubmitResult>): Promise<PublicFormState> {

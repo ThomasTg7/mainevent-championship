@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createConsoleMailer } from "./console";
 import { createResendMailer } from "./resend";
-import { getMailer } from "./index";
+import { getLazyMailer, getMailer } from "./index";
 
 const message = {
   to: "admin@x.cl",
@@ -45,5 +45,21 @@ describe("getMailer", () => {
 
   it("refuses the resend driver without an API key and sender", () => {
     expect(() => getMailer({ MAIL_DRIVER: "resend" })).toThrow("RESEND_API_KEY");
+  });
+});
+
+describe("getLazyMailer", () => {
+  it("does not fail while it is built: a bad configuration fails inside send, where the caller can tolerate it", async () => {
+    const mailer = getLazyMailer({ MAIL_DRIVER: "resend" });
+
+    await expect(mailer.send(message)).rejects.toThrow("RESEND_API_KEY");
+  });
+
+  it("sends through the configured driver", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    await getLazyMailer({}).send(message);
+
+    expect(info).toHaveBeenCalledOnce();
+    info.mockRestore();
   });
 });
