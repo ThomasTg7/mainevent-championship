@@ -4,12 +4,19 @@ import { PageEmpty, PageHeader, PageShell } from "@/components/site/page-shell";
 import { Button } from "@/components/ui-gc/button";
 import { hasPostBodyContent } from "@/domain/post-body";
 import { PostBody } from "@/features/posts/render/post-body";
+import { sitePageMetadata } from "@/features/seo/site-metadata";
 import { getCachedSetting } from "@/features/settings/cached-queries";
 
-export const metadata: Metadata = {
-  title: "Nosotros | Guerra Campal",
-  description: "Conoce a Guerra Campal, la promotora de MMA de Chile.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { body } = await getCachedSetting("about");
+  return sitePageMetadata({
+    title: "Nosotros",
+    description: "Conoce a Guerra Campal, la promotora de MMA de Chile.",
+    path: "/nosotros",
+    // Sin texto la página es un «Pronto…»: no se indexa hasta que la promotora lo escriba.
+    noindex: !hasPostBodyContent(body),
+  });
+}
 
 export default async function NosotrosPage() {
   const { body } = await getCachedSetting("about");

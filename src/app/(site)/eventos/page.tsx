@@ -3,12 +3,18 @@ import Link from "next/link";
 import { Button } from "@/components/ui-gc/button";
 import { getCachedPublicEvents } from "@/features/events/cached-queries";
 import { EventCard } from "@/features/events/components/event-card";
+import { sitePageMetadata } from "@/features/seo/site-metadata";
 import { parsePageParam } from "@/lib/pagination";
 
-export const metadata: Metadata = {
-  title: "Eventos | Guerra Campal",
-  description: "Los próximos eventos de Guerra Campal con su cartelera y entradas, y los resultados de las veladas anteriores.",
-};
+export async function generateMetadata({ searchParams }: PageProps<"/eventos">): Promise<Metadata> {
+  const page = parsePageParam((await searchParams).pagina);
+  return sitePageMetadata({
+    title: "Eventos",
+    description: "Los próximos eventos de Guerra Campal con su cartelera y entradas, y los resultados de las veladas anteriores.",
+    // Las páginas de resultados anteriores son listas distintas: cada una se canoniza a sí misma.
+    path: page > 1 ? `/eventos?pagina=${page}` : "/eventos",
+  });
+}
 
 function Kicker({ children }: { children: string }) {
   return (

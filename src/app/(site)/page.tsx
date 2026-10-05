@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { JsonLd } from "@/components/seo/json-ld";
+import { HOME_TITLE, organizationJsonLd, websiteJsonLd } from "@/domain/seo";
 import { formatShortDate } from "@/lib/format-date";
+import { siteOrigin } from "@/lib/site-urls";
 import { pickMainBout } from "@/features/events/main-bout";
 import { getHomeData } from "@/features/home/cached-queries";
 import { DontMissRail } from "@/features/home/components/dont-miss-rail";
@@ -14,12 +17,18 @@ import { RankingsPreview } from "@/features/home/components/rankings-preview";
 import { StatsBand } from "@/features/home/components/stats-band";
 import { TicketsCta } from "@/features/home/components/tickets-cta";
 import type { HomeHero as HomeHeroDTO } from "@/features/home/dto";
+import { sitePageMetadata } from "@/features/seo/site-metadata";
+import { getCachedSetting } from "@/features/settings/cached-queries";
 import { SponsorStrip } from "@/features/sponsors/components/sponsor-strip";
 
-export const metadata: Metadata = {
-  title: "Guerra Campal | MMA en Chile",
-  description: "Guerra Campal, la promotora de MMA de Chile: próximo evento, cartelera, peleadores, rankings, noticias y entradas.",
-};
+// Solo lecturas cacheadas (sin `searchParams` ni `headers()`): la home sigue siendo estática.
+export function generateMetadata(): Promise<Metadata> {
+  return sitePageMetadata({
+    title: { absolute: HOME_TITLE },
+    description: "Guerra Campal, la promotora de MMA de Chile: próximo evento, cartelera, peleadores, rankings, noticias y entradas.",
+    path: "/",
+  });
+}
 
 /** Los textos de la cinta amarilla: el evento, la fecha, el recinto y, si ya se juega, el combate estelar. */
 function marqueeItems(hero: HomeHeroDTO): string[] {
@@ -33,11 +42,14 @@ function marqueeItems(hero: HomeHeroDTO): string[] {
 }
 
 export default async function HomePage() {
-  const home = await getHomeData();
+  const [home, socials, contact] = await Promise.all([getHomeData(), getCachedSetting("socials"), getCachedSetting("contact")]);
   const { hero } = home;
+  const siteUrl = siteOrigin();
 
   return (
     <>
+      <JsonLd data={organizationJsonLd({ socials, contact, logoUrl: `${siteUrl}/logo.png` }, siteUrl)} />
+      <JsonLd data={websiteJsonLd(siteUrl)} />
       <IntroLoader />
       <ScrollReveal />
       <HomeHero hero={hero} />

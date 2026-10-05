@@ -1,0 +1,234 @@
+import { expect, test, type Page } from "@playwright/test";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { divisions } from "@/db/schema/divisions";
+import { events } from "@/db/schema/events";
+import { createFighter } from "@/features/fighters/service";
+import { insertMedia } from "@/features/fighters/test-helpers";
+import { insertPost } from "@/features/posts/test-helpers";
+import { createPreviewToken } from "@/features/publication/preview";
+import { createE2eCard } from "./fixtures/events";
+
+// Metadatos y datos estructurados de cada página pública. Lo que depende de Configuración (verificación de Google, redes,
+// páginas fijas sin texto) vive en `static-pages.spec.ts`, que es quien cambia esa configuración en orden.
+
+const SITE = process.env.SITE_URL ?? "http://localhost:3100";
+const BRAND_IMAGE = `${SITE}/og-default.jpg`;
+
+const head = {
+  title: (page: Page) => page.title(),
+  description: (page: Page) => page.locator('meta[name="description"]').first().getAttribute("content"),
+  canonical: (page: Page) => page.locator('link[rel="canonical"]').first().getAttribute("href"),
+  property: (page: Page, name: string) => page.locator(`meta[property="${name}"]`).first().getAttribute("content"),
+  robots: (page: Page) => page.locator('meta[name="robots"]'),
+};
+
+async function jsonLd(page: Page): Promise<Record<string, unknown>[]> {
+  const scripts = page.locator('script[type="application/ld+json"]');
+  await expect(scripts.first()).toBeAttached();
+  return (await scripts.allTextContents()).map((text) => JSON.parse(text));
+}
+
+const FIXED_PAGES = [
+  { path: "/eventos", title: "Eventos | Guerra Campal" },
+  { path: "/peleadores", title: "Peleadores | Guerra Campal" },
+  { path: "/rankings", title: "Rankings | Guerra Campal" },
+  { path: "/noticias", title: "Noticias | Guerra Campal" },
+  { path: "/entradas", title: "Entradas | Guerra Campal" },
+  { path: "/quiero-pelear", title: "Quiero pelear | Guerra Campal" },
+  { path: "/patrocinar", title: "Patrocinar | Guerra Campal" },
+  { path: "/nosotros", title: "Nosotros | Guerra Campal" },
+  { path: "/contacto", title: "Contacto | Guerra Campal" },
+  { path: "/privacidad", title: "Política de privacidad | Guerra Campal" },
+];
+
+test("la home tiene su título, canónica, imagen para compartir y los datos de la promotora", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "es-CL");
+  expect(await head.title(page)).toBe("Guerra Campal — MMA en Chile");
+  // Next escribe la raíz sin la barra final: es la misma URL.
+  expect(await head.canonical(page)).toBe(SITE);
+  expect(await head.property(page, "og:title")).toBe("Guerra Campal — MMA en Chile");
+  expect(await head.property(page, "og:image")).toBe(BRAND_IMAGE);
+  await expect(head.robots(page)).toHaveCount(0);
+
+  const data = await jsonLd(page);
+  const organization = data.find((item) => item["@type"] === "Organization");
+  expect(organization).toMatchObject({ name: "Guerra Campal", url: SITE });
+  expect(data.find((item) => item["@type"] === "WebSite")).toMatchObject({ name: "Guerra Campal", inLanguage: "es-CL" });
+});
+
+for (const { path, title } of FIXED_PAGES) {
+  test(`${path} tiene título con plantilla, descripción, canónica sin parámetros e imagen para compartir`, async ({ page }) => {
+    await page.goto(path);
+    expect(await head.title(page)).toBe(title);
+    const description = await head.description(page);
+    expect(description).toBeTruthy();
+    expect(description!.length).toBeLessThanOrEqual(160);
+    expect(await head.canonical(page)).toBe(`${SITE}${path}`);
+    expect(await head.property(page, "og:title")).toBe(title);
+    expect(await head.property(page, "og:image")).toBe(BRAND_IMAGE);
+  });
+}
+
+test("cada página fija tiene un título distinto", async ({ page }) => {
+  const titles: string[] = [];
+  for (const { path } of FIXED_PAGES) {
+    await page.goto(path);
+    titles.push(await head.title(page));
+  }
+  expect(new Set(titles).size).toBe(titles.length);
+});
+
+test("el listado de peleadores canoniza sus filtros y marca la búsqueda como noindex", async ({ page }) => {
+  await page.goto("/peleadores?division=peso-ligero&pais=CL");
+  expect(await head.canonical(page)).toBe(`${SITE}/peleadores`);
+  await expect(head.robots(page)).toHaveCount(0);
+
+  await page.goto("/peleadores?q=perez");
+  expect(await head.canonical(page)).toBe(`${SITE}/peleadores`);
+  await expect(head.robots(page)).toHaveAttribute("content", /noindex/);
+});
+
+test("el ranking amateur es otra página con su propia canónica y título", async ({ page }) => {
+  await page.goto("/rankings?nivel=amateur");
+  expect(await head.title(page)).toBe("Rankings amateur | Guerra Campal");
+  expect(await head.canonical(page)).toBe(`${SITE}/rankings?nivel=amateur`);
+
+  await page.goto("/rankings?nivel=inventado&otro=1");
+  expect(await head.title(page)).toBe("Rankings | Guerra Campal");
+  expect(await head.canonical(page)).toBe(`${SITE}/rankings`);
+});
+
+test("el listado de noticias es autocanónico solo con una categoría que existe y una página válida", async ({ page }) => {
+  await page.goto("/noticias?categoria=resultados");
+  expect(await head.title(page)).toBe("Resultados · Noticias | Guerra Campal");
+  expect(await head.canonical(page)).toBe(`${SITE}/noticias?categoria=resultados`);
+
+  await page.goto("/noticias?pagina=2");
+  expect(await head.canonical(page)).toBe(`${SITE}/noticias?pagina=2`);
+
+  await page.goto("/noticias?categoria=inventada&pagina=1&utm_source=x");
+  expect(await head.title(page)).toBe("Noticias | Guerra Campal");
+  expect(await head.canonical(page)).toBe(`${SITE}/noticias`);
+});
+
+test("la ficha de un peleador lleva su JSON-LD de Person y no se indexa en vista previa", async ({ page }) => {
+  await page.goto("/peleadores/matias-perez");
+  expect(await head.title(page)).toBe("Matías Pérez «El Toro» | Guerra Campal");
+  expect(await head.canonical(page)).toBe(`${SITE}/peleadores/matias-perez`);
+  await expect(head.robots(page)).toHaveCount(0);
+
+  const person = (await jsonLd(page)).find((item) => item["@type"] === "Person");
+  expect(person).toMatchObject({ name: "Matías Pérez", alternateName: "El Toro", url: `${SITE}/peleadores/matias-perez`, nationality: { name: "Chile" } });
+});
+
+test("un nombre con comillas y una etiqueta de cierre se escapa en las etiquetas y en el JSON-LD", async ({ page }) => {
+  const [ligero] = await db.select({ id: divisions.id }).from(divisions).where(eq(divisions.slug, "peso-ligero"));
+  const nickname = 'El "Toro" </script><b>';
+  const { slug } = await createFighter(db, { firstName: "Matías", lastName: "Pérez Comillas", nickname, gender: "male", nationality: "CL", divisionId: ligero!.id, status: "published" }, "e2e");
+
+  await page.goto(`/peleadores/${slug}`);
+  expect(await head.title(page)).toBe(`Matías Pérez Comillas «${nickname}» | Guerra Campal`);
+  expect(await head.property(page, "og:title")).toBe(`Matías Pérez Comillas «${nickname}» | Guerra Campal`);
+  const person = (await jsonLd(page)).find((item) => item["@type"] === "Person");
+  expect(person).toMatchObject({ name: "Matías Pérez Comillas", alternateName: nickname });
+});
+
+test("la vista previa de un borrador lleva noindex y ningún dato estructurado", async ({ page }) => {
+  const [ligero] = await db.select({ id: divisions.id }).from(divisions).where(eq(divisions.slug, "peso-ligero"));
+  const draft = await createFighter(db, { firstName: "Seo", lastName: "Borrador", gender: "male", nationality: "CL", divisionId: ligero!.id }, "e2e");
+
+  // Sin enlace de vista previa, un borrador no existe para el público (ni sus datos estructurados).
+  await page.goto(`/peleadores/${draft.slug}`);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+
+  await page.goto(`/peleadores/${draft.slug}?preview=${createPreviewToken("fighter", draft.id)}`);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(head.robots(page)).toHaveAttribute("content", /noindex/);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+});
+
+test("un evento próximo lleva SportsEvent con su fecha en hora de Chile, lugar y entradas en CLP", async ({ page }) => {
+  await page.goto("/eventos/guerra-campal-5");
+  expect(await head.canonical(page)).toBe(`${SITE}/eventos/guerra-campal-5`);
+  expect(await head.title(page)).toMatch(/^Guerra Campal 5 \| Guerra Campal$/);
+
+  const event = (await jsonLd(page)).find((item) => item["@type"] === "SportsEvent");
+  expect(event).toMatchObject({
+    name: "Guerra Campal 5",
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    organizer: { name: "Guerra Campal" },
+    location: { "@type": "Place" },
+  });
+  expect(event!.startDate).toMatch(/T\d\d:\d\d:\d\d-0[34]:00$/);
+  const offers = event!.offers as { priceCurrency: string; availability: string }[];
+  expect(offers.length).toBeGreaterThan(0);
+  expect(offers.every((offer) => offer.priceCurrency === "CLP")).toBe(true);
+});
+
+test("un evento ya jugado sigue indexable; uno cancelado lo dice en su JSON-LD", async ({ page }) => {
+  await page.goto("/eventos/guerra-campal-4");
+  expect(await head.canonical(page)).toBe(`${SITE}/eventos/guerra-campal-4`);
+  await expect(head.robots(page)).toHaveCount(0);
+  expect((await jsonLd(page)).find((item) => item["@type"] === "SportsEvent")).toBeTruthy();
+
+  const card = await createE2eCard("Evento E2E SEO Cancelado", { "Cartelera estelar": [["uno", "dos"]] });
+  await db.update(events).set({ eventStatus: "cancelled" }).where(eq(events.id, card.eventId));
+  await page.goto(`/eventos/${card.slug}`);
+  const cancelled = (await jsonLd(page)).find((item) => item["@type"] === "SportsEvent");
+  expect(cancelled).toMatchObject({ eventStatus: "https://schema.org/EventCancelled" });
+  await expect(head.robots(page)).toHaveCount(0);
+});
+
+test("una noticia lleva NewsArticle con su fecha y sección, y og:type article", async ({ page }) => {
+  await page.goto("/noticias/perez-defiende-el-cinturon-ante-soto");
+  expect(await head.property(page, "og:type")).toBe("article");
+  expect(await head.property(page, "article:section")).toBe("Anuncios");
+  expect(await head.property(page, "article:published_time")).toBeTruthy();
+  // Sin portada, la imagen de marca.
+  expect(await head.property(page, "og:image")).toBe(BRAND_IMAGE);
+
+  const article = (await jsonLd(page)).find((item) => item["@type"] === "NewsArticle");
+  expect(article).toMatchObject({ headline: "Pérez defiende el cinturón ante Soto", articleSection: "Anuncios", author: { name: "Guerra Campal" } });
+  expect(typeof article!.datePublished).toBe("string");
+  expect(typeof article!.dateModified).toBe("string");
+});
+
+test("una noticia con portada usa su portada (variante de 1600 px) como imagen para compartir", async ({ page }) => {
+  const coverId = await insertMedia(db, "news_cover", {
+    width: 3200,
+    height: 1800,
+    variants: [
+      { width: 800, height: 450, key: "e2e-seo/cover-800.webp" },
+      { width: 1600, height: 900, key: "e2e-seo/cover-1600.webp" },
+    ],
+  });
+  const { slug } = await insertPost(db, { slug: "noticia-e2e-con-portada", title: 'Matías "El Toro" Pérez gana por sumisión', coverMediaId: coverId });
+
+  await page.goto(`/noticias/${slug}`);
+  expect(await head.title(page)).toBe('Matías "El Toro" Pérez gana por sumisión | Guerra Campal');
+  const image = await head.property(page, "og:image");
+  expect(image).toContain("/media/e2e-seo/cover-1600.webp");
+  expect(image!.startsWith("http")).toBe(true);
+  expect(await head.property(page, "og:image:width")).toBe("1600");
+  expect(await head.property(page, "og:image:height")).toBe("900");
+
+  const article = (await jsonLd(page)).find((item) => item["@type"] === "NewsArticle");
+  expect(article!.headline).toBe('Matías "El Toro" Pérez gana por sumisión');
+  expect(article!.image).toEqual([image]);
+});
+
+test("un borrador de noticia no se ve por su URL ni lleva datos estructurados; su vista previa va con noindex", async ({ page }) => {
+  const { id, slug } = await insertPost(db, { slug: "noticia-e2e-borrador-seo", title: "Borrador SEO", status: "draft" });
+
+  await page.goto(`/noticias/${slug}`);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+  await expect(page.getByText("Borrador SEO")).toHaveCount(0);
+
+  await page.goto(`/noticias/${slug}?preview=${createPreviewToken("post", id)}`);
+  await expect(page.getByRole("heading", { name: "Borrador SEO", level: 1 })).toBeVisible();
+  await expect(head.robots(page)).toHaveAttribute("content", /noindex/);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+});

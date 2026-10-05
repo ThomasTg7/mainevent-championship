@@ -49,3 +49,13 @@ export function fightersHref(filters: FighterFilters, page: number): string {
   const search = query.toString();
   return search ? `/peleadores?${search}` : "/peleadores";
 }
+
+/** ¿La URL trae una búsqueda o un filtro? (Por defecto el listado muestra los activos.) */
+export function isFilteredList(filters: FighterFilters): boolean {
+  return Boolean(filters.q || filters.division || filters.nationality || filters.gender || filters.status !== "active");
+}
+
+/** Canónica del listado: una búsqueda o un filtro es el mismo listado visto de otra forma (`/peleadores`); solo la página cuenta. */
+export function fightersCanonicalPath(filters: FighterFilters, page: number): string {
+  return isFilteredList(filters) ? "/peleadores" : fightersHref(filters, page);
+}

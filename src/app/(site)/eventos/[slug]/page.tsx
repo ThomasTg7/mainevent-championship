@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { JsonLd } from "@/components/seo/json-ld";
 import { SectionHeading } from "@/components/ui-gc/section-heading";
 import { db } from "@/db";
+import { eventJsonLd } from "@/domain/seo";
 import { getCachedPublicEvent } from "@/features/events/cached-queries";
 import { EVENT_HERO_ID, EventHero } from "@/features/events/components/event-hero";
 import { EventGallery } from "@/features/events/components/event-gallery";
@@ -24,7 +26,9 @@ import { RelatedNewsRail } from "@/features/posts/components/related-news-rail";
 import { verifyPreviewToken } from "@/features/publication/preview";
 import { SponsorGrid } from "@/features/sponsors/components/sponsor-grid";
 import { getCachedSponsors } from "@/features/sponsors/cached-queries";
+import { getBrandOgImage, sitePageMetadata } from "@/features/seo/site-metadata";
 import { formatShortDate, formatTime } from "@/lib/format-date";
+import { siteOrigin } from "@/lib/site-urls";
 
 /**
  * Con un token de vista previa válido para este evento se muestra aunque sea borrador (sin caché); en cualquier otro
@@ -48,16 +52,17 @@ function previewParam(value: string | string[] | undefined): string | undefined 
 export async function generateMetadata({ params, searchParams }: PageProps<"/eventos/[slug]">): Promise<Metadata> {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
   const { event, isPreview } = await loadEvent(slug, previewParam(query.preview));
-  if (!event) return { title: "Evento no encontrado | Guerra Campal" };
+  if (!event) return { title: "Evento no encontrado" };
 
   const main = pickMainBout(event.segments.flatMap((segment) => segment.bouts), (bout) => bout.status === "cancelled");
   const start = new Date(event.startsAt);
   const versus = main ? `${main.red.firstName} ${main.red.lastName} vs ${main.blue.firstName} ${main.blue.lastName}. ` : "";
-  return {
-    title: `${event.name} | Guerra Campal`,
+  return sitePageMetadata({
+    title: event.name,
     description: `${versus}${formatShortDate(start)} a las ${formatTime(start)} en ${event.venue.name}, ${event.venue.city}. Cartelera, horarios y entradas.`,
-    ...(isPreview ? { robots: { index: false, follow: false } } : {}),
-  };
+    path: `/eventos/${event.slug}`,
+    noindex: isPreview,
+  });
 }
 
 export default async function EventPage({ params, searchParams }: PageProps<"/eventos/[slug]">) {
@@ -72,17 +77,20 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
   const ticketHref = canBuy ? (event.ticketUrl ?? "/entradas") : undefined;
   const ticketExternal = Boolean(canBuy && event.ticketUrl);
   const segments = event.segments.filter((segment) => segment.bouts.length > 0);
-  const [news, rankLabels, sponsors] = await Promise.all([
+  const [news, rankLabels, sponsors, brandImage] = await Promise.all([
     getCachedPostsForEvent(event.id),
     getCachedBoutRankLabels(
       event.id,
       segments.flatMap((segment) => segment.bouts.map((bout) => bout.id)),
     ),
     getCachedSponsors("event", event.id),
+    getBrandOgImage(),
   ]);
 
   return (
     <>
+      {/* Un borrador en vista previa no lleva datos estructurados. */}
+      {isPreview ? null : <JsonLd data={eventJsonLd(event, siteOrigin(), brandImage.url)} />}
       {event.eventStatus === "live" ? <LiveRefresher intervalMs={20_000} /> : null}
       <EventHero event={event} ticketHref={ticketHref} ticketExternal={ticketExternal} showCountdown={showsCountdown(event)} />
       <EventStickyBar

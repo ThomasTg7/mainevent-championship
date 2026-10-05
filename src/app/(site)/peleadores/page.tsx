@@ -5,13 +5,20 @@ import { countryName } from "@/domain/units";
 import { FighterCard } from "@/features/fighters/components/fighter-card";
 import { FighterFilters } from "@/features/fighters/components/fighter-filters";
 import { getCachedPublicFighters, getCachedPublicFilterOptions } from "@/features/fighters/cached-queries";
-import { fightersHref, parsePublicFilters } from "@/features/fighters/public-filters";
+import { fightersCanonicalPath, fightersHref, isFilteredList, parsePublicFilters } from "@/features/fighters/public-filters";
 import { getCachedChampionBadges } from "@/features/rankings/cached-queries";
+import { sitePageMetadata } from "@/features/seo/site-metadata";
 
-export const metadata: Metadata = {
-  title: "Peleadores | Guerra Campal",
-  description: "Todo el plantel de Guerra Campal: busca por nombre o apodo y filtra por división, país y estado.",
-};
+export async function generateMetadata({ searchParams }: PageProps<"/peleadores">): Promise<Metadata> {
+  const { filters, page } = parsePublicFilters(await searchParams);
+  return sitePageMetadata({
+    title: "Peleadores",
+    description: "Todo el plantel de Guerra Campal: busca por nombre o apodo y filtra por división, país y estado.",
+    path: fightersCanonicalPath(filters, page),
+    // Cada búsqueda de texto es una página distinta que nadie debería encontrar en Google.
+    noindex: Boolean(filters.q),
+  });
+}
 
 /** Pantallas de la primera fila: 2 columnas en celular, 3 en tablet, 4 en escritorio. */
 const FIRST_ROW = 4;
@@ -21,7 +28,7 @@ export default async function PeleadoresPage({ searchParams }: PageProps<"/pelea
   const [{ items, hasMore }, options, championBadges] = await Promise.all([getCachedPublicFighters(filters, page), getCachedPublicFilterOptions(), getCachedChampionBadges()]);
 
   const countries = options.nationalities.map((code) => ({ code, name: countryName(code) })).sort((a, b) => a.name.localeCompare(b.name, "es"));
-  const isFiltered = Boolean(filters.q || filters.division || filters.nationality || filters.gender || filters.status !== "active");
+  const isFiltered = isFilteredList(filters);
 
   return (
     <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] pb-24 pt-[calc(76px+clamp(32px,6vw,72px))]">
