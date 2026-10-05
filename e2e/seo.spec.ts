@@ -7,6 +7,7 @@ import { createFighter } from "@/features/fighters/service";
 import { insertMedia } from "@/features/fighters/test-helpers";
 import { insertPost } from "@/features/posts/test-helpers";
 import { createPreviewToken } from "@/features/publication/preview";
+import { adminUrl } from "./fixtures/admin";
 import { createE2eCard } from "./fixtures/events";
 
 // Metadatos y datos estructurados de cada página pública. Lo que depende de Configuración (verificación de Google, redes,
@@ -231,4 +232,45 @@ test("un borrador de noticia no se ve por su URL ni lleva datos estructurados; s
   await expect(page.getByRole("heading", { name: "Borrador SEO", level: 1 })).toBeVisible();
   await expect(head.robots(page)).toHaveAttribute("content", /noindex/);
   await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+});
+
+test("robots.txt del sitio deja pasar a los buscadores salvo /admin y /api, y apunta al sitemap", async ({ request }) => {
+  const response = await request.get("/robots.txt");
+  expect(response.status()).toBe(200);
+  const lines = (await response.text()).split(/\r?\n/);
+  expect(lines).toContain("User-Agent: *");
+  expect(lines).toContain("Disallow: /admin");
+  expect(lines).toContain("Disallow: /api");
+  expect(lines).not.toContain("Disallow: /");
+  expect(lines).toContain(`Sitemap: ${SITE}/sitemap.xml`);
+});
+
+// El navegador resuelve *.localhost solo; el cliente HTTP de Node no.
+test("robots.txt del panel lo cierra por completo", async ({ page }) => {
+  const response = await page.goto(adminUrl("/robots.txt"));
+  expect(response!.status()).toBe(200);
+  const lines = (await response.text()).split(/\r?\n/);
+  expect(lines).toContain("Disallow: /");
+  expect(lines.some((line) => line.startsWith("Sitemap:"))).toBe(false);
+});
+
+test("sitemap.xml lista lo público y deja fuera borradores y papelera", async ({ request }) => {
+  const response = await request.get("/sitemap.xml");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("xml");
+  const xml = await response.text();
+  for (const path of ["", "/eventos", "/peleadores", "/noticias", "/entradas", "/quiero-pelear", "/patrocinar", "/rankings", "/peleadores/matias-perez", "/eventos/guerra-campal-5", "/noticias/perez-defiende-el-cinturon-ante-soto"]) {
+    expect(xml).toContain(`<loc>${SITE}${path}</loc>`);
+  }
+  // Sembrados por global-setup: un peleador en borrador y otro en la papelera.
+  expect(xml).not.toContain("borrador-oculto");
+  expect(xml).not.toContain("papelera-oculta");
+  // Los datos de prueba del panel (carteleras armadas con peleadores en borrador) tampoco.
+  expect(xml).not.toContain("cartel-uno");
+  expect(xml).not.toContain("/admin");
+});
+
+test("el panel no tiene sitemap", async ({ page }) => {
+  const response = await page.goto(adminUrl("/sitemap.xml"));
+  expect(response!.status()).toBe(404);
 });

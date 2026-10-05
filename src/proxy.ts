@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
-import { routeByHost } from "@/lib/admin-routing";
+import { requestHost, routeByHost } from "@/lib/admin-routing";
 import { adminOrigin } from "@/lib/site-urls";
 
 // El panel vive en su subdominio (ADMIN_URL) y el sitio en el suyo (SITE_URL); ver `routeByHost`.
@@ -9,9 +9,8 @@ export function proxy(request: NextRequest) {
   const origin = adminOrigin();
   const route = routeByHost(
     {
-      // `x-forwarded-host` primero: es el dominio que pidió el navegador cuando hay un proxy delante (Vercel, Caddy).
-      // Falsearlo no da acceso: las páginas del panel igual exigen la sesión, y su cookie solo existe en el subdominio.
-      host: request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? request.nextUrl.host,
+      // Falsear el dominio no da acceso: las páginas del panel igual exigen la sesión, y su cookie solo existe en el subdominio.
+      host: requestHost(request.headers, request.nextUrl.host),
       pathname: request.nextUrl.pathname,
       search: request.nextUrl.search,
       hasSession: Boolean(getSessionCookie(request)),

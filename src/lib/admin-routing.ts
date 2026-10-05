@@ -35,3 +35,11 @@ export function routeByHost({ host, pathname, search, hasSession, isServerAction
   if (!hasSession && !isServerAction && !PUBLIC_ADMIN_PATHS.has(pathname)) return { kind: "redirect", url: `${adminOrigin}/login` };
   return { kind: "rewrite", pathname: pathname === "/" ? ADMIN_FOLDER : `${ADMIN_FOLDER}${pathname}` };
 }
+
+/**
+ * El dominio que pidió el navegador. Con un proxy delante (Vercel, Caddy) `x-forwarded-host` es el original y `host` el
+ * interno; sin proxy solo existe `host`. Lo usan el proxy, `robots.txt` y `sitemap.xml` para saber si es el panel.
+ */
+export function requestHost(headers: { get(name: string): string | null }, fallback = ""): string {
+  return headers.get("x-forwarded-host") ?? headers.get("host") ?? fallback;
+}
