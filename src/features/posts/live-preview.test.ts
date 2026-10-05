@@ -26,6 +26,7 @@ describe("buildLivePreviewPost", () => {
     expect(post.excerpt).toBe("Bajada.");
     expect(post.category).toEqual({ slug: "anuncios", name: "Anuncios" });
     expect(post.date).toBe(NOW.toISOString());
+    expect(post.updatedAt).toBe(NOW.toISOString());
     // Solo las imágenes que están en el cuerpo.
     expect(Object.keys(post.bodyMedia)).toEqual(["b1"]);
     expect(post.fighters).toEqual([]);
@@ -41,6 +42,11 @@ describe("buildLivePreviewPost", () => {
   it("dates a scheduled article on its scheduled date", () => {
     const publishAt = new Date("2026-10-05T13:00:00.000Z");
     expect(buildLivePreviewPost({ ...BASE, publication: { status: "scheduled", publishAt } }).date).toBe(publishAt.toISOString());
+  });
+
+  it("gives a scheduled article the same date as its last change", () => {
+    const publishAt = new Date("2026-10-05T13:00:00.000Z");
+    expect(buildLivePreviewPost({ ...BASE, publication: { status: "scheduled", publishAt } }).updatedAt).toBe(publishAt.toISOString());
   });
 });
 

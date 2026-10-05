@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromSantiagoInputs, isCalendarDay, santiagoToday, toSantiagoInputs } from "./santiago-time";
+import { fromSantiagoInputs, isCalendarDay, santiagoToday, toSantiagoInputs, toSantiagoIso } from "./santiago-time";
 
 describe("santiago time", () => {
   it("reads a date and time typed in Chile summer time (UTC-3)", () => {
@@ -19,6 +19,11 @@ describe("santiago time", () => {
   it("splits an instant back into Santiago date and time inputs", () => {
     expect(toSantiagoInputs(new Date("2026-10-15T23:00:00Z"))).toEqual({ date: "2026-10-15", time: "20:00" });
     expect(toSantiagoInputs(new Date("2026-07-01T03:30:00Z"))).toEqual({ date: "2026-06-30", time: "23:30" });
+  });
+
+  it("writes an instant with the Santiago offset: -03:00 in summer and -04:00 in winter", () => {
+    expect(toSantiagoIso(new Date("2026-10-15T23:00:00Z"))).toBe("2026-10-15T20:00:00-03:00");
+    expect(toSantiagoIso(new Date("2031-05-11T00:00:00Z"))).toBe("2031-05-10T20:00:00-04:00");
   });
 
   it("gives today's Santiago calendar day, even when UTC is already tomorrow", () => {

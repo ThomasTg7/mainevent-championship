@@ -147,6 +147,7 @@ export async function getPublicPostBySlug(db: Db, slug: string, { preview = fals
 
   return {
     ...toCardDTO({ ...post, categorySlug: row.post_categories.slug, categoryName: row.post_categories.name }, mediaById),
+    updatedAt: post.updatedAt.toISOString(),
     body: post.body,
     gallery: galleryRows.flatMap((item) => mediaById.get(item.mediaId) ?? []),
     bodyMedia,
