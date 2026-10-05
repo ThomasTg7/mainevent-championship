@@ -249,7 +249,7 @@ test("robots.txt del sitio deja pasar a los buscadores salvo /admin y /api, y ap
 test("robots.txt del panel lo cierra por completo", async ({ page }) => {
   const response = await page.goto(adminUrl("/robots.txt"));
   expect(response!.status()).toBe(200);
-  const lines = (await response.text()).split(/\r?\n/);
+  const lines = (await response!.text()).split(/\r?\n/);
   expect(lines).toContain("Disallow: /");
   expect(lines.some((line) => line.startsWith("Sitemap:"))).toBe(false);
 });
