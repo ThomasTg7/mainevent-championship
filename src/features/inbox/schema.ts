@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isPhoneLike } from "@/domain/phone";
+import { isCalendarDay } from "@/lib/santiago-time";
 import { checkbox, isHttpUrl, optionalNumber, optionalText } from "@/lib/zod-fields";
 
 /** Id de un mensaje de la bandeja que llega de la URL o de una action: uuid o nada. */
@@ -31,7 +32,7 @@ function birthDate(today: string) {
   return z
     .string({ error: "Escribe tu fecha de nacimiento" })
     .trim()
-    .refine((value) => /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value, "Escribe tu fecha de nacimiento")
+    .refine(isCalendarDay, "Escribe tu fecha de nacimiento")
     .refine((value) => value < today, "La fecha de nacimiento no puede ser de hoy ni del futuro");
 }
 

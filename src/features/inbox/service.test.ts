@@ -2,7 +2,7 @@ import { render } from "@react-email/components";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Db } from "@/db";
 import { inboxMessages } from "@/db/schema/inbox";
-import type { Mailer } from "@/lib/mailer";
+import { getLazyMailer, type Mailer } from "@/lib/mailer";
 import { createRecordingMailer } from "@/test/auth";
 import { createTestDb } from "@/test/db";
 import { submitFighterApplication, submitSponsorship, type SubmitDeps } from "./service";
@@ -133,6 +133,31 @@ describe("inbox service", () => {
       expect(String(error.mock.calls[0]?.[0])).toMatch(/correo|email/i);
     });
 
+    it("keeps the application and answers ok when the mail settings are incomplete (Resend without key)", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+      const result = await submitFighterApplication(deps({ mailer: getLazyMailer({ MAIL_DRIVER: "resend" }) }), APPLICATION);
+
+      expect(result).toEqual({ ok: true });
+      expect(await saved()).toHaveLength(1);
+      expect(error).toHaveBeenCalledOnce();
+    });
+
+    it("keeps the application and answers ok when the panel address is missing in production", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("ADMIN_URL", "");
+
+      try {
+        expect(await submitFighterApplication(deps(), APPLICATION)).toEqual({ ok: true });
+      } finally {
+        vi.unstubAllEnvs();
+      }
+      expect(await saved()).toHaveLength(1);
+      expect(recorder.sent).toEqual([]);
+      expect(error).toHaveBeenCalledOnce();
+    });
+
     it("saves without sending anything when no notification address is configured", async () => {
       const context = deps({ notifyEmail: "" });
 
@@ -146,6 +171,7 @@ describe("inbox service", () => {
       ["email", { email: "no-es-correo" }, /correo/i],
       ["birthDate", { birthDate: "2999-01-01" }, /fecha de nacimiento/i],
       ["birthDate", { birthDate: "" }, /fecha de nacimiento/i],
+      ["birthDate", { birthDate: "2000-13-01" }, /fecha de nacimiento/i],
       ["weightKg", { weightKg: "mucho" }, /peso/i],
       ["weightKg", { weightKg: "500" }, /peso/i],
       ["videoLinks", { videoLinks: ["javascript:alert(1)"] }, /enlace/i],

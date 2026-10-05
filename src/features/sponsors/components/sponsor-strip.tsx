@@ -14,7 +14,8 @@ function Half({ sponsors, repeats, decorative }: { sponsors: SponsorDTO[]; repea
     <ul className={`flex shrink-0 items-center ${decorative ? "motion-reduce:hidden" : ""}`} aria-hidden={decorative || undefined}>
       {Array.from({ length: repeats }, (_, round) =>
         sponsors.map((sponsor) => (
-          <li key={`${round}-${sponsor.id}`} className="px-6 sm:px-12">
+          // Las vueltas repetidas solo rellenan la cinta: con «reducir movimiento» (fila quieta) cada logo sale una vez.
+          <li key={`${round}-${sponsor.id}`} className={`px-6 sm:px-12 ${round > 0 ? "motion-reduce:hidden" : ""}`}>
             <SponsorLogo sponsor={sponsor} sizes="160px" className="w-32 sm:w-40" muted decorative={decorative || round > 0} />
           </li>
         )),

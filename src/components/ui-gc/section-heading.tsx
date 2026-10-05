@@ -8,13 +8,19 @@ type SectionHeadingProps = {
   title: ReactNode;
   action?: ReactNode;
   tone?: SectionHeadingTone;
+  /** `id` del `h2`, para el `aria-labelledby` de la sección. */
+  titleId?: string;
+  /** Entra con `ScrollReveal` (`data-reveal`). */
+  reveal?: boolean;
+  className?: string;
 };
 
-export function SectionHeading({ kicker, title, action, tone = "dark" }: SectionHeadingProps) {
+/** Rótulo amarillo con raya + título grande de sección (maqueta) y, a la derecha, una acción opcional. */
+export function SectionHeading({ kicker, title, action, tone = "dark", titleId, reveal = false, className }: SectionHeadingProps) {
   const isLight = tone === "light";
 
   return (
-    <div className="flex flex-wrap items-end justify-between gap-5 mb-11">
+    <div data-reveal={reveal || undefined} className={cn("flex flex-wrap items-end justify-between gap-5 mb-11", className)}>
       <div>
         <div
           className={cn(
@@ -25,6 +31,7 @@ export function SectionHeading({ kicker, title, action, tone = "dark" }: Section
           {kicker}
         </div>
         <h2
+          id={titleId}
           className={cn(
             "font-display uppercase leading-[.9] text-[clamp(40px,6vw,78px)]",
             isLight ? "text-black" : "text-white",

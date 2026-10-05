@@ -1,11 +1,10 @@
 import { z } from "zod";
 import { publicationShape, requireScheduleDate } from "@/features/publication/schema";
+import { isCalendarDay } from "@/lib/santiago-time";
 import { IMAGE_UNAVAILABLE, optionalEnum, optionalImageId, optionalNumber, optionalSlug, optionalText } from "@/lib/zod-fields";
 
 /** La bio es breve: se muestra dentro de la tarjeta de la ficha, junto al nombre. */
 export const BIO_MAX_LENGTH = 300;
-
-const BIRTH_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Contador del récord manual: vacío cuenta como 0. */
 function recordCount(label: string) {
@@ -19,8 +18,7 @@ const birthDate = z
     const trimmed = value?.trim();
     if (!trimmed) return null;
     const parsed = new Date(`${trimmed}T00:00:00Z`);
-    const valid = BIRTH_DATE_PATTERN.test(trimmed) && !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(trimmed);
-    if (!valid || parsed.getUTCFullYear() < 1900 || parsed.getTime() > Date.now()) {
+    if (!isCalendarDay(trimmed) || parsed.getUTCFullYear() < 1900 || parsed.getTime() > Date.now()) {
       ctx.issues.push({ code: "custom", message: "La fecha de nacimiento no es válida", input: value });
       return z.NEVER;
     }

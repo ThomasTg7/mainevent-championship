@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { SectionHeading } from "@/components/ui-gc/section-heading";
 import { PostCard } from "@/features/posts/components/post-card";
 import type { PostCardDTO } from "@/features/posts/dto";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
@@ -25,22 +26,25 @@ export function DontMissRail({ posts }: { posts: PostCardDTO[] }) {
   return (
     <section id="no-te-lo-pierdas" aria-labelledby="home-dont-miss-title" className="bg-surface py-[clamp(72px,10vw,140px)]">
       <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)]">
-        <div data-reveal className="mb-11 flex flex-wrap items-end justify-between gap-5">
-          <div>
-            <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">Videos y galerías</p>
-            <h2 id="home-dont-miss-title" className="font-display text-[clamp(40px,6vw,78px)] uppercase leading-[.9] text-white">
-              No te lo pierdas
-            </h2>
-          </div>
-          <div className="flex gap-2">
-            <button type="button" aria-label="Anterior" onClick={() => scrollByCard(-1)} className="grid size-[46px] place-items-center border-2 border-border transition-colors hover:border-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-yellow">
-              <span aria-hidden>←</span>
-            </button>
-            <button type="button" aria-label="Siguiente" onClick={() => scrollByCard(1)} className="grid size-[46px] place-items-center border-2 border-border transition-colors hover:border-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-yellow">
-              <span aria-hidden>→</span>
-            </button>
-          </div>
-        </div>
+        <SectionHeading
+          reveal
+          kicker="Videos y galerías"
+          title="No te lo pierdas"
+          titleId="home-dont-miss-title"
+          action={
+            // Con una sola tarjeta no hay nada que recorrer.
+            posts.length > 1 ? (
+              <div className="flex gap-2">
+                <button type="button" aria-label="Anterior" onClick={() => scrollByCard(-1)} className="grid size-[46px] place-items-center border-2 border-border transition-colors hover:border-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-yellow">
+                  <span aria-hidden>←</span>
+                </button>
+                <button type="button" aria-label="Siguiente" onClick={() => scrollByCard(1)} className="grid size-[46px] place-items-center border-2 border-border transition-colors hover:border-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-yellow">
+                  <span aria-hidden>→</span>
+                </button>
+              </div>
+            ) : undefined
+          }
+        />
         <ul
           ref={listRef}
           // El recuadro con scroll es enfocable para poder recorrerlo con el teclado.

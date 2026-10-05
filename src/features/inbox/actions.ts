@@ -13,7 +13,12 @@ export type PublicFormState = { ok?: true; errors?: Record<string, string>; valu
 
 const SEND_FAILED = "No pudimos enviar tu mensaje. Inténtalo de nuevo en unos minutos.";
 
-/** La dirección de quien envía: la primera de `x-forwarded-for` (la pone la plataforma) o `x-real-ip`. Se guarda solo su hash. */
+/**
+ * La dirección de quien envía: la primera de `x-forwarded-for` o `x-real-ip`. Se guarda solo su hash. Solo es confiable si
+ * el proxy de delante **reemplaza** el encabezado que manda el navegador: Vercel lo hace; en el VPS, Caddy también (sin
+ * `trusted_proxies`). Next no lo pisa si ya viene (`next start` expuesto directo, o nginx con `$proxy_add_x_forwarded_for`,
+ * dejarían falsificar la IP y saltarse el límite).
+ */
 async function clientIpHash(): Promise<string> {
   const requestHeaders = await headers();
   const ip = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || requestHeaders.get("x-real-ip") || "desconocida";

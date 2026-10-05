@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import { postCategories, postEvents, postFighters, posts } from "@/db/schema/posts";
 import { seedPostCategories } from "./seed";
+import { bodyHasEmbed } from "@/domain/post-body";
 import type { PostFormInput } from "./schema";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -34,6 +35,8 @@ export async function insertPost(
       categoryId: columns.categoryId ?? (await categoryIdBySlug(db, "anuncios")),
       status: "published",
       createdAt: daysAgo(1),
+      // Como el servicio: un video o una publicación en el cuerpo la meten en «No te lo pierdas».
+      hasMedia: bodyHasEmbed(columns.body),
       ...columns,
     })
     .returning({ id: posts.id, slug: posts.slug });

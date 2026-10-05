@@ -56,13 +56,14 @@ const sponsorship: Handler<SponsorshipData> = {
 };
 
 /**
- * El correo de aviso nunca cambia el resultado: si Resend falla o no hay correo configurado, el mensaje ya está en la
- * bandeja y quien escribió ve el éxito. El error queda en el log del servidor.
+ * El correo de aviso nunca cambia el resultado: si Resend falla, falta configuración (correo o `ADMIN_URL`) o no hay correo
+ * de avisos, el mensaje ya está en la bandeja y quien escribió ve el éxito. El error queda en el log del servidor. El aviso
+ * se arma dentro del `try`: armar el enlace al panel también puede fallar.
  */
-async function notify(deps: SubmitDeps, message: { subject: string; react: ReactElement }): Promise<void> {
+async function notify(deps: SubmitDeps, buildMessage: () => { subject: string; react: ReactElement }): Promise<void> {
   if (!deps.notifyEmail) return;
   try {
-    await deps.mailer.send({ to: deps.notifyEmail, ...message });
+    await deps.mailer.send({ to: deps.notifyEmail, ...buildMessage() });
   } catch (error) {
     console.error("No se pudo enviar el correo de aviso de la bandeja", error);
   }
@@ -82,7 +83,7 @@ async function submit<Data>(deps: SubmitDeps, input: Record<string, unknown>, ha
     .insert(inboxMessages)
     .values({ kind: handler.kind, ...handler.row(parsed.data), consentAt: now })
     .returning({ id: inboxMessages.id });
-  await notify(deps, handler.notification(parsed.data, `${adminOrigin()}${adminPath(`/bandeja/${saved!.id}`)}`));
+  await notify(deps, () => handler.notification(parsed.data, `${adminOrigin()}${adminPath(`/bandeja/${saved!.id}`)}`));
   return { ok: true };
 }
 

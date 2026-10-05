@@ -107,6 +107,8 @@ async function seedCardFighters(): Promise<void> {
 /** Cuatro noticias más viejas que las del seed: juntas pasan de 12 y la lista tiene segunda página. Van aquí por la caché del listado. */
 async function seedPaginationPosts(): Promise<void> {
   for (let index = 1; index <= 4; index += 1) {
-    await insertPost(db, { slug: `relleno-e2e-${index}`, title: `Relleno E2E ${index}`, createdAt: daysAgo(40 + index) });
+    // La primera lleva un video: «No te lo pierdas» de la home necesita más de una para mostrar sus flechas.
+    const body = index === 1 ? { type: "doc" as const, content: [{ type: "embed" as const, attrs: { provider: "youtube" as const, id: "dQw4w9WgXcQ" } }] } : undefined;
+    await insertPost(db, { slug: `relleno-e2e-${index}`, title: `Relleno E2E ${index}`, createdAt: daysAgo(40 + index), body });
   }
 }

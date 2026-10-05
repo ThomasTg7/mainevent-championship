@@ -9,10 +9,7 @@ import type { PostCardDTO } from "@/features/posts/dto";
 import type { RankingCardDTO, RankingsPageDTO } from "@/features/rankings/dto";
 import type { SponsorDTO } from "@/features/sponsors/dto";
 import type { HomeDTO, HomeEvent, HomeHero, HomeStats } from "./dto";
-import { pickHighlights } from "./highlights";
-
-/** Cuántas tarjetas de ranking muestra la home por nivel (el libra por libra y las dos primeras divisiones con campeón). */
-export const HOME_RANKING_CARDS = 3;
+import { pickHighlights, pickHomeRankingCards } from "./highlights";
 
 /**
  * Las cifras de la banda amarilla: solo eventos finalizados y públicos y sus peleas terminadas. Finalizaciones = KO/TKO +
@@ -109,7 +106,7 @@ export async function buildHomeData(sources: HomeSources): Promise<HomeDTO> {
     dontMiss,
     fighters,
     stats,
-    rankings: { pro: pro.cards.slice(0, HOME_RANKING_CARDS), amateur: amateur.cards.slice(0, HOME_RANKING_CARDS) },
+    rankings: { pro: pickHomeRankingCards(pro.cards), amateur: pickHomeRankingCards(amateur.cards) },
     sponsors,
   };
 }

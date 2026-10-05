@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SPONSOR_TIERS, type SponsorTier } from "@/domain/sponsors";
+import { isCalendarDay } from "@/lib/santiago-time";
 import { checkbox, optionalHttpUrl } from "@/lib/zod-fields";
 
 /** Id de patrocinador que llega de una action: uuid o nada. */
@@ -13,8 +14,7 @@ function optionalDay(label: string) {
     .nullish()
     .transform((value, ctx) => {
       if (!value) return null;
-      const valid = /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
-      if (!valid) {
+      if (!isCalendarDay(value)) {
         ctx.issues.push({ code: "custom", message: `${label} no es una fecha válida`, input: value });
         return z.NEVER;
       }

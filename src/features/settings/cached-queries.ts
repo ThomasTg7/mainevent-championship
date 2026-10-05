@@ -18,11 +18,11 @@ export function getCachedSetting<K extends SettingKey>(key: K): Promise<SettingV
 }
 
 /**
- * La imagen que se muestra al compartir el sitio. Una lectura mínima (sin caché) dice cuál es, para que la caché lleve
- * también la etiqueta de esa imagen: reeditarla o cambiarla vuelve a leerla. `null` si no hay o ya no está disponible.
+ * La imagen que se muestra al compartir el sitio. Primero la clave `share` (cacheada, `settings`) dice cuál es; después la
+ * imagen se cachea con su propia etiqueta: reeditarla o cambiarla vuelve a leerla. `null` si no hay o ya no está disponible.
  */
 export async function getCachedShareImage(): Promise<MediaDTO | null> {
-  const { ogMediaId } = await getSetting(db, "share");
+  const { ogMediaId } = await getCachedSetting("share");
   if (!ogMediaId) return null;
   return unstable_cache(() => getMedia(db, ogMediaId), ["share-image", ogMediaId], {
     tags: [SETTINGS_TAG, mediaCacheTag(ogMediaId)],

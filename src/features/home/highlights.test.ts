@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RankedFighterDTO, RankingCardDTO, RankingEntryDTO } from "@/features/rankings/dto";
-import { MAX_HIGHLIGHTS, pickHighlights } from "./highlights";
+import { MAX_HIGHLIGHTS, pickHighlights, pickHomeRankingCards } from "./highlights";
 
 const fighter = (id: string): RankedFighterDTO => ({ id, slug: id, name: id, nationality: "CL", record: { wins: 1, losses: 0, draws: 0, noContests: 0 }, bodyMedia: null });
 const entry = (position: number, id: string): RankingEntryDTO => ({ position, fighter: fighter(id), movement: { kind: "same" } as RankingEntryDTO["movement"] });
@@ -58,5 +58,26 @@ describe("pickHighlights", () => {
 
   it("is empty when the level is hidden or has no cards", () => {
     expect(pickHighlights([])).toEqual([]);
+  });
+});
+
+describe("pickHomeRankingCards", () => {
+  const slugs = (cards: RankingCardDTO[]) => cards.map((item) => item.division?.slug ?? "p4p");
+
+  it("takes the pound-for-pound and the first two divisions with a champion, in the order of /rankings", () => {
+    const cards = [card(null, null, [[1, "a"]]), card("paja", null, [[1, "b"]]), card("gallo", "c", []), card("pluma", null, [[1, "d"]]), card("ligero", "e", []), card("medio", "f", [])];
+
+    expect(slugs(pickHomeRankingCards(cards))).toEqual(["p4p", "gallo", "ligero"]);
+  });
+
+  it("fills with divisions without a champion when there are not enough champions", () => {
+    const cards = [card(null, null, [[1, "a"]]), card("paja", null, [[1, "b"]]), card("gallo", "c", []), card("pluma", null, [[1, "d"]])];
+
+    expect(slugs(pickHomeRankingCards(cards))).toEqual(["p4p", "paja", "gallo"]);
+  });
+
+  it("without a pound-for-pound shows three divisions, and nothing for a hidden level", () => {
+    expect(slugs(pickHomeRankingCards([card("paja", "a", []), card("gallo", "b", []), card("pluma", "c", []), card("ligero", "d", [])]))).toEqual(["paja", "gallo", "pluma"]);
+    expect(pickHomeRankingCards([])).toEqual([]);
   });
 });

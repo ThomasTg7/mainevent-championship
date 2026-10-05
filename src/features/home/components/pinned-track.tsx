@@ -32,14 +32,17 @@ export function PinnedTrack({ children, sectionId, label }: PinnedTrackProps) {
     if (reducedMotion || !viewport || !track || !section) return;
 
     let cleanup: (() => void) | undefined;
-    let cancelled = false;
+    // Cada cambio de ancho tiene su número: una carga de GSAP que termina tarde no arma un segundo pin encima del vigente.
+    let generation = 0;
 
     async function enable() {
+      generation += 1;
+      const current = generation;
       cleanup?.();
       cleanup = undefined;
       if (!mediaQuery.matches || !viewport || !track || !section) return;
       const [{ gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
-      if (cancelled || !mediaQuery.matches) return;
+      if (current !== generation || !mediaQuery.matches) return;
       gsap.registerPlugin(ScrollTrigger);
 
       viewport.style.overflowX = "hidden";
@@ -63,7 +66,7 @@ export function PinnedTrack({ children, sectionId, label }: PinnedTrackProps) {
     void enable();
     mediaQuery.addEventListener("change", enable);
     return () => {
-      cancelled = true;
+      generation += 1;
       mediaQuery.removeEventListener("change", enable);
       cleanup?.();
     };

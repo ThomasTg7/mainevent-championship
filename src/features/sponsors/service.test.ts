@@ -69,6 +69,7 @@ describe("sponsors service", () => {
 
     it("rejects a day that does not exist", async () => {
       await rejects(createSponsor(db, validSponsorInput(await logo(), { endsOn: "2026-02-31" }), "admin-1"), /fecha/i);
+      await rejects(createSponsor(db, validSponsorInput(await logo(), { startsOn: "2026-13-01" }), "admin-1"), /fecha/i);
     });
 
     it("ties the sponsor to its events when it is not for every event", async () => {
@@ -161,6 +162,23 @@ describe("sponsors service", () => {
       await insertSponsor(db, { sortOrder: 1 });
 
       await rejects(reorderSponsors(db, "oficial", [a.id], "admin-1"), /cambió/i);
+    });
+
+    it("rejects a list that repeats a sponsor, even with the right length", async () => {
+      const a = await insertSponsor(db, { sortOrder: 0 });
+      await insertSponsor(db, { sortOrder: 1 });
+
+      await rejects(reorderSponsors(db, "oficial", [a.id, a.id], "admin-1"), /cambió/i);
+    });
+
+    it("ignores the sponsors in the trash: the visible ones can still be ordered", async () => {
+      const [a, b] = [await insertSponsor(db, { sortOrder: 0 }), await insertSponsor(db, { sortOrder: 1 })];
+      await insertSponsor(db, { sortOrder: 2, deletedAt: new Date() });
+
+      await reorderSponsors(db, "oficial", [b.id, a.id], "admin-1");
+
+      const rows = await db.select({ id: sponsors.id }).from(sponsors).where(eq(sponsors.tier, "oficial")).orderBy(asc(sponsors.sortOrder));
+      expect(rows.slice(0, 2).map((row) => row.id)).toEqual([b.id, a.id]);
     });
   });
 });

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
+import { SectionHeading } from "@/components/ui-gc/section-heading";
 import { cn } from "@/lib/cn";
 
 type Level = "pro" | "amateur";
@@ -28,35 +29,35 @@ export function RankingSwitch({ panels, kickers }: RankingSwitchProps) {
 
   return (
     <div>
-      <div data-reveal className="mb-11 flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">{kickers[active]}</p>
-          <h2 id="home-rankings-title" className="font-display text-[clamp(40px,6vw,78px)] uppercase leading-[.9] text-white">
-            Rankings
-          </h2>
-        </div>
-        {levels.length > 1 ? (
-          <div role="tablist" aria-label="Nivel del ranking" className="inline-flex border-2 border-border">
-            {levels.map((level) => (
-              <button
-                key={level}
-                id={`${uid}-tab-${level}`}
-                role="tab"
-                type="button"
-                aria-selected={active === level}
-                aria-controls={`${uid}-panel-${level}`}
-                onClick={() => setActive(level)}
-                className={cn(
-                  "min-h-11 px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] outline-none transition-colors focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white",
-                  active === level ? "bg-yellow text-black" : "text-muted-foreground hover:text-white",
-                )}
-              >
-                {LABELS[level]}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
+      <SectionHeading
+        reveal
+        kicker={kickers[active]}
+        title="Rankings"
+        titleId="home-rankings-title"
+        action={
+          levels.length > 1 ? (
+            <div role="tablist" aria-label="Nivel del ranking" className="inline-flex border-2 border-border">
+              {levels.map((level) => (
+                <button
+                  key={level}
+                  id={`${uid}-tab-${level}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={active === level}
+                  aria-controls={`${uid}-panel-${level}`}
+                  onClick={() => setActive(level)}
+                  className={cn(
+                    "min-h-11 px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] outline-none transition-colors focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white",
+                    active === level ? "bg-yellow text-black" : "text-muted-foreground hover:text-white",
+                  )}
+                >
+                  {LABELS[level]}
+                </button>
+              ))}
+            </div>
+          ) : null
+        }
+      />
       {levels.map((level) => (
         <div key={level} id={`${uid}-panel-${level}`} role={levels.length > 1 ? "tabpanel" : undefined} aria-labelledby={levels.length > 1 ? `${uid}-tab-${level}` : undefined} hidden={active !== level} data-level={level} className="grid gap-6 lg:grid-cols-3">
           {panels[level]}
