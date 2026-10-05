@@ -33,7 +33,7 @@ export function FightCardTabs({ segments }: FightCardTabsProps) {
           <TabsTrigger
             key={segment.id}
             value={segment.id}
-            className="h-auto min-h-11 flex-none rounded-none border-2 border-yellow bg-yellow! px-5 py-2.5 font-cond text-[15px] font-extrabold uppercase tracking-[.1em] text-black transition-colors duration-300 after:hidden hover:bg-black/85! hover:text-yellow data-active:bg-black! data-active:text-yellow motion-reduce:transition-none"
+            className="h-auto min-h-11 flex-none rounded-none border-2 border-yellow bg-yellow! px-5 py-2.5 font-cond text-[15px] font-extrabold uppercase tracking-[.1em] text-black! transition-colors duration-300 after:hidden hover:bg-black/85! hover:text-yellow! data-active:bg-black! data-active:text-yellow! motion-reduce:transition-none"
           >
             {segment.name}
           </TabsTrigger>

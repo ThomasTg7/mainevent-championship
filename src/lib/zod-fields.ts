@@ -30,6 +30,17 @@ export function optionalNumber(label: string, { min, max, integer = false }: { m
     .pipe(bounded.nullable());
 }
 
+/**
+ * Casilla de formulario: llega como `"on"`/`"true"`/`"false"` o como booleano desde el código. Ausente = `defaultValue` (un HTML
+ * no envía las casillas sin marcar: los formularios que necesitan distinguir mandan `"true"`/`"false"` en un campo oculto).
+ */
+export function checkbox(defaultValue = false) {
+  return z
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((value) => (value === undefined ? defaultValue : value === true || value === "on" || value === "true"));
+}
+
 /** Id de imagen opcional: vacío o ausente se guarda como `null`. */
 export function optionalImageId() {
   return z
@@ -53,6 +64,16 @@ export function optionalSlug() {
     .transform((value) => value || null);
 }
 
+/** Un enlace con protocolo http(s): lo demás (`javascript:`, `data:`, texto suelto) no. */
+export function isHttpUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === "https:" || protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 /** Enlace opcional (ticketera, streaming, video): solo http(s); vacío = `null`. */
 export function optionalHttpUrl(label: string) {
   return z
@@ -62,12 +83,7 @@ export function optionalHttpUrl(label: string) {
     .nullish()
     .transform((value, ctx) => {
       if (!value) return null;
-      try {
-        const { protocol } = new URL(value);
-        if (protocol === "https:" || protocol === "http:") return value;
-      } catch {
-        // cae en el error de abajo
-      }
+      if (isHttpUrl(value)) return value;
       ctx.issues.push({ code: "custom", message: `${label} no es un enlace válido (debe empezar con https://)`, input: value });
       return z.NEVER;
     });

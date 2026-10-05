@@ -172,8 +172,12 @@ const SafeLink = Link.extend({
   },
 });
 
-export function createPostExtensions(getMedia: MediaLookup): AnyExtension[] {
-  return [
+/**
+ * `media: false` es el modo restringido (textos de Configuración): sin imagen, publicación de una red ni pegado de
+ * enlaces como publicación, así esos textos no referencian imágenes.
+ */
+export function createPostExtensions(getMedia: MediaLookup, { media = true }: { media?: boolean } = {}): AnyExtension[] {
+  const base: AnyExtension[] = [
     StarterKit.configure({
       heading: { levels: [2, 3] },
       // Fuera de lo permitido: subrayado, tachado, código y bloques de código.
@@ -192,8 +196,6 @@ export function createPostExtensions(getMedia: MediaLookup): AnyExtension[] {
       isAllowedUri: (url) => isSafeHref(url),
       HTMLAttributes: { rel: "noopener noreferrer nofollow", target: "_blank" },
     }),
-    EmbedNode,
-    createImageNode(getMedia),
-    PasteEmbed,
   ];
+  return media ? [...base, EmbedNode, createImageNode(getMedia), PasteEmbed] : base;
 }

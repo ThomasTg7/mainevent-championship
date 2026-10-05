@@ -7,3 +7,6 @@ export * from "./fighters";
 export * from "./events";
 export * from "./posts";
 export * from "./rankings";
+export * from "./settings";
+export * from "./sponsors";
+export * from "./inbox";

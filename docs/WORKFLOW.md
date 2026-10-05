@@ -103,5 +103,5 @@ Aprobado. Haz merge de plan-NN a main (sin fast-forward), borra la rama y confir
 | 03 Eventos | ☑ | ☐ | ☑ | ☑ |
 | 04 Noticias | ☑ | ☑ | ☑ | ☑ |
 | 05 Rankings | ☑ | ☑ | ☑ | ☑ |
-| 06 Home y sitio | ☐ | ☐ | ☐ | ☐ |
+| 06 Home y sitio | ☑ | ☑ | ☐ | ☐ |
 | 07 SEO y lanzamiento | ☐ | ☐ | ☐ | ☐ |

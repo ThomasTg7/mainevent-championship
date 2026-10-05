@@ -161,3 +161,29 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Cinta continua (texto del home, patrocinadores): la pista lleva su contenido dos veces y se desplaza media pista. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Presentación de la home (primera visita de la sesión): las letras suben y la barra amarilla se llena. */
+@keyframes intro-letter {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes intro-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

@@ -1,8 +1,9 @@
-import type { SQL } from "drizzle-orm";
+import { sql, type SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { eventGallery, events } from "@/db/schema/events";
 import { fighterGallery, fighters } from "@/db/schema/fighters";
 import { postBodyMedia, postGallery, posts } from "@/db/schema/posts";
+import { sponsors } from "@/db/schema/sponsors";
 
 /**
  * Quién usa una imagen. Una imagen está en uso mientras alguna fila la referencia; el cron
@@ -26,4 +27,10 @@ export const MEDIA_REFERENCES: MediaReference[] = [
   { label: "Portada de la noticia", column: posts.coverMediaId },
   { label: "Galería de la noticia", column: postGallery.mediaId },
   { label: "Imagen dentro de la noticia", column: postBodyMedia.mediaId },
+  { label: "Logo del patrocinador", column: sponsors.logoMediaId },
+  // Dentro de JSON (sin FK): la imagen que se muestra al compartir el sitio (Configuración → Compartir).
+  {
+    label: "Imagen al compartir",
+    isReferenced: (mediaId) => sql`exists (select 1 from site_settings where key = 'share' and value->>'ogMediaId' = ${mediaId}::text)`,
+  },
 ];

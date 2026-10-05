@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromSantiagoInputs, santiagoToday, toSantiagoInputs } from "./santiago-time";
+import { fromSantiagoInputs, isCalendarDay, santiagoToday, toSantiagoInputs } from "./santiago-time";
 
 describe("santiago time", () => {
   it("reads a date and time typed in Chile summer time (UTC-3)", () => {
@@ -24,5 +24,12 @@ describe("santiago time", () => {
   it("gives today's Santiago calendar day, even when UTC is already tomorrow", () => {
     expect(santiagoToday(new Date("2026-10-01T00:30:00Z")).toISOString()).toBe("2026-09-30T12:00:00.000Z");
     expect(santiagoToday(new Date("2026-10-01T15:00:00Z")).toISOString()).toBe("2026-10-01T12:00:00.000Z");
+  });
+
+  it("isCalendarDay accepts real days only, and never throws on a month or day out of range", () => {
+    expect(isCalendarDay("2024-02-29")).toBe(true);
+    for (const value of ["2026-02-29", "2026-02-30", "2026-13-01", "2026-00-10", "2026-04-31", "2026-1-1", "", "hoy"]) {
+      expect(isCalendarDay(value)).toBe(false);
+    }
   });
 });

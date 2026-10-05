@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { EMPTY_POST_BODY, validatePostBody, type PostBody } from "@/domain/post-body";
 import { publicationShape, requireScheduleDate } from "@/features/publication/schema";
-import { IMAGE_UNAVAILABLE, optionalImageId, optionalSlug, optionalText } from "@/lib/zod-fields";
+import { checkbox, IMAGE_UNAVAILABLE, optionalImageId, optionalSlug, optionalText } from "@/lib/zod-fields";
 
 /** Id de noticia (o de categoría) que llega de la URL o de una action: uuid o nada. */
 export const postIdSchema = z.uuid();
@@ -20,12 +20,6 @@ function parseBodyText(value: unknown): unknown {
 }
 
 const body = z.preprocess(parseBodyText, z.custom<PostBody>((value) => validatePostBody(value), BODY_NOT_ALLOWED)).default(EMPTY_POST_BODY);
-
-/** Casilla de formulario: llega como `"on"` (o ausente), o como booleano desde el código. */
-const checkbox = z
-  .union([z.boolean(), z.string()])
-  .optional()
-  .transform((value) => value === true || value === "on" || value === "true");
 
 const idList = (max: number, message: string) =>
   z
@@ -55,7 +49,7 @@ export const postInputSchema = z
     slug: optionalSlug(),
     excerpt: optionalText(300, "La bajada"),
     categoryId: z.uuid({ error: "Elige una categoría" }),
-    featured: checkbox,
+    featured: checkbox(),
     coverMediaId: optionalImageId(),
     galleryMediaIds: z
       .array(z.uuid({ error: IMAGE_UNAVAILABLE }))

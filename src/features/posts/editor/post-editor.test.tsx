@@ -30,3 +30,20 @@ describe("PostEditor: pasting an AI answer", () => {
     expect(onAiDraftPaste).not.toHaveBeenCalled();
   });
 });
+
+describe("PostEditor: restricted mode", () => {
+  it("offers «Foto» and «Video / Post» by default", async () => {
+    render(<PostEditor value={EMPTY_POST_BODY} onChange={() => {}} />);
+    await screen.findByRole("textbox", { name: "Cuerpo de la noticia" });
+    expect(screen.getByRole("button", { name: "Imagen" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Video o publicación/ })).toBeTruthy();
+  });
+
+  it("hides both and labels the box for the page text when media is not allowed", async () => {
+    render(<PostEditor value={EMPTY_POST_BODY} onChange={() => {}} allowMedia={false} label="Texto de Nosotros" />);
+    await screen.findByRole("textbox", { name: "Texto de Nosotros" });
+    expect(screen.queryByRole("button", { name: "Imagen" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Video o publicación/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "Negrita" })).toBeTruthy();
+  });
+});

@@ -269,3 +269,36 @@ describe("fighter deletion keeps the post intact", () => {
     expect((await findPost(id)).title).toBe("Sobrevive");
   });
 });
+
+describe("posts.has_media (what feeds «No te lo pierdas»)", () => {
+  const embed = { type: "embed", attrs: { provider: "youtube", id: "dQw4w9WgXcQ" } };
+
+  it("is false for a text-only post, and true with a social post or video in the body", async () => {
+    const plain = await createPost(db, validPostInput(anuncios, { title: "Solo texto", body: doc(paragraph("Hola")) }), "admin-1");
+    const withEmbed = await createPost(db, validPostInput(anuncios, { title: "Con video", body: doc(paragraph("Mira"), embed) }), "admin-1");
+
+    expect((await findPost(plain.id)).hasMedia).toBe(false);
+    expect((await findPost(withEmbed.id)).hasMedia).toBe(true);
+  });
+
+  it("is true when the post has a gallery, and false with only a photo inside the text", async () => {
+    const galleryPhoto = await insertMedia(db, "gallery");
+    const bodyPhoto = await insertMedia(db, "gallery");
+    const withGallery = await createPost(db, validPostInput(anuncios, { title: "Con galería", galleryMediaIds: [galleryPhoto] }), "admin-1");
+    const withBodyPhoto = await createPost(db, validPostInput(anuncios, { title: "Foto en el texto", body: doc(image(bodyPhoto)) }), "admin-1");
+
+    expect((await findPost(withGallery.id)).hasMedia).toBe(true);
+    expect((await findPost(withBodyPhoto.id)).hasMedia).toBe(false);
+  });
+
+  it("follows the post when it is edited: adding a video turns it on, removing it turns it off", async () => {
+    const { id } = await createPost(db, validPostInput(anuncios, { title: "Cambia de contenido", body: doc(paragraph("Antes")) }), "admin-1");
+    expect((await findPost(id)).hasMedia).toBe(false);
+
+    await updatePost(db, id, validPostInput(anuncios, { title: "Cambia de contenido", body: doc(paragraph("Después"), embed) }), "admin-1");
+    expect((await findPost(id)).hasMedia).toBe(true);
+
+    await updatePost(db, id, validPostInput(anuncios, { title: "Cambia de contenido", body: doc(paragraph("Sin video")) }), "admin-1");
+    expect((await findPost(id)).hasMedia).toBe(false);
+  });
+});

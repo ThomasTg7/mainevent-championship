@@ -4,7 +4,7 @@ import { EVENTS_LIST_TAG, eventCacheTag } from "@/features/events/cache";
 import { FIGHTERS_LIST_TAG, fighterCacheTag } from "@/features/fighters/cache";
 import { MEDIA_ANY_TAG, mediaCacheTag } from "@/features/media/cache";
 import { POSTS_LIST_TAG, postCacheTag } from "./cache";
-import { getHomeNews, getPublicPostBySlug, getPublicPostRef, listPostsForEvent, listPostsForFighter, listPublicPostCategories, listPublicPosts } from "./queries";
+import { getHomeNews, getPublicPostBySlug, getPublicPostRef, listDontMissPosts, listPostsForEvent, listPostsForFighter, listPublicPostCategories, listPublicPosts } from "./queries";
 
 // Lecturas del sitio público, cacheadas con etiquetas para invalidarlas desde la action que escribe.
 // La vista previa nunca pasa por aquí: la página lee el borrador directo de la base.
@@ -12,6 +12,8 @@ import { getHomeNews, getPublicPostBySlug, getPublicPostRef, listPostsForEvent, 
 // Un tope de tiempo cubre lo que ninguna action dispara: noticias programadas que llegan a su hora de publicación
 // (la ficha se ve al instante por la lectura mínima; listados y home, con hasta este retraso).
 const REVALIDATE_SECONDS = 300;
+
+const DONT_MISS_SIZE = 8;
 
 /** Más allá de esta página no se cachea: cada `?pagina=` inventado sería una entrada de un solo uso. */
 const MAX_CACHED_PAGE = 20;
@@ -51,6 +53,11 @@ export function getCachedPublicPostCategories() {
 
 export function getCachedHomeNews() {
   return unstable_cache(() => getHomeNews(db), ["posts-home"], { tags: [POSTS_LIST_TAG, MEDIA_ANY_TAG], revalidate: REVALIDATE_SECONDS })();
+}
+
+/** «No te lo pierdas» de la home: las 8 últimas noticias con video, publicación de una red o galería. */
+export function getCachedDontMissPosts() {
+  return unstable_cache(() => listDontMissPosts(db, DONT_MISS_SIZE), ["posts-dont-miss"], { tags: [POSTS_LIST_TAG, MEDIA_ANY_TAG], revalidate: REVALIDATE_SECONDS })();
 }
 
 /**

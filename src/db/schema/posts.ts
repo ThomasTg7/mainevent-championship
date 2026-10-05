@@ -29,6 +29,8 @@ export const posts = pgTable(
       .notNull()
       .references(() => postCategories.id, { onDelete: "restrict" }),
     featured: boolean("featured").notNull().default(false),
+    /** Calculado al guardar: tiene galería o una publicación/video en el cuerpo. Alimenta «No te lo pierdas» sin leer el JSON del cuerpo. */
+    hasMedia: boolean("has_media").notNull().default(false),
     ...publication,
     ...timestamps,
   },
@@ -36,6 +38,7 @@ export const posts = pgTable(
     // slug ya tiene índice único; el resto sirve a listados, home, papelera y filtros.
     index("posts_category_id_idx").on(table.categoryId),
     index("posts_featured_idx").on(table.featured),
+    index("posts_has_media_idx").on(table.hasMedia),
     index("posts_status_idx").on(table.status),
     index("posts_publish_at_idx").on(table.publishAt),
     index("posts_deleted_at_idx").on(table.deletedAt),

@@ -140,3 +140,28 @@ describe("how an embed looks inside the editor", () => {
     expect(editorWithEmbed("youtube", "../../evil").view.dom.querySelector("iframe")).toBeNull();
   });
 });
+
+describe("createPostExtensions without media (Configuración)", () => {
+  const MEDIA_ID = "0b6f0c40-7d4c-4f3a-9d0a-5f1d2b8f6a11";
+
+  it("has no image, embed or paste-embed extension", () => {
+    const names = createPostExtensions(() => undefined, { media: false }).map((extension) => extension.name);
+    expect(names).not.toEqual(expect.arrayContaining(["image"]));
+    expect(names).not.toEqual(expect.arrayContaining(["embed"]));
+    expect(names).not.toEqual(expect.arrayContaining(["pasteEmbed"]));
+  });
+
+  it("does not turn pasted image or embed markup into nodes", () => {
+    editor = new Editor({ extensions: createPostExtensions(() => undefined, { media: false }), content: "" });
+    editor.commands.insertContent(`<p>Hola</p><figure data-media-id="${MEDIA_ID}"></figure><div data-embed-provider="youtube" data-embed-id="dQw4w9WgXcQ"></div>`);
+    const json = JSON.stringify(editor.getJSON());
+    expect(json).toContain("Hola");
+    expect(json).not.toContain('"image"');
+    expect(json).not.toContain('"embed"');
+  });
+
+  it("keeps both by default", () => {
+    const names = createPostExtensions(() => undefined).map((extension) => extension.name);
+    expect(names).toEqual(expect.arrayContaining(["image", "embed", "pasteEmbed"]));
+  });
+});

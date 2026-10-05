@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Db } from "@/db";
 import * as mediaQueries from "@/features/media/queries";
 import { createTestDb } from "@/test/db";
-import { getPublicFighterBySlug, getPublicFighterRef, listPublicFighters, listPublicFilterOptions } from "./queries";
+import { getPublicFighterBySlug, getPublicFighterRef, listPublicFighterCardsByIds, listPublicFighters, listPublicFilterOptions } from "./queries";
 import type { FighterFilters } from "./schema";
 import { createFighter, deleteFighter, setFighterPublication } from "./service";
 import { divisionIdBySlug, insertMedia, validFighterInput } from "./test-helpers";
@@ -105,6 +105,33 @@ describe("listPublicFighters", () => {
     expect(list.find((fighter) => fighter.firstName === "Matías")?.bodyMedia?.id).toBe(bodyMediaId);
     expect(list.find((fighter) => fighter.firstName === "Diego")?.bodyMedia?.id).toBe(bodyMediaId);
     expect(list.find((fighter) => fighter.firstName === "Camila")?.bodyMedia).toBeNull();
+  });
+});
+
+describe("listPublicFighterCardsByIds", () => {
+  it("returns the cards in the order requested, whatever the order of the table", async () => {
+    const cards = await listPublicFighterCardsByIds(db, [ids.camila, ids.matias, ids.diego]);
+
+    expect(cards.map((card) => card.firstName)).toEqual(["Camila", "Matías", "Diego"]);
+    expect(cards[1]).toMatchObject({ slug: "matias-perez", division: { name: "Ligero" }, record: { wins: 12, losses: 2 } });
+  });
+
+  it("only returns fighters that are public: no drafts, no trash, and ids that do not exist are skipped", async () => {
+    const cards = await listPublicFighterCardsByIds(db, [ids.draft, ids.matias, ids.trashed, "0b6f0c40-7d4c-4f3a-9d0a-5f1d2b8f6a11"]);
+
+    expect(cards.map((card) => card.firstName)).toEqual(["Matías"]);
+  });
+
+  it("repeated ids come back once, and no ids is an empty list without touching the database", async () => {
+    expect((await listPublicFighterCardsByIds(db, [ids.matias, ids.matias])).map((card) => card.firstName)).toEqual(["Matías"]);
+    expect(await listPublicFighterCardsByIds(db, [])).toEqual([]);
+  });
+
+  it("loads every photo with a single media query, never one per fighter", async () => {
+    vi.mocked(mediaQueries.getMediaByIds).mockClear();
+    const cards = await listPublicFighterCardsByIds(db, [ids.matias, ids.diego, ids.camila]);
+    expect(mediaQueries.getMediaByIds).toHaveBeenCalledTimes(1);
+    expect(cards[0]?.bodyMedia?.id).toBe(bodyMediaId);
   });
 });
 

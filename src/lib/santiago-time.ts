@@ -62,6 +62,15 @@ export function santiagoToday(now: Date = new Date()): Date {
   return new Date(`${toSantiagoInputs(now).date}T12:00:00Z`);
 }
 
+/** `true` si es un día `YYYY-MM-DD` que existe en el calendario («2026-02-30» y «2026-13-01» no). Nunca lanza. */
+export function isCalendarDay(value: string): boolean {
+  const match = DATE_PATTERN.exec(value);
+  if (!match) return false;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+}
+
 /** Suma días a una fecha `YYYY-MM-DD` (calendario, sin horas: el cambio de horario no la afecta). */
 export function addDaysToDate(date: string, days: number): string {
   const shifted = new Date(`${date}T12:00:00Z`);

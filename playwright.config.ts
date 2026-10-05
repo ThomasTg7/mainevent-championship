@@ -40,7 +40,9 @@ export default defineConfig({
   },
   webServer: {
     command: `pnpm run dev --port ${PORT}`,
-    url: `http://localhost:${PORT}`,
+    // Un archivo estático, no `/`: Playwright levanta el servidor ANTES del globalSetup (que migra y siembra la base), y una
+    // página que lee la base falla mientras faltan las tablas nuevas, así que el servidor nunca quedaría «listo».
+    url: `http://localhost:${PORT}/favicon.ico`,
     // Nunca reutilizar un `pnpm dev` ya abierto: apuntaría a la BD de desarrollo.
     reuseExistingServer: false,
     timeout: 60_000,
