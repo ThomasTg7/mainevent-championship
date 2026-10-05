@@ -87,7 +87,7 @@ export async function Footer() {
             </ul>
           </section>
         ) : null}
-        <div className="mt-14 pt-6 border-t border-border flex flex-wrap justify-between gap-2.5 text-[#666] text-sm">
+        <div className="mt-14 pt-6 border-t border-border flex flex-wrap justify-between gap-2.5 text-muted-foreground text-sm">
           <span>© {new Date().getFullYear()} Guerra Campal</span>
           <span>{contact.address || "Santiago, Chile"}</span>
         </div>

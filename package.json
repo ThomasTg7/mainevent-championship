@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
-    "create-admin": "tsx --env-file-if-exists=.env scripts/create-admin.ts"
+    "create-admin": "tsx --env-file-if-exists=.env scripts/create-admin.ts",
+    "lighthouse": "lhci autorun"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1141.0",
@@ -54,6 +55,8 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.1",

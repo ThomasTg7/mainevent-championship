@@ -44,7 +44,7 @@ export function TicketTiers({ tiers, ticketUrl, eventName }: TicketTiersProps) {
               <TierContent tier={tier} />
             </a>
           ) : (
-            <div className={`${tierClass} ${tier.soldOut ? "border-neutral-600 opacity-70" : ""}`}>
+            <div className={`${tierClass} ${tier.soldOut ? "border-neutral-600 text-neutral-300" : ""}`}>
               <TierContent tier={tier} />
             </div>
           )}
