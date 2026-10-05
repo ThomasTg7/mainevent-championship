@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Analytics } from "@/components/analytics";
 import { SmoothScroll } from "@/components/motion/smooth-scroll";
 import { Footer } from "@/components/site/footer";
 import { Header } from "@/components/site/header";
@@ -29,6 +30,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
+      <Analytics />
     </SmoothScroll>
   );
 }

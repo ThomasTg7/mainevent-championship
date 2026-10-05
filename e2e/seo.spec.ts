@@ -274,3 +274,19 @@ test("el panel no tiene sitemap", async ({ page }) => {
   const response = await page.goto(adminUrl("/sitemap.xml"));
   expect(response!.status()).toBe(404);
 });
+
+test("sin proveedor de analítica el sitio no carga ningún script de medición ni pone cookies", async ({ page, context }) => {
+  for (const path of ["/", "/peleadores", "/eventos/guerra-campal-5", "/noticias"]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+  }
+  await expect(page.locator('script[src*="umami"], script[src*="vercel"], script[src*="insights"], script[src*="analytics"]')).toHaveCount(0);
+  expect(await context.cookies()).toEqual([]);
+  expect(await page.evaluate(() => document.cookie)).toBe("");
+});
+
+test("el panel nunca lleva analítica", async ({ page }) => {
+  await page.goto(adminUrl("/login"));
+  await expect(page.getByRole("button", { name: "Ingresar" })).toBeVisible();
+  await expect(page.locator('script[src*="umami"], script[src*="vercel"], script[src*="insights"], script[src*="analytics"]')).toHaveCount(0);
+});

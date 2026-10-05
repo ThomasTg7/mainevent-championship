@@ -799,3 +799,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** plan + coherencia entre `noindex` y sitemap.
 - **Impacto:** Task 8 (indexar): `ALLOW_INDEXING=true`, verificar el dominio y enviar `https://guerracampal.cl/sitemap.xml`.
 - **Estado:** aplicado
+
+## [Plan 07 · Task 4] Analítica sin cookies — 2026-10-05
+- **Qué:** `<Analytics />` (`src/components/analytics.tsx`) en el layout del sitio (nunca en el panel) según `analyticsConfig(process.env)` (`lib/analytics-config.ts`, pura y testeada): `ANALYTICS_PROVIDER=vercel` → `@vercel/analytics/next` (el plan decía `/react`; la variante de Next agrupa las rutas dinámicas como `/peleadores/[slug]`), `umami` → `<script defer src=UMAMI_SRC data-website-id=UMAMI_WEBSITE_ID>` (el plan solo nombraba `UMAMI_SRC`; el id va en `UMAMI_WEBSITE_ID`), `none` o cualquier valor raro/incompleto → nada (la URL del script debe ser http(s) y el id solo `[A-Za-z0-9-]`: una mala variable no carga un script que no se entiende). **Se decide al construir:** las páginas estáticas llevan el script (o no) en su HTML, así que cambiar de proveedor exige un nuevo deploy (en el VPS, la variable va como build arg).
+- **Verificación:** con Umami activo, el HTML de `/` y `/peleadores` lleva el script y el login del panel no; sin `Set-Cookie` en la respuesta. El e2e (proveedor por defecto = nada) comprueba que el sitio no carga scripts de medición, no deja cookies (`context.cookies()` vacío) y que el panel nunca los lleva. Vercel Analytics inyecta su script desde el navegador: lo cubre la prueba de componente (jsdom), no el HTML.
+- **Impacto:** `.env.example` y `docs/deploy.md` (Task 6) documentan `ANALYTICS_PROVIDER`, `UMAMI_SRC` y `UMAMI_WEBSITE_ID`.
+- **Estado:** aplicado
