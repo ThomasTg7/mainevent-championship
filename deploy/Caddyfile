@@ -5,15 +5,16 @@
 	email {$ACME_EMAIL}
 }
 
-# El sitio y el panel son LA MISMA app en dos dominios: Caddy conserva el `Host` original (src/proxy.ts decide por dominio) y
+# El sitio y el panel son LA MISMA app en dos dominios: Caddy conserva el `Host` original con su puerto (`{hostport}`: `{host}`
+# lo pierde, y en la prueba local con :8080 el panel dejaba de reconocerse; src/proxy.ts decide por dominio) y
 # REEMPLAZA X-Forwarded-For con la IP real del visitante. El límite de 5 envíos por IP de «Quiero pelear» y «Patrocinar» lee la
 # primera dirección de ese encabezado; Next no la pisa, así que su puerto nunca se publica y quien quiera una CDN delante
 # (Cloudflare…) debe declararla con `trusted_proxies` y usar {client_ip} en vez de {remote_host}.
 {$SITE_HOST}, {$ADMIN_HOST} {
 	encode zstd gzip
 	reverse_proxy app:3000 {
-		header_up Host {host}
-		header_up X-Forwarded-Host {host}
+		header_up Host {hostport}
+		header_up X-Forwarded-Host {hostport}
 		header_up X-Forwarded-For {remote_host}
 	}
 }
@@ -31,7 +32,7 @@
 		Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; sandbox"
 	}
 	reverse_proxy minio:9000 {
-		header_up Host {host}
+		header_up Host {hostport}
 	}
 }
 
