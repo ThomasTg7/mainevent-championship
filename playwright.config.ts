@@ -35,11 +35,16 @@ export default defineConfig({
   // `next dev` compila cada ruta la primera vez que se visita; con varios
   // workers a la vez eso puede pasar de los 5 s por defecto.
   expect: { timeout: 30_000 },
+  // Con la suite completa en paralelo (axe, SEO, noche de pelea…) un `page.goto` que compila su ruta por primera vez puede pasar
+  // de los 30 s por defecto en un portátil: sin este margen fallan al azar pruebas distintas en cada corrida (aisladas pasan).
+  timeout: 60_000,
   use: {
     baseURL: `http://localhost:${PORT}`,
   },
   webServer: {
-    command: `pnpm run dev --port ${PORT}`,
+    // La base se vacía y se siembra en cada corrida: la caché de datos de `unstable_cache` (`.next-e2e/dev/cache`) de la corrida
+    // anterior también se borra, o las páginas mostrarían datos viejos (ids que ya no existen, configuración ya guardada).
+    command: `node -e "require('fs').rmSync('.next-e2e/dev/cache',{recursive:true,force:true})" && pnpm run dev --port ${PORT}`,
     // Un archivo estático, no `/`: Playwright levanta el servidor ANTES del globalSetup (que migra y siembra la base), y una
     // página que lee la base falla mientras faltan las tablas nuevas, así que el servidor nunca quedaría «listo».
     url: `http://localhost:${PORT}/favicon.ico`,

@@ -3,19 +3,18 @@ import Link from "next/link";
 import { Button } from "@/components/ui-gc/button";
 import { getCachedPublicEvents } from "@/features/events/cached-queries";
 import { EventCard } from "@/features/events/components/event-card";
+import { sitePageMetadata } from "@/features/seo/site-metadata";
 import { parsePageParam } from "@/lib/pagination";
+import { PageHeader, PageShell } from "@/components/site/page-shell";
 
-export const metadata: Metadata = {
-  title: "Eventos | Guerra Campal",
-  description: "Los próximos eventos de Guerra Campal con su cartelera y entradas, y los resultados de las veladas anteriores.",
-};
-
-function Kicker({ children }: { children: string }) {
-  return (
-    <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">
-      {children}
-    </p>
-  );
+export async function generateMetadata({ searchParams }: PageProps<"/eventos">): Promise<Metadata> {
+  const page = parsePageParam((await searchParams).pagina);
+  return sitePageMetadata({
+    title: "Eventos",
+    description: "Los próximos eventos de Guerra Campal con su cartelera y entradas, y los resultados de las veladas anteriores.",
+    // Las páginas de resultados anteriores son listas distintas: cada una se canoniza a sí misma.
+    path: page > 1 ? `/eventos?pagina=${page}` : "/eventos",
+  });
 }
 
 export default async function EventosPage({ searchParams }: PageProps<"/eventos">) {
@@ -23,11 +22,8 @@ export default async function EventosPage({ searchParams }: PageProps<"/eventos"
   const [upcoming, past] = await Promise.all([getCachedPublicEvents("upcoming", 1), getCachedPublicEvents("past", page)]);
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] pb-24 pt-[calc(76px+clamp(32px,6vw,72px))]">
-      <header className="mb-12">
-        <Kicker>Guerra Campal</Kicker>
-        <h1 className="font-display text-[clamp(44px,8vw,96px)] uppercase leading-[.9] text-white">Eventos</h1>
-      </header>
+    <PageShell>
+      <PageHeader title="Eventos" className="mb-12" />
 
       <section aria-labelledby="upcoming-title" className="mb-20">
         <h2 id="upcoming-title" className="mb-6 font-display text-[clamp(28px,4vw,44px)] uppercase leading-none text-white">
@@ -87,6 +83,6 @@ export default async function EventosPage({ searchParams }: PageProps<"/eventos"
           </nav>
         ) : null}
       </section>
-    </div>
+    </PageShell>
   );
 }

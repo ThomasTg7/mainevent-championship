@@ -47,6 +47,11 @@ export function LiveConsole({ eventId, eventName, eventStatus, isNight, startsLa
   const startsLive = eventStatus === "scheduled" && (isNight || opened);
   const status: EventStatus = startsLive ? "live" : eventStatus;
 
+  // Una pelea guardada que el servidor ya devuelve como terminada deja de ocultarse a mano: si después se borra su
+  // resultado («Corregir»), vuelve sola a las pendientes. (Ajuste de estado durante el render: converge en una vuelta.)
+  const confirmed = [...saved].filter((id) => finished.some((bout) => bout.id === id));
+  if (confirmed.length > 0) setSaved(new Set([...saved].filter((id) => !confirmed.includes(id))));
+
   useEffect(() => {
     if (startsLive) void startLiveEventAction(eventId);
   }, [eventId, startsLive]);

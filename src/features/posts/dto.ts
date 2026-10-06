@@ -32,6 +32,8 @@ export type PostFighterDTO = {
 export type PostEventDTO = { id: string; slug: string; name: string; startsAt: string };
 
 export type PostDTO = PostCardDTO & {
+  /** Último cambio de la noticia, en ISO (`dateModified` de los datos estructurados). */
+  updatedAt: string;
   body: PostBody;
   gallery: MediaDTO[];
   /** Imágenes que aparecen dentro del cuerpo, por id (las lee el renderer sin más consultas). */

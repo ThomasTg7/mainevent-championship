@@ -11,7 +11,7 @@ import {
   KO_TKO_TYPES,
   METHOD_LABELS,
   NC_REASON_LABELS,
-  NC_REASONS,
+  selectableNcReasons,
   SUBMISSION_TYPE_LABELS,
   SUBMISSION_TYPES,
   BOUT_LEVEL_LABELS,
@@ -168,7 +168,7 @@ export function LiveCurrentBout({ bout, techniques, remaining, onSaved }: LiveCu
       ) : null}
 
       {method === "no_contest" ? (
-        <ChoiceButtons legend="Motivo" columns={3} options={NC_REASONS.map((value) => ({ value, label: NC_REASON_LABELS[value] }))} value={draft.ncReason} onChange={(ncReason) => change({ ncReason })} error={errors.ncReason} />
+        <ChoiceButtons legend="Motivo" columns={draft.ncReason === "overturned" ? 3 : 2} options={selectableNcReasons(draft.ncReason).map((value) => ({ value, label: NC_REASON_LABELS[value] }))} value={draft.ncReason} onChange={(ncReason) => change({ ncReason })} error={errors.ncReason} />
       ) : null}
 
       {asksRoundAndTime ? (

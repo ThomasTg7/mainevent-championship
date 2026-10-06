@@ -3,14 +3,20 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { PageEmpty, PageHeader, PageShell } from "@/components/site/page-shell";
 import { Button } from "@/components/ui-gc/button";
-import { telUrl, whatsappUrl } from "@/domain/phone";
+import { sitePageMetadata } from "@/features/seo/site-metadata";
 import { getCachedSetting } from "@/features/settings/cached-queries";
-import { socialLinks } from "@/features/settings/social-links";
+import { contactDetails } from "@/features/settings/contact-details";
 
-export const metadata: Metadata = {
-  title: "Contacto | Guerra Campal",
-  description: "Escríbenos o llámanos: correo, teléfono, WhatsApp y redes de Guerra Campal.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [contact, socials] = await Promise.all([getCachedSetting("contact"), getCachedSetting("socials")]);
+  return sitePageMetadata({
+    title: "Contacto",
+    description: "Escríbenos o llámanos: correo, teléfono, WhatsApp y redes de Guerra Campal.",
+    path: "/contacto",
+    // Sin ningún dato la página es un «Pronto…»: no se indexa hasta que se cargue el contacto.
+    noindex: !contactDetails(contact, socials).hasDetails,
+  });
+}
 
 const LINK_CLASS = "text-white underline decoration-yellow decoration-2 underline-offset-4 hover:text-yellow";
 
@@ -38,10 +44,7 @@ function FormLinks({ className }: { className?: string }) {
 
 export default async function ContactoPage() {
   const [contact, socials] = await Promise.all([getCachedSetting("contact"), getCachedSetting("socials")]);
-  const whatsapp = whatsappUrl(contact.whatsapp);
-  const phone = telUrl(contact.phone);
-  const networks = socialLinks(socials);
-  const hasDetails = Boolean(contact.email || phone || whatsapp || contact.address || networks.length > 0);
+  const { whatsapp, phone, networks, hasDetails } = contactDetails(contact, socials);
 
   return (
     <PageShell>

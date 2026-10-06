@@ -10,7 +10,7 @@ import {
   KO_TKO_TYPE_LABELS,
   KO_TKO_TYPES,
   NC_REASON_LABELS,
-  NC_REASONS,
+  selectableNcReasons,
   SUBMISSION_TYPE_LABELS,
   SUBMISSION_TYPES,
 } from "@/domain/bout-enums";
@@ -107,7 +107,7 @@ export function ResultMethodFields({ draft, errors, techniques, bout, onChange, 
           <FormField id={`${uid}-ncReason`} label="Motivo" error={errors.ncReason}>
             <NativeSelect id={`${uid}-ncReason`} value={draft.ncReason} onChange={(event) => onChange({ ncReason: event.target.value as ResultDraft["ncReason"] })} {...aria("ncReason")}>
               <option value="">Elige el motivo</option>
-              {NC_REASONS.map((reason) => (
+              {selectableNcReasons(draft.ncReason).map((reason) => (
                 <option key={reason} value={reason}>
                   {NC_REASON_LABELS[reason]}
                 </option>
@@ -132,9 +132,9 @@ export function ResultMethodFields({ draft, errors, techniques, bout, onChange, 
               ))}
             </NativeSelect>
           </FormField>
-          <FormField id={`${uid}-endTime`} label="Tiempo (m:ss)" error={errors.endTimeSeconds} hint={`Del round, hasta ${formatClock(bout.roundSeconds)}. Ej.: 3:42`}>
+          <FormField id={`${uid}-endTimeSeconds`} label="Tiempo (m:ss)" error={errors.endTimeSeconds} hint={`Del round, hasta ${formatClock(bout.roundSeconds)}. Ej.: 3:42`}>
             <Input
-              id={`${uid}-endTime`}
+              id={`${uid}-endTimeSeconds`}
               value={draft.endTime}
               onChange={(event) => onChange({ endTime: event.target.value })}
               placeholder="3:42"

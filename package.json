@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "pnpm db:migrate && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "node -e \"require('fs').rmSync('.next/dev/types',{recursive:true,force:true})\" && next typegen && tsc --noEmit",
@@ -13,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
-    "create-admin": "tsx --env-file-if-exists=.env scripts/create-admin.ts"
+    "create-admin": "tsx --env-file-if-exists=.env scripts/create-admin.ts",
+    "lighthouse": "lhci autorun"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1141.0",
@@ -28,6 +30,7 @@
     "@tiptap/pm": "^3.31.4",
     "@tiptap/react": "^3.31.4",
     "@tiptap/starter-kit": "^3.31.4",
+    "@vercel/analytics": "^2.0.1",
     "better-auth": "^1.7.6",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
@@ -53,6 +56,8 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.1",
@@ -66,6 +71,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "jsdom": "^30.1.1",
+    "schema-dts": "^2.1.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",

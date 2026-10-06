@@ -39,6 +39,7 @@ export function buildLivePreviewPost(input: LivePreviewInput): PostDTO {
     category: category ? { slug: category.slug, name: category.name } : { slug: "", name: "Categoría" },
     featured: false,
     date: date.toISOString(),
+    updatedAt: date.toISOString(),
     cover: input.cover,
     body: input.body,
     gallery: input.gallery,

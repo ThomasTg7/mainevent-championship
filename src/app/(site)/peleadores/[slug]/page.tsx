@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { JsonLd } from "@/components/seo/json-ld";
 import { db } from "@/db";
 import type { ComputedRecord } from "@/domain/record";
+import { fighterJsonLd } from "@/domain/seo";
 import { getCachedFighterBouts, getCachedPublicFighter } from "@/features/fighters/cached-queries";
 import type { ManualRecord } from "@/features/fighters/dto";
 import { FightHistory } from "@/features/fighters/components/fight-history";
@@ -18,6 +20,8 @@ import { getCachedPostsForFighter } from "@/features/posts/cached-queries";
 import { getCachedFighterRankingTags } from "@/features/rankings/cached-queries";
 import { RelatedNewsRail } from "@/features/posts/components/related-news-rail";
 import { verifyPreviewToken } from "@/features/publication/preview";
+import { getBrandOgImage, sitePageMetadata } from "@/features/seo/site-metadata";
+import { siteOrigin } from "@/lib/site-urls";
 
 /**
  * Con un token de vista previa válido para este peleador se muestra aunque sea borrador (sin caché);
@@ -61,14 +65,15 @@ function heroFigures(gc: ComputedRecord, manual: ManualRecord) {
 export async function generateMetadata({ params, searchParams }: PageProps<"/peleadores/[slug]">): Promise<Metadata> {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
   const { fighter, isPreview } = await loadFighter(slug, previewParam(query.preview));
-  if (!fighter) return { title: "Peleador no encontrado | Guerra Campal" };
+  if (!fighter) return { title: "Peleador no encontrado" };
 
   const name = `${fighter.firstName} ${fighter.lastName}`;
-  return {
-    title: `${name}${fighter.nickname ? ` «${fighter.nickname}»` : ""} | Guerra Campal`,
+  return sitePageMetadata({
+    title: `${name}${fighter.nickname ? ` «${fighter.nickname}»` : ""}`,
     description: `Ficha de ${name}, peleador de ${divisionTitle(fighter.division)} en Guerra Campal: récord, datos y redes.`,
-    ...(isPreview ? { robots: { index: false, follow: false } } : {}),
-  };
+    path: `/peleadores/${fighter.slug}`,
+    noindex: isPreview,
+  });
 }
 
 export default async function FighterPage({ params, searchParams }: PageProps<"/peleadores/[slug]">) {
@@ -77,13 +82,16 @@ export default async function FighterPage({ params, searchParams }: PageProps<"/
   if (!fighter) notFound();
 
   const { proRecord } = fighter;
-  const [{ computed, history, nextBout }, news, rankingTags] = await Promise.all([
+  const [{ computed, history, nextBout }, news, rankingTags, brandImage] = await Promise.all([
     getCachedFighterBouts(fighter.id),
     getCachedPostsForFighter(fighter.id),
     getCachedFighterRankingTags(fighter.id),
+    getBrandOgImage(),
   ]);
   return (
     <>
+      {/* Un borrador en vista previa no lleva datos estructurados. */}
+      {isPreview ? null : <JsonLd data={fighterJsonLd(fighter, siteOrigin(), brandImage.url)} />}
       <FighterHero fighter={fighter} figures={heroFigures(computed.pro, proRecord)} rankingTags={rankingTags} />
       <NextBout nextBout={nextBout} lastFight={history[0] ?? null} />
       <FighterInfo fighter={fighter} />

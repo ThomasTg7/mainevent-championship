@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boutMeasure, countdownParts, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, showsCountdown, youtubeEmbedUrl } from "./public-format";
+import { boutMeasure, countdownParts, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, sellsTickets, showsCountdown, youtubeEmbedUrl } from "./public-format";
 
 describe("boutMeasure", () => {
   it("writes the division like the rest of the site", () => {
@@ -117,5 +117,21 @@ describe("showsCountdown", () => {
     expect(showsCountdown({ eventStatus: "completed", startsAt: "2026-10-24T00:00:00Z" }, now)).toBe(false);
     expect(showsCountdown({ eventStatus: "cancelled", startsAt: "2026-10-24T00:00:00Z" }, now)).toBe(false);
     expect(showsCountdown({ eventStatus: "scheduled", startsAt: "2026-10-22T00:00:00Z" }, now)).toBe(false);
+  });
+});
+
+describe("sellsTickets", () => {
+  const now = Date.parse("2026-10-25T12:00:00Z");
+
+  it("sells for a scheduled event still ahead or started less than 12 hours ago, and for a live one", () => {
+    expect(sellsTickets({ eventStatus: "scheduled", startsAt: "2026-10-31T00:00:00Z" }, now)).toBe(true);
+    expect(sellsTickets({ eventStatus: "scheduled", startsAt: "2026-10-25T01:00:00Z" }, now)).toBe(true);
+    expect(sellsTickets({ eventStatus: "live", startsAt: "2026-10-20T00:00:00Z" }, now)).toBe(true);
+  });
+
+  it("does not sell for a past event that nobody closed, nor for a finished or cancelled one", () => {
+    expect(sellsTickets({ eventStatus: "scheduled", startsAt: "2026-10-24T23:00:00Z" }, now)).toBe(false);
+    expect(sellsTickets({ eventStatus: "completed", startsAt: "2026-10-31T00:00:00Z" }, now)).toBe(false);
+    expect(sellsTickets({ eventStatus: "cancelled", startsAt: "2026-10-31T00:00:00Z" }, now)).toBe(false);
   });
 });

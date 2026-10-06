@@ -169,6 +169,16 @@ describe("getPublicPostBySlug", () => {
     expect(JSON.parse(JSON.stringify(post))).toEqual(post);
   });
 
+  it("gives the last change of the post as an ISO date (dateModified of the news)", async () => {
+    await clearPosts();
+    const { id, slug } = await insertPost(db, { title: "Con cambio" });
+    const [row] = await db.select({ updatedAt: posts.updatedAt }).from(posts).where(eq(posts.id, id));
+
+    const post = await getPublicPostBySlug(db, slug);
+
+    expect(post?.updatedAt).toBe(row!.updatedAt.toISOString());
+  });
+
   it("hides a related fighter that is in the trash or a draft, and a related event in the trash", async () => {
     await clearPosts();
     const perez = await fighterIdBySlug(db, "matias-perez");

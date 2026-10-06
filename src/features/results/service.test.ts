@@ -294,6 +294,24 @@ describe("overturnResult", () => {
     await record(main[0]!, { ...decision, outcome: "blue_win" });
     expect(await boutRow(main[0]!)).toMatchObject({ outcome: "blue_win", overturnedFrom: null });
   });
+
+  it("keeps the original when the overturned result is saved again, for example to add the video", async () => {
+    const { main } = await scenario(1);
+    await record(main[0]!, decision);
+    await overturnResult(db, main[0]!, "Error de mesa", "admin-1");
+    await record(main[0]!, { outcome: "no_contest", method: "no_contest", ncReason: "overturned", ncNote: "Error de mesa", endRound: 3, endTimeSeconds: 300, videoUrl: "https://www.youtube.com/watch?v=abc123" });
+
+    const row = await boutRow(main[0]!);
+    expect(row).toMatchObject({ ncReason: "overturned", videoUrl: "https://www.youtube.com/watch?v=abc123" });
+    expect(row.overturnedFrom).toMatchObject({ outcome: "red_win", method: "decision", note: "Error de mesa" });
+  });
+
+  it("does not let «Resultado anulado» be chosen by hand: that is what «Anular resultado» is for", async () => {
+    const { main } = await scenario(1);
+    const result = await recordBoutResult(db, main[0]!, { outcome: "no_contest", method: "no_contest", ncReason: "overturned", endRound: 1, endTimeSeconds: 30 }, "admin-1");
+    expect(result).toMatchObject({ ok: false, errors: { ncReason: expect.stringContaining("Anular resultado") } });
+    expect(await boutRow(main[0]!)).toMatchObject({ outcome: null });
+  });
 });
 
 describe("startLiveEvent", () => {

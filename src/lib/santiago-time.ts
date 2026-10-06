@@ -54,6 +54,18 @@ export function toSantiagoInputs(instant: Date): { date: string; time: string } 
   return { date: `${p.year}-${two(p.month)}-${two(p.day)}`, time: `${two(p.hour)}:${two(p.minute)}` };
 }
 
+/** El instante con el desfase de Chile (`2031-05-10T20:00:00-04:00`): así pide schema.org las fechas de un evento. */
+export function toSantiagoIso(instant: Date): string {
+  const timestamp = instant.getTime();
+  const { date, time } = toSantiagoInputs(instant);
+  const seconds = String(santiagoParts(timestamp).second).padStart(2, "0");
+  const offsetMinutes = Math.round(santiagoOffsetMs(timestamp) / 60_000);
+  const sign = offsetMinutes < 0 ? "-" : "+";
+  const hours = String(Math.floor(Math.abs(offsetMinutes) / 60)).padStart(2, "0");
+  const minutes = String(Math.abs(offsetMinutes) % 60).padStart(2, "0");
+  return `${date}T${time}:${seconds}${sign}${hours}:${minutes}`;
+}
+
 /**
  * El día de hoy en Chile, fijado a mediodía UTC (igual que las fechas sin hora, como la de nacimiento): así `ageOn`
  * compara días de calendario de Santiago y no cambia la edad a las 20:00/21:00, cuando en UTC ya es mañana.

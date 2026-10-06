@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { routeByHost } from "./admin-routing";
+import { requestHost, routeByHost } from "./admin-routing";
 
 const HOSTS = { adminHost: "admin.guerracampal.cl", adminOrigin: "https://admin.guerracampal.cl" };
 
@@ -55,5 +55,18 @@ describe("routeByHost", () => {
       pathname: "/admin",
     });
     expect(routeByHost({ host: "localhost:3000", pathname: "/", search: "", hasSession: true }, dev)).toEqual({ kind: "next" });
+  });
+});
+
+describe("requestHost", () => {
+  const headers = (values: Record<string, string>) => ({ get: (name: string) => values[name.toLowerCase()] ?? null });
+
+  it("prefers the host the browser asked for when a proxy sits in front", () => {
+    expect(requestHost(headers({ "x-forwarded-host": "admin.guerracampal.cl", host: "internal:3000" }))).toBe("admin.guerracampal.cl");
+  });
+
+  it("falls back to the Host header, then to the given default", () => {
+    expect(requestHost(headers({ host: "guerracampal.cl" }))).toBe("guerracampal.cl");
+    expect(requestHost(headers({}), "localhost:3000")).toBe("localhost:3000");
   });
 });

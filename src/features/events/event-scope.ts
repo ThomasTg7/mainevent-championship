@@ -1,9 +1,8 @@
 import { and, eq, gte, ne, or, sql, type SQL } from "drizzle-orm";
 import { events } from "@/db/schema/events";
+import { UPCOMING_GRACE_HOURS } from "@/domain/event-night";
 
-// Cuánto después de su hora de inicio un evento sigue siendo «próximo» aunque nadie lo haya marcado en vivo:
-// una velada dura unas horas y el panel puede tardar en abrir «Noche de pelea».
-const UPCOMING_GRACE = sql`now() - interval '12 hours'`;
+const UPCOMING_GRACE = sql`now() - make_interval(hours => ${UPCOMING_GRACE_HOURS}::int)`;
 
 /**
  * «Próximos» del sitio: en vivo, o no finalizado y con inicio reciente o futuro. Un evento cancelado con fecha futura

@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createE2eCard } from "./fixtures/events";
 
 async function expectNoHorizontalScroll(page: Page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -44,10 +43,10 @@ test("un tramo agotado muestra AGOTADO y no tiene enlace; los demás llevan a la
 });
 
 test("un evento en borrador no aparece en /entradas", async ({ page }) => {
-  const draft = await createE2eCard("Evento E2E Entradas Borrador", { "Cartelera estelar": [["tres", "cuatro"]] }, { status: "draft", startsDate: "2031-10-05" });
+  // Los dos eventos los crea `e2e/global-setup.ts`: el publicado demuestra que la lista ya incluye lo creado allí.
   await page.goto("/entradas");
-  await expect(page.getByRole("heading", { name: "Entradas", level: 1 })).toBeVisible();
-  await expect(page.locator(`[data-event="${draft.slug}"]`)).toHaveCount(0);
+  await expect(page.locator('[data-event="evento-e2e-entradas-agotadas"]')).toBeVisible();
+  await expect(page.locator('[data-event="evento-e2e-borrador-listados"]')).toHaveCount(0);
 });
 
 for (const width of [320, 375, 768, 1440]) {

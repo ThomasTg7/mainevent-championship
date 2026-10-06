@@ -409,11 +409,14 @@ describe("fighters and the trash", () => {
     expect(await db.select({ id: fighters.id }).from(fighters).where(eq(fighters.id, fresh.a))).toHaveLength(1);
   });
 
-  it("still lets a fighter with a fight in a trashed event be purged only after the event is gone", async () => {
-    const other = await scenario();
-    await addBout(db, other.estelar, versus(other.a, other.b), "admin-1");
-    await deleteEvent(db, other.eventId, "admin-1");
-    await expect(deleteFighter(db, other.a, "admin-1")).rejects.toThrow("Tiene peleas registradas");
+  it("only sends a fighter whose fight is in a trashed event to the trash once that event is purged", async () => {
+    await addBout(db, fresh.estelar, versus(fresh.a, fresh.b), "admin-1");
+    await deleteEvent(db, fresh.eventId, "admin-1");
+    // El mensaje explica dónde está la pelea: en la cartelera no se ve, porque el evento está en la papelera.
+    await expect(deleteFighter(db, fresh.a, "admin-1")).rejects.toThrow("Tiene peleas en un evento que está en la papelera");
+
+    await purgeExpired(db, new Date(Date.now() + 31 * 24 * 60 * 60 * 1000));
+    await expect(deleteFighter(db, fresh.a, "admin-1")).resolves.toBeUndefined();
   });
 
   it("keeps the audit trail of every write", async () => {

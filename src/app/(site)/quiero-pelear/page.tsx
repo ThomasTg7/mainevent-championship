@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { PageHeader, PageShell } from "@/components/site/page-shell";
 import { FighterApplicationForm } from "@/features/inbox/components/fighter-application-form";
+import { sitePageMetadata } from "@/features/seo/site-metadata";
 
-export const metadata: Metadata = {
-  title: "Quiero pelear | Guerra Campal",
-  description: "Postula para pelear en Guerra Campal: cuéntanos tu peso, récord y gimnasio y te escribimos.",
-};
+export function generateMetadata(): Promise<Metadata> {
+  return sitePageMetadata({
+    title: "Quiero pelear",
+    description: "Postula para pelear en Guerra Campal: cuéntanos tu peso, récord y gimnasio y te escribimos.",
+    path: "/quiero-pelear",
+  });
+}
 
 export default function QuieroPelearPage() {
   return (

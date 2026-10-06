@@ -95,6 +95,8 @@ test("ocultar los rankings amateur en el panel los saca del sitio hasta volver a
   try {
     await page.goto("/rankings?nivel=amateur");
     await expect(page.getByText("Pronto publicaremos los rankings")).toBeVisible();
+    // Sin tarjetas no se indexa (y el sitemap tampoco la lista).
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     await page.goto("/peleadores/valentina-cortes");
     const tags = page.locator('[data-slot="fighter-tags"]');
     await expect(tags.getByText("#1 Peso Paja fem.")).toBeVisible();
@@ -106,4 +108,5 @@ test("ocultar los rankings amateur en el panel los saca del sitio hasta volver a
   }
   await page.goto("/rankings?nivel=amateur");
   await expect(page.getByRole("article", { name: "Ranking Peso Paja fem." })).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
 });

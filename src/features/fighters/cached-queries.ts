@@ -63,7 +63,8 @@ export async function getCachedPublicFighter(slug: string) {
  * Récord en la promotora, historial y próxima pelea del peleador. Solo cuentan las peleas de eventos públicos ahora, así
  * que despublicar o enviar a la papelera un evento (`EVENTS_LIST_TAG`) cambia el historial. `computeRecord` corre
  * **dentro** de la función cacheada: sus entradas llevan `Date`, que no sobrevive a la serialización JSON de la caché;
- * lo que sale son números y texto (las fechas del historial van como ISO).
+ * lo que sale son números y texto (las fechas del historial van como ISO). `FIGHTERS_LIST_TAG`: el historial muestra el nombre
+ * y el enlace de cada rival, y renombrar o despublicar a un peleador invalida esa etiqueta.
  */
 export function getCachedFighterBouts(fighterId: string) {
   return unstable_cache(
@@ -80,6 +81,6 @@ export function getCachedFighterBouts(fighterId: string) {
       };
     },
     ["fighter-bouts", fighterId],
-    { tags: [fighterCacheTag(fighterId), EVENTS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, TECHNIQUES_TAG], revalidate: REVALIDATE_SECONDS },
+    { tags: [fighterCacheTag(fighterId), FIGHTERS_LIST_TAG, EVENTS_LIST_TAG, DIVISIONS_CACHE_TAG, MEDIA_ANY_TAG, TECHNIQUES_TAG], revalidate: REVALIDATE_SECONDS },
   )();
 }

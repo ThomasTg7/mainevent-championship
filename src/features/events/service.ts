@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import type { Db } from "@/db";
 import { cardSegments, eventGallery, events, type Event } from "@/db/schema/events";
 import type { Executor } from "@/db/types";
@@ -7,6 +7,7 @@ import { logAudit } from "@/features/audit/log";
 import { assertUsableMedia } from "@/features/media/service";
 import { normalizePublishAt, publicationInputSchema, type PublicationInput } from "@/features/publication/schema";
 import { softDelete } from "@/features/trash/trash";
+import { fromSantiagoInputs, toSantiagoInputs } from "@/lib/santiago-time";
 import { UserFacingError } from "@/lib/user-facing-error";
 import { withMapsLocation } from "./location";
 import { eventInputSchema, type EventData, type EventRawInput } from "./schema";
@@ -67,6 +68,27 @@ async function writeGallery(tx: Executor, eventId: string, mediaIds: string[]): 
   if (mediaIds.length > 0) {
     await tx.insert(eventGallery).values(mediaIds.map((mediaId, sortOrder) => ({ eventId, mediaId, sortOrder })));
   }
+}
+
+/**
+ * La hora de cada bloque se guarda como instante del día del evento: si el evento cambia de día, cada bloque conserva su
+ * hora (en Chile) en el día nuevo. Un solo UPDATE para todos los bloques con hora.
+ */
+async function moveSegmentTimesToDay(tx: Executor, eventId: string, date: string): Promise<void> {
+  const rows = await tx
+    .select({ id: cardSegments.id, startsAt: cardSegments.startsAt })
+    .from(cardSegments)
+    .where(and(eq(cardSegments.eventId, eventId), isNotNull(cardSegments.startsAt)));
+  const moved = rows.flatMap((row) => {
+    const startsAt = row.startsAt ? fromSantiagoInputs(date, toSantiagoInputs(row.startsAt).time) : null;
+    return startsAt ? [{ id: row.id, startsAt }] : [];
+  });
+  if (moved.length === 0) return;
+  const branches = moved.map((row) => sql`when ${row.id}::uuid then ${row.startsAt.toISOString()}::timestamptz`);
+  await tx
+    .update(cardSegments)
+    .set({ startsAt: sql`case ${cardSegments.id} ${sql.join(branches, sql` `)} end` })
+    .where(inArray(cardSegments.id, moved.map((row) => row.id)));
 }
 
 async function findEditableEvent(db: Executor, id: string): Promise<Event> {
@@ -138,6 +160,8 @@ export async function updateEvent(db: Db, id: string, input: EventRawInput, acto
       })
       .where(eq(events.id, id));
     await writeGallery(tx, id, data.galleryMediaIds);
+    const newDay = toSantiagoInputs(data.startsAt).date;
+    if (newDay !== toSantiagoInputs(current.startsAt).date) await moveSegmentTimesToDay(tx, id, newDay);
     await logAudit(tx, { actorId, action: "update", entityType: "event", entityId: id, summary: `Editó el evento ${data.name}` });
   });
   return { slug };

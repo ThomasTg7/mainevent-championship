@@ -40,6 +40,13 @@ describe("NextBout", () => {
     expect(screen.getByText("Próxima pelea")).toBeDefined();
   });
 
+  it("names the photo link after the opponent, so a silhouette-only link is never an empty link for a screen reader", () => {
+    const { container } = render(<NextBout nextBout={{ ...next, opponent: { ...opponent, headshotMedia: null } }} lastFight={null} />);
+    const link = container.querySelector('[data-slot="opponent-photo"] a');
+    expect(link?.getAttribute("aria-label")).toBe("Diego Soto");
+    expect(link?.getAttribute("tabindex")).toBe("-1");
+  });
+
   it("uses the brand silhouette when the opponent has no photo, and no link when they have no profile", () => {
     const { container } = render(<NextBout nextBout={{ ...next, opponent: { ...opponent, headshotMedia: null, isPublic: false } }} lastFight={null} />);
     expect(container.querySelector('[data-slot="opponent-photo"] [data-slot="fighter-silhouette"]')).not.toBeNull();

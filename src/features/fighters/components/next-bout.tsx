@@ -24,7 +24,7 @@ function OpponentPhoto({ opponent }: { opponent: OpponentDTO }) {
   return (
     <div data-slot="opponent-photo" className="shrink-0">
       {opponent.isPublic ? (
-        <Link href={`/peleadores/${opponent.slug}`} tabIndex={-1}>
+        <Link href={`/peleadores/${opponent.slug}`} tabIndex={-1} aria-label={`${opponent.firstName} ${opponent.lastName}`}>
           {photo}
         </Link>
       ) : (
