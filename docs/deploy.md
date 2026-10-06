@@ -106,7 +106,7 @@ Con los alias `*.vercel.app` o ya con el dominio:
 - [ ] Ingresas con email y contraseña (y con Google, si lo configuraste).
 - [ ] Subes una foto de un peleador, la reeditas (se ve la vista previa recortada) y pruebas **Quitar fondo**: en la pestaña *Red* del navegador, el modelo viene del dominio de medios (no de huggingface.co).
 - [ ] Creas un peleador en **borrador**, usas **Vista previa**, lo **Publicas** y lo ves en el sitio.
-- [ ] **Configuración → Contacto → Correo de avisos**: guardas tu correo. (Sin él, la Bandeja recibe los mensajes pero no sale ningún correo.)
+- [ ] **Configuración → Contacto → Correo para avisos**: guardas tu correo. (Sin él, la Bandeja recibe los mensajes pero no sale ningún correo.)
 - [ ] En el sitio, envías un «Quiero pelear»: aparece en la **Bandeja** y te llega el correo con el enlace a la bandeja del panel.
 - [ ] `https://guerracampal.cl/sitemap.xml` y `https://guerracampal.cl/robots.txt` responden; `https://admin.guerracampal.cl/robots.txt` dice `Disallow: /` y `https://admin.guerracampal.cl/sitemap.xml` da 404.
 - [ ] `curl -i https://guerracampal.cl/api/cron/purge` responde **401** (sin el secreto).
@@ -143,5 +143,5 @@ Presupuestos (móvil, 4G): LCP < 2,5 s, CLS < 0,1, TBT < 300 ms, Accesibilidad �
 | Ingresar al panel da error de origen | `ADMIN_URL` no coincide con el dominio desde el que entras (Better Auth confía solo en él). |
 | Las fotos no suben (error de CORS en la consola) | Falta el origen del panel en el CORS del bucket, o falta el encabezado `If-None-Match` permitido. |
 | «Quitar fondo» tarda mucho o baja de huggingface.co | Falta `NEXT_PUBLIC_MODEL_BASE_URL` (se aplica al construir) o los archivos del modelo no están en el bucket. |
-| No llegan los avisos por correo | `MAIL_DRIVER=resend` sin `RESEND_API_KEY`/`MAIL_FROM`, dominio de envío sin verificar, o falta el «Correo de avisos» en Configuración → Contacto. |
+| No llegan los avisos por correo | `MAIL_DRIVER=resend` sin `RESEND_API_KEY`/`MAIL_FROM`, dominio de envío sin verificar, o falta el «Correo para avisos» en Configuración → Contacto. |
 | Google ve «Disallow: /» | `SITE_URL` termina en `.vercel.app` y falta `ALLOW_INDEXING=true` (o es el dominio del panel). |

@@ -46,13 +46,13 @@ En la lista de eventos entra a **Cartelera**.
 4. Un peleador no puede estar en dos peleas del mismo evento. Si una pelea se cae, usa **Cancelar pelea** (con el motivo): libera a los peleadores y el sitio la muestra como cancelada.
 
 ### La noche de la pelea
-1. Desde el celular: en el evento, **Abrir la noche de pelea**. (Se activa sola desde 12 horas antes; antes pide confirmación.) El evento pasa a **En vivo** en el sitio.
-2. Verás **la pelea actual** con botones grandes **Roja / Azul / Empate / Sin resultado**. Elige quién ganó, el **método** (KO/TKO, sumisión con su técnica, decisión…), el **round** y el **tiempo** (teclado numérico: escribir `3 4 2` queda `3:42`). En decisión se completa el round y el tiempo final solos.
+1. Desde el celular: en la lista de eventos, **Noche de pelea**. Desde 12 horas antes del inicio se abre directo; antes te pide confirmar con **«Abrir la noche de pelea»**. El evento pasa a **En vivo** en el sitio.
+2. Verás **la pelea actual** con botones grandes **Roja · <apellido> / Azul · <apellido> / Empate / Sin resultado**. Elige quién ganó, el **método** (KO/TKO, sumisión con su técnica, decisión…), el **round** y el **tiempo** (teclado numérico: escribir `3 4 2` queda `3:42`). En decisión se completa el round y el tiempo final solos.
 3. **Guardar y siguiente** actualiza el sitio en menos de 30 segundos y pasa a la pelea que sigue. Con la última, **Guardar y terminar la noche**: el evento queda **Finalizado**.
-4. ¿Te equivocaste? Entra a la pelea y **Corregir** (se anota en el historial). Si hay que cambiarla del todo, borra el resultado y vuelve a cargarlo.
+4. ¿Te equivocaste? Abajo, en las peleas ya cargadas, **Corregir** (se anota en el historial). Si hay que cambiarla del todo, borra el resultado y vuelve a cargarlo.
 
 ### Cargar resultados después (sin la consola)
-En **Cartelera**, abre la pelea → **Guardar resultado**. Pide ganador, método y tiempo; el panel avisa si algo no cuadra (por ejemplo, un ganador con método «sin resultado»). Opcionales: árbitro, bonos de la noche, nota y enlace a un video.
+En **Cartelera**, el botón **Resultado** de la pelea (o **Corregir resultado** si ya tiene uno) → **Guardar resultado**. Pide ganador, método y tiempo; el panel avisa si algo no cuadra (por ejemplo, un ganador con método «sin resultado»). Opcionales: árbitro, bonos de la noche, nota y enlace a un video.
 
 ## Rankings y títulos
 
@@ -85,7 +85,7 @@ Bajo el formulario hay una **vista previa en vivo**: mira la noticia **en celula
 
 ## Patrocinadores
 
-**Patrocinadores → Nuevo.** Datos: **Nombre**, **Logo** (caja 2:1: SVG o PNG sin fondo; se muestra siempre entero), **Sitio web**, **Nivel** (*Principal*, *Oficial* o *Colaborador*), «Visible desde / hasta» y «Visible en el sitio».
+**Patrocinadores → Nuevo patrocinador.** Datos: **Nombre**, **Logo** (caja 2:1: SVG o PNG sin fondo; se muestra siempre entero), **Sitio web**, **Nivel** (*Principal*, *Oficial* o *Colaborador*), «Visible desde / hasta» y «Visible en el sitio».
 - **¿Dónde sale cada uno?** *Home:* principal y oficial · *Página de un evento:* todos los niveles · *Pie de página:* solo el principal.
 - **«Todos los eventos»** (sale en todas partes según su nivel) o **eventos elegidos** (solo sale en la página de esos eventos; la home y el pie no los muestran).
 - **Vigencia por días:** «hasta» cuenta el día completo (hasta la medianoche de Chile); pasado ese día se oculta solo.
@@ -93,15 +93,15 @@ Bajo el formulario hay una **vista previa en vivo**: mira la noticia **en celula
 
 ## Bandeja
 
-Aquí llegan las **postulaciones «Quiero pelear»** (nombre, correo, teléfono, peso, récord, gimnasio, videos, mensaje) y los **contactos de patrocinio**. Además te llega un **correo de aviso** al «Correo de avisos» de Configuración → Contacto.
+Aquí llegan las **postulaciones «Quiero pelear»** (nombre, correo, teléfono, peso, récord, gimnasio, videos, mensaje) y los **contactos de patrocinio**. Además te llega un **correo de aviso** al «Correo para avisos» de Configuración → Contacto.
 - Filtra por tipo y por estado: **Nuevo**, **Contactado**, **Descartado**. En el menú, un número te dice cuántos mensajes nuevos hay.
-- Abre un mensaje y responde por **correo** o por **WhatsApp** (si dejó teléfono). Luego **Marcar como contactado** o **Descartado**.
+- Abre un mensaje y responde por **correo** o por **WhatsApp** (si dejó teléfono). Luego **Marcar como contactado** o **Descartar**.
 - Todos los formularios tienen protección contra spam; si algún mensaje legítimo no llega, revisa tu correo de avisos.
 
 ## Configuración (8 pestañas)
 
 1. **Nosotros:** el texto de la página «Nosotros».
-2. **Contacto:** correo, teléfono, WhatsApp, dirección y el **Correo de avisos** (**importante**: sin él, los mensajes llegan a la Bandeja pero no te llega ningún correo).
+2. **Contacto:** correo, teléfono, WhatsApp, dirección y el **Correo para avisos** (**importante**: sin él, los mensajes llegan a la Bandeja pero no te llega ningún correo).
 3. **Redes:** Instagram, TikTok, YouTube, Facebook y X. Escribe el usuario (`@guerracampal`) o el enlace completo.
 4. **Preguntas de entradas:** las preguntas frecuentes de la página «Entradas». Sin preguntas, esa sección no aparece.
 5. **Privacidad:** la **política de privacidad** (Ley 19.628): qué datos piden los formularios, para qué, cuánto tiempo se guardan y cómo pedir su eliminación. **Es obligatoria antes de abrir el sitio a Google**; los formularios enlazan a esta página.
@@ -141,7 +141,7 @@ Al subir una foto se abre el **editor**: recorte con la proporción correcta (mo
 |---|---|
 | No veo un cambio en el sitio | Si lo acabas de guardar, recarga. Lo **programado** puede tardar hasta 5 minutos en los listados. Revisa que esté **Publicado** (no Borrador). |
 | Un peleador no se puede enviar a la papelera | Es campeón, está en un ranking o tiene peleas: el mensaje dice qué hacer. |
-| No me llegan los correos de la Bandeja | Configuración → Contacto → **Correo de avisos**. Los mensajes igual están en la Bandeja. |
+| No me llegan los correos de la Bandeja | Configuración → Contacto → **Correo para avisos**. Los mensajes igual están en la Bandeja. |
 | La foto no sube | Pasa de 15 MB o no es JPG/PNG/WebP (los logos pueden ser SVG). |
 | «Otra persona guardó este ranking…» | Recarga la página y vuelve a aplicar tus cambios. |
 | El panel no me deja entrar | Usa «¿Olvidaste tu contraseña?», o pide que te den acceso en **Usuarios**. |

@@ -81,7 +81,7 @@ Detalle en [`docs/deploy.md`](../deploy.md). En orden:
 4. Generar `BETTER_AUTH_SECRET` y `CRON_SECRET`.
 5. **Vercel:** importar el repositorio, cargar las variables (tabla en `docs/deploy.md`; `SITE_URL`/`ADMIN_URL` también valen al construir), agregar `guerracampal.cl`, `www` y `admin.guerracampal.cl` al **mismo** proyecto y los registros DNS (antes del dominio propio: dos alias `*.vercel.app`), activar *Analytics*.
 6. **Primer deploy**, luego `pnpm create-admin` apuntando a la base de producción con el correo de la promotora (nunca `db:seed` en producción).
-7. **Prueba de humo** (lista en `docs/deploy.md` §4): `/admin` redirige al panel, login, subir foto y quitar fondo (el modelo viene del dominio de medios), crear/previsualizar/publicar un peleador, guardar el «Correo de avisos» y enviar «Quiero pelear», `sitemap.xml`/`robots.txt`, cron 401 sin secreto.
+7. **Prueba de humo** (lista en `docs/deploy.md` §4): `/admin` redirige al panel, login, subir foto y quitar fondo (el modelo viene del dominio de medios), crear/previsualizar/publicar un peleador, guardar el «Correo para avisos» y enviar «Quiero pelear», `sitemap.xml`/`robots.txt`, cron 401 sin secreto.
 8. **Task 8:** la promotora carga el contenido real (política de privacidad, contacto con correo de avisos, redes, Nosotros, imagen para compartir); verificar el dominio en Search Console (pegando el código en Configuración → SEO) y enviar el sitemap; anuncio y `git tag v1.0.0`.
 9. **Si prefieres VPS:** `docs/vps-migration.md`.
 
