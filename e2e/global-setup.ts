@@ -59,7 +59,17 @@ export default async function globalSetup(): Promise<void> {
   await seedHiddenFighters();
   await seedCardFighters();
   await seedSoldOutTicketsEvent();
+  await seedDraftListEvent();
   await createAdminWithPassword(auth, db, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
+}
+
+/**
+ * Un evento en borrador con fecha próxima (antes que los de 2031 de los specs), para comprobar que `/eventos` y
+ * `/entradas` no lo listan. Va aquí por la misma razón que el de abajo: si se creara dentro del spec, la lista en caché ya
+ * estaría armada sin él y la prueba pasaría aunque el filtro de borradores fallara.
+ */
+async function seedDraftListEvent(): Promise<void> {
+  await createE2eCard("Evento E2E Borrador Listados", { "Cartelera estelar": [["tres", "cuatro"]] }, { status: "draft", startsDate: "2030-01-05" });
 }
 
 /**

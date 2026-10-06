@@ -130,8 +130,10 @@ test("un evento que no existe, uno en borrador y uno en la papelera no se ven; l
   const draft = await createE2eCard("Evento E2E Borrador Público", { "Cartelera estelar": [["uno", "dos"]] }, { status: "draft" });
   await page.goto(`/eventos/${draft.slug}`);
   await expect(page.getByRole("heading", { name: "Evento no encontrado" })).toBeVisible();
+  // El de `global-setup` (el de este spec se crea con la lista ya en caché): si el filtro fallara, saldría en «Próximos».
   await page.goto("/eventos");
-  await expect(page.locator(`[data-event="${draft.slug}"]`)).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Próximos", level: 2 })).toBeVisible();
+  await expect(page.locator('[data-event="evento-e2e-borrador-listados"]')).toHaveCount(0);
 
   // Vista previa: con la firma correcta se ve (avisando y sin indexar); con la de otro evento no.
   const token = createPreviewToken("event", draft.eventId);

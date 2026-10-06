@@ -2,8 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
 import { seedEvents } from "./seed";
 import { getNextEvent, getPublicEventBySlug, getPublicEventRef, listPublicEvents } from "./queries";
+import { createFighter } from "@/features/fighters/service";
+import { divisionIdBySlug, validFighterInput } from "@/features/fighters/test-helpers";
 import { createTestDb } from "@/test/db";
-import { daysFromNow, fighterIdBySlug, insertBout, insertEvent, insertSegment } from "./test-helpers";
+import { daysFromNow, eventIdBySlug, fighterIdBySlug, insertBout, insertEvent, insertSegment } from "./test-helpers";
 
 let db: Db;
 let close: () => Promise<void>;
@@ -75,11 +77,17 @@ describe("getPublicEventBySlug", () => {
   });
 
   it("marks fighters that are not public so the page does not link them", async () => {
-    const event = (await getPublicEventBySlug(db, "guerra-campal-5"))!;
-    expect(event.segments[0]!.bouts[0]!.red.isPublic).toBe(true);
+    // Un peleador en borrador puede pelear: sale en la cartelera, pero sin enlace a su ficha. (En el evento en borrador,
+    // leído como vista previa, para no sumar un evento a los listados que prueban los otros tests.)
+    const ligero = await divisionIdBySlug(db, "peso-ligero");
+    const newcomer = await createFighter(db, validFighterInput(ligero, { firstName: "Nuevo", lastName: "Debutante" }), "admin-1");
+    const draftId = await eventIdBySlug(db, "evento-borrador");
+    await insertBout(db, { eventId: draftId, segmentId: await insertSegment(db, draftId, "Preliminares", 1), redFighterId: await fighterIdBySlug(db, "diego-soto"), blueFighterId: newcomer.id });
 
-    const draftEvent = (await getPublicEventBySlug(db, "evento-borrador", { preview: true }))!;
-    expect(draftEvent.segments[0]!.bouts).toHaveLength(1);
+    const bouts = (await getPublicEventBySlug(db, "evento-borrador", { preview: true }))!.segments.flatMap((segment) => segment.bouts);
+    const debut = bouts.find((bout) => bout.blue.lastName === "Debutante")!;
+    expect(debut.red.isPublic).toBe(true);
+    expect(debut.blue.isPublic).toBe(false);
   });
 
   it("writes the result line of a finished fight with the surnames", async () => {
