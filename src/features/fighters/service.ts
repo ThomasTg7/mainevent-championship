@@ -1,7 +1,7 @@
 import { and, eq, isNull, ne, or } from "drizzle-orm";
 import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
-import { bouts } from "@/db/schema/events";
+import { bouts, events } from "@/db/schema/events";
 import { fighterGallery, fighters, type FighterSocials } from "@/db/schema/fighters";
 import type { Executor } from "@/db/types";
 import { normalizeSearchText } from "@/domain/search";
@@ -199,21 +199,31 @@ export async function setFighterPublication(db: Db, id: string, input: Publicati
  * la FK `restrict` de `bouts` impediría purgarlo y el cron fallaría (cuenta también las peleas de eventos en la papelera).
  */
 export async function deleteFighter(db: Db, id: string, actorId: string): Promise<void> {
-  const [hasBouts] = await db
-    .select({ id: bouts.id })
-    .from(bouts)
-    .where(or(eq(bouts.redFighterId, id), eq(bouts.blueFighterId, id)))
-    .limit(1);
-  if (hasBouts) throw new UserFacingError("Tiene peleas registradas: márcalo como Retirado o sácalo de la cartelera primero");
-
   const standing = await getFighterRankingStanding(db, id);
   if (standing === "champion") throw new UserFacingError("Es campeón: deja vacante el título primero");
   if (standing === "ranked") throw new UserFacingError("Está en el ranking: quítalo primero");
 
-  try {
-    await softDelete(db, "fighter", id, actorId);
-  } catch (error) {
-    // Solo «no existe o ya estaba en la papelera» se explica así; un fallo de la base sigue su curso (y queda en el log).
-    throw error instanceof UserFacingError ? new UserFacingError(NOT_FOUND) : error;
-  }
+  await db.transaction(async (tx) => {
+    // Bloquea al peleador: armar una pelea con él (que lo lee `FOR SHARE`) espera a que esto termine, y esto espera a que
+    // termine una pelea que se está guardando. Así nunca queda en la papelera alguien con una pelea.
+    await tx.select({ id: fighters.id }).from(fighters).where(eq(fighters.id, id)).for("update");
+    const fights = await tx
+      .select({ eventDeletedAt: events.deletedAt })
+      .from(bouts)
+      .innerJoin(events, eq(events.id, bouts.eventId))
+      .where(or(eq(bouts.redFighterId, id), eq(bouts.blueFighterId, id)));
+    if (fights.some((fight) => fight.eventDeletedAt === null)) {
+      throw new UserFacingError("Tiene peleas registradas: márcalo como Retirado o sácalo de la cartelera primero");
+    }
+    if (fights.length > 0) {
+      throw new UserFacingError("Tiene peleas en un evento que está en la papelera: restáuralo y saca la pelea de la cartelera, o espera a que la papelera lo elimine");
+    }
+
+    try {
+      await softDelete(tx, "fighter", id, actorId);
+    } catch (error) {
+      // Solo «no existe o ya estaba en la papelera» se explica así; un fallo de la base sigue su curso (y queda en el log).
+      throw error instanceof UserFacingError ? new UserFacingError(NOT_FOUND) : error;
+    }
+  });
 }

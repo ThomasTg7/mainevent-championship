@@ -1,6 +1,7 @@
 import { and, desc, eq, isNotNull, isNull, lte, type SQL } from "drizzle-orm";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { Db } from "@/db";
+import type { Executor } from "@/db/types";
 import { logAudit } from "@/features/audit/log";
 import { UserFacingError } from "@/lib/user-facing-error";
 import { TRASHABLE_ENTITIES } from "./registry";
@@ -43,7 +44,8 @@ export function createTrash(entities: TrashableEntity[]) {
     return entity;
   }
 
-  async function softDelete(db: Db, type: string, id: string, actorId: string): Promise<void> {
+  /** Acepta una transacción: quien necesita revisar algo antes (p. ej. `deleteFighter`) lo hace en la misma. */
+  async function softDelete(db: Executor, type: string, id: string, actorId: string): Promise<void> {
     const entity = getEntity(type);
     const [row] = await db
       .update(entity.table)

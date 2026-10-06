@@ -8,11 +8,10 @@ import type { BoutLevel, ScheduledRounds } from "@/domain/bout-enums";
 import { formatResultLine, validateBoutResult, type BoutResultInput, type NormalizedResult } from "@/domain/bout-result";
 import { logAudit } from "@/features/audit/log";
 import { UserFacingError } from "@/lib/user-facing-error";
+import { BOUT_NOT_FOUND, EVENT_NOT_FOUND, lockEventOfBout } from "@/features/events/event-lock";
 import { completeEventIfDone } from "./completion";
 import { getNextPendingBoutId } from "./night-order";
 
-const EVENT_NOT_FOUND = "No se encontró el evento";
-const BOUT_NOT_FOUND = "No se encontró la pelea";
 const NO_RESULT = "Esta pelea no tiene resultado";
 
 /** El retador (la esquina contraria a la del campeón) que gana una pelea por el título: el Plan 05 lo confirma y actualiza el campeón. */
@@ -114,23 +113,28 @@ async function techniqueName(db: Executor, id: string): Promise<string | null> {
  * siguiente pelea de la noche y, si el retador ganó una pelea por el título, el posible cambio de campeón.
  */
 export async function recordBoutResult(db: Db, boutId: string, input: BoutResultInput, actorId: string): Promise<RecordResultOutcome> {
-  const { bout, label, eventName } = await loadBout(db, boutId);
-  if (bout.boutStatus === "cancelled") throw new UserFacingError("Esta pelea está cancelada: repónla antes de registrar el resultado");
+  return db.transaction(async (tx): Promise<RecordResultOutcome> => {
+    await lockEventOfBout(tx, boutId);
+    const { bout, label, eventName } = await loadBout(tx, boutId);
+    if (bout.boutStatus === "cancelled") throw new UserFacingError("Esta pelea está cancelada: repónla antes de registrar el resultado");
 
-  const validated = validateBoutResult(input, { scheduledRounds: bout.scheduledRounds as ScheduledRounds, roundSeconds: bout.roundSeconds });
-  if (!validated.ok) return validated;
-  const value: NormalizedResult = validated.value;
+    const validated = validateBoutResult(input, { scheduledRounds: bout.scheduledRounds as ScheduledRounds, roundSeconds: bout.roundSeconds });
+    if (!validated.ok) return validated;
+    const value: NormalizedResult = validated.value;
+    // «Resultado anulado» lo pone solo «Anular resultado», que guarda el original. Volver a guardar uno ya anulado (p. ej.
+    // para agregar el video) lo conserva; cualquier otro resultado reemplaza la anulación.
+    const staysOverturned = value.ncReason === "overturned";
+    if (staysOverturned && bout.ncReason !== "overturned") return { ok: false, errors: { ncReason: "Para anular un resultado usa «Anular resultado»" } };
 
-  let technique: string | null = null;
-  if (value.submissionTechniqueId) {
-    technique = await techniqueName(db, value.submissionTechniqueId);
-    if (!technique) return { ok: false, errors: { submissionTechniqueId: "Esa técnica no existe" } };
-  }
-  const [redName, blueName] = label.split(" vs ") as [string, string];
-  const line = formatResultLine({ ...value, redName, blueName, techniqueName: technique });
+    let technique: string | null = null;
+    if (value.submissionTechniqueId) {
+      technique = await techniqueName(tx, value.submissionTechniqueId);
+      if (!technique) return { ok: false, errors: { submissionTechniqueId: "Esa técnica no existe" } };
+    }
+    const [redName, blueName] = label.split(" vs ") as [string, string];
+    const line = formatResultLine({ ...value, redName, blueName, techniqueName: technique });
 
-  return db.transaction(async (tx) => {
-    const columns = { ...value, boutStatus: "completed" as const, overturnedFrom: null };
+    const columns = { ...value, boutStatus: "completed" as const, overturnedFrom: staysOverturned ? bout.overturnedFrom : null };
     await tx.update(bouts).set(columns).where(eq(bouts.id, boutId));
 
     const correcting = hasResult(bout);
@@ -152,16 +156,17 @@ export async function recordBoutResult(db: Db, boutId: string, input: BoutResult
       bout.isTitleFight && challengerWins && bout.divisionId
         ? { divisionId: bout.divisionId, level: bout.level, newChampionId: bout.championCorner === "red" ? bout.blueFighterId : bout.redFighterId }
         : null;
-    return { ok: true as const, titleChange, nextBoutId };
+    return { ok: true, titleChange, nextBoutId };
   });
 }
 
 /** Borra el resultado: la pelea vuelve a programada y deja de contar en los récords. */
 export async function clearBoutResult(db: Db, boutId: string, actorId: string): Promise<void> {
-  const { bout, label, eventName } = await loadBout(db, boutId);
-  if (!hasResult(bout)) throw new UserFacingError(NO_RESULT);
-
   await db.transaction(async (tx) => {
+    await lockEventOfBout(tx, boutId);
+    const { bout, label, eventName } = await loadBout(tx, boutId);
+    if (!hasResult(bout)) throw new UserFacingError(NO_RESULT);
+
     await tx.update(bouts).set(NO_RESULT_COLUMNS).where(eq(bouts.id, boutId));
     await logAudit(tx, {
       actorId,
@@ -183,28 +188,29 @@ export async function overturnResult(db: Db, boutId: string, note: string, actor
   if (!trimmedNote) throw new UserFacingError("Explica por qué se anula el resultado");
   if (trimmedNote.length > 200) throw new UserFacingError("La nota es demasiado larga (máx. 200 caracteres)");
 
-  const { bout, label, eventName } = await loadBout(db, boutId);
-  if (!hasResult(bout) || bout.outcome === null || bout.method === null) throw new UserFacingError(NO_RESULT);
-  if (bout.ncReason === "overturned") throw new UserFacingError("Este resultado ya fue anulado");
-
-  const original: OverturnedResult = {
-    outcome: bout.outcome,
-    method: bout.method,
-    koTkoType: bout.koTkoType,
-    submissionTechniqueId: bout.submissionTechniqueId,
-    submissionType: bout.submissionType,
-    decisionType: bout.decisionType,
-    dqReason: bout.dqReason,
-    ncReason: bout.ncReason,
-    ncNote: bout.ncNote,
-    endRound: bout.endRound ?? 0,
-    endTimeSeconds: bout.endTimeSeconds ?? 0,
-    scorecards: bout.scorecards,
-    bonuses: bout.bonuses,
-    note: trimmedNote,
-  };
-
   await db.transaction(async (tx) => {
+    await lockEventOfBout(tx, boutId);
+    const { bout, label, eventName } = await loadBout(tx, boutId);
+    if (!hasResult(bout) || bout.outcome === null || bout.method === null) throw new UserFacingError(NO_RESULT);
+    if (bout.ncReason === "overturned") throw new UserFacingError("Este resultado ya fue anulado");
+
+    const original: OverturnedResult = {
+      outcome: bout.outcome,
+      method: bout.method,
+      koTkoType: bout.koTkoType,
+      submissionTechniqueId: bout.submissionTechniqueId,
+      submissionType: bout.submissionType,
+      decisionType: bout.decisionType,
+      dqReason: bout.dqReason,
+      ncReason: bout.ncReason,
+      ncNote: bout.ncNote,
+      endRound: bout.endRound ?? 0,
+      endTimeSeconds: bout.endTimeSeconds ?? 0,
+      scorecards: bout.scorecards,
+      bonuses: bout.bonuses,
+      note: trimmedNote,
+    };
+
     await tx
       .update(bouts)
       .set({
