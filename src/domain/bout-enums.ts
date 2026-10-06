@@ -32,6 +32,14 @@ export type DecisionType = (typeof DECISION_TYPES)[number];
 export const NC_REASONS = ["accidental_foul", "overturned", "other"] as const;
 export type NcReason = (typeof NC_REASONS)[number];
 
+/**
+ * Motivos de «sin resultado» que se ofrecen al cargar un resultado. «Resultado anulado» lo pone «Anular resultado» (que
+ * guarda el original): solo aparece si la pelea ya lo tiene, para poder volver a guardarla tal cual.
+ */
+export function selectableNcReasons(current: string): readonly NcReason[] {
+  return current === "overturned" ? NC_REASONS : NC_REASONS.filter((reason) => reason !== "overturned");
+}
+
 export const BONUSES = ["fight_of_night", "performance_of_night", "ko_of_night", "sub_of_night"] as const;
 export type Bonus = (typeof BONUSES)[number];
 
