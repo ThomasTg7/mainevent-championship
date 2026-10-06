@@ -5,9 +5,10 @@ Cómo pasar Guerra Campal de Vercel + Neon/Supabase + R2 a **un servidor propio*
 | Archivo | Para qué |
 |---|---|
 | `deploy/Dockerfile` | imagen de la app (Next.js `standalone`) y de las herramientas (`migrate`) |
-| `deploy/docker-compose.prod.yml` | app, Postgres 17, MinIO, Umami, Caddy (HTTPS) y el cron diario |
+| `deploy/docker-compose.prod.yml` | app, Postgres 17, MinIO, Umami, Caddy (HTTPS), el cron diario y las copias diarias |
 | `deploy/Caddyfile` | HTTPS para `guerracampal.cl` **y** `admin.guerracampal.cl` hacia la misma app, imágenes y estadísticas |
 | `deploy/cron/` | limpieza diaria (`/api/cron/purge` con `CRON_SECRET`) |
+| `deploy/backup/` | copias diarias de la base y de las imágenes en `deploy/backups/` (ver «Copias») |
 | `deploy/env.example` | variables del servidor (copia a `deploy/.env`) |
 
 ## 1. Qué necesitas
@@ -110,10 +111,15 @@ Ensayo primero con los pasos 3.1–3.3 sobre el servidor y un dominio de prueba,
 | Registros de la app | `docker compose -f deploy/docker-compose.prod.yml logs -f app` |
 | **Actualizar el sitio** (código nuevo) | `git pull && docker compose -f deploy/docker-compose.prod.yml run --rm migrate && docker compose -f deploy/docker-compose.prod.yml build app && docker compose -f deploy/docker-compose.prod.yml up -d app` |
 | Reiniciar todo | `docker compose -f deploy/docker-compose.prod.yml restart` |
-| Copia de la base | `docker compose -f deploy/docker-compose.prod.yml exec -T postgres pg_dump -U postgres -Fc guerra_campal > copia-$(date +%F).dump` |
-| Copia de las imágenes | `rclone sync minio:guerra-campal /ruta/de/respaldo/imagenes` (o respaldar el volumen `miniodata`) |
+| Copia de la base **ahora** (p. ej. antes de actualizar) | `docker compose -f deploy/docker-compose.prod.yml exec backup-db sh /usr/local/bin/backup-db.sh --once` |
+| Copia de las imágenes ahora | `docker compose -f deploy/docker-compose.prod.yml exec backup-media sh /usr/local/bin/backup-media.sh --once` |
+| Ver las copias | `docker compose -f deploy/docker-compose.prod.yml logs backup-db backup-media` y `ls deploy/backups/db` |
+| Restaurar la base | `docker compose -f deploy/docker-compose.prod.yml stop app` → `docker compose -f deploy/docker-compose.prod.yml exec -T postgres pg_restore -U postgres --clean --if-exists -d guerra_campal < deploy/backups/db/<archivo>.dump` → `docker compose -f deploy/docker-compose.prod.yml start app` |
 
-- **Haz copias automáticas** de Postgres e imágenes (un `cron` del sistema que guarde el dump y lo copie fuera del servidor). Es lo único que no automatiza este repositorio.
+### Copias
+
+- **Automáticas en el servidor:** `backup-db` guarda un `pg_dump` de la base en `BACKUP_DIR/db` (por defecto `deploy/backups/db`) al arrancar y luego cada 24 h, y borra las de más de `BACKUP_KEEP_DAYS` días (14). `backup-media` copia el bucket de imágenes a `BACKUP_DIR/media` con la misma frecuencia (solo agrega y actualiza: una imagen borrada del bucket sigue en la copia). Un dump que falla no deja archivo a medias y se reintenta al día siguiente (queda en los registros).
+- **Fuera del servidor (tú):** las copias del propio servidor no sirven si se pierde el servidor. Sincroniza `deploy/backups/` a otro lugar con un `cron` del sistema, por ejemplo `rclone sync /ruta/al/repo/deploy/backups remoto:guerracampal-copias` una vez al día (rclone con Backblaze B2, Google Drive, otro servidor por SFTP…). Prueba restaurar una copia en tu PC cada tanto (`pg_restore --list <archivo>` muestra su contenido).
 - Mantén el sistema operativo y las imágenes de Docker al día (`docker compose pull` para Postgres, MinIO, Caddy y Umami; la app se reconstruye).
 
 ## 6. Seguridad

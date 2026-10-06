@@ -7,7 +7,8 @@
 #   docker compose -f deploy/docker-compose.prod.yml up -d
 #
 # Qué corre: la app Next.js (standalone), Postgres 17, MinIO (imágenes, compatible S3), Umami (analítica sin cookies),
-# Caddy (HTTPS automático para el sitio, el panel, las imágenes y las estadísticas) y un cron diario de limpieza.
+# Caddy (HTTPS automático para el sitio, el panel, las imágenes y las estadísticas), un cron diario de limpieza y copias
+# diarias de la base y de las imágenes en BACKUP_DIR (por defecto deploy/backups): sácalas también fuera del servidor.
 name: guerracampal-prod
 
 services:
@@ -179,6 +180,39 @@ services:
     volumes:
       - ./cron/crontab:/etc/crontabs/root:ro
       - ./cron/purge.sh:/usr/local/bin/purge.sh:ro
+
+  # Copias diarias en el disco del servidor (una al arrancar y luego cada 24 h). Protegen de un error o de una actualización
+  # que sale mal, no de perder el servidor: copia BACKUP_DIR fuera de él (docs/vps-migration.md → «Copias»).
+  backup-db:
+    image: postgres:17
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-guerra_campal}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    entrypoint: ["sh", "/usr/local/bin/backup-db.sh"]
+    volumes:
+      - ./backup/backup-db.sh:/usr/local/bin/backup-db.sh:ro
+      - ${BACKUP_DIR:-./backups}:/backups
+
+  backup-media:
+    image: cgr.dev/chainguard/minio-client:latest-dev
+    restart: unless-stopped
+    depends_on:
+      minio-setup:
+        condition: service_completed_successfully
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      S3_BUCKET: ${S3_BUCKET:-guerra-campal}
+    entrypoint: ["sh", "/usr/local/bin/backup-media.sh"]
+    volumes:
+      - ./backup/backup-media.sh:/usr/local/bin/backup-media.sh:ro
+      - ${BACKUP_DIR:-./backups}:/backups
 
 secrets:
   buildenv:
