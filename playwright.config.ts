@@ -35,6 +35,9 @@ export default defineConfig({
   // `next dev` compila cada ruta la primera vez que se visita; con varios
   // workers a la vez eso puede pasar de los 5 s por defecto.
   expect: { timeout: 30_000 },
+  // Con la suite completa en paralelo (axe, SEO, noche de pelea…) un `page.goto` que compila su ruta por primera vez puede pasar
+  // de los 30 s por defecto en un portátil: sin este margen fallan al azar pruebas distintas en cada corrida (aisladas pasan).
+  timeout: 60_000,
   use: {
     baseURL: `http://localhost:${PORT}`,
   },

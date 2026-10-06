@@ -828,3 +828,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Efecto secundario en el entorno de desarrollo:** `output: "standalone"` copia el código (y sus pruebas) a `.next/standalone`; `vitest.config.ts` ahora excluye `**/.next*/**` (si no, Vitest las recoge y falla).
 - **Pendiente (persona):** ensayo de la mudanza real en un VPS, copias automáticas de Postgres e imágenes (no las automatiza el repositorio) y confirmar que MinIO respeta `If-None-Match: *` (`412` en el segundo `PUT`).
 - **Estado:** aplicado
+
+## [Plan 07 · Verificación final] E2E: tiempo por prueba de 60 s — 2026-10-05
+- **Qué:** `playwright.config.ts` fija `timeout: 60_000` (el valor por defecto era 30 s; `expect` ya estaba en 30 s).
+- **Por qué:** con la suite completa en paralelo (a la que se sumaron axe y SEO: +50 pruebas) un `page.goto` que compila su ruta por primera vez en `next dev` pasaba de 30 s en un portátil, y fallaban 2–5 pruebas **distintas en cada corrida** (admin-divisions, admin-fighters, admin-posts, events-public, live-night, title-change, fighter-history…), todas verdes al repetirlas aisladas. Con el margen: 231/231 en una corrida completa. Ninguna falla era de lógica.
+- **Impacto:** ninguno en el código; una prueba que de verdad se cuelga tarda 60 s en fallar en vez de 30.
+- **Estado:** aplicado

@@ -36,7 +36,14 @@ Todas en [`docs/decisions.md`](../decisions.md) → «Plan 07 — SEO, analític
 
 ## Verificación
 
-VERIFICACION_PENDIENTE
+Corrida final (sin otra actividad en paralelo), todo en verde:
+
+- `pnpm test`: **130 archivos / 1094 pruebas**.
+- `pnpm lint` y `pnpm typecheck`: sin errores.
+- `pnpm build` (con `DATABASE_URL` de la base de desarrollo, migrada): compila; la home y las páginas fijas siguen **estáticas** (`○`).
+- `pnpm test:e2e`: **231 pruebas, 231 pasan** (seo 28, a11y 18, static-pages 12 con las nuevas, más las de los planes anteriores). Ojo: las dos corridas anteriores de la suite completa con el tiempo por defecto (30 s) tuvieron **2–5 timeouts distintos cada vez** (en specs ajenos al SEO: panel, noche de pelea, historial), todos verdes al repetirlos aislados; por eso `playwright.config.ts` ahora da 60 s por prueba (`decisions.md` → «Verificación final»). Si en tu PC fallan al azar, baja los workers: `pnpm test:e2e --workers=4`.
+- `pnpm lighthouse` (con `pnpm build && pnpm start` en :3000): exit 0, los cinco presupuestos pasan.
+- Si `pnpm test:e2e` dice que no encuentra `dockerDesktopLinuxEngine`, abre Docker Desktop.
 
 ## Verificación del stack de VPS en tu PC (Docker)
 
