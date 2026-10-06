@@ -290,3 +290,16 @@ test("el panel nunca lleva analítica", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Ingresar" })).toBeVisible();
   await expect(page.locator('script[src*="umami"], script[src*="vercel"], script[src*="insights"], script[src*="analytics"]')).toHaveCount(0);
 });
+
+test("un evento en borrador no se ve por su URL ni lleva datos estructurados; su vista previa va con noindex", async ({ page }) => {
+  const card = await createE2eCard("Evento E2E SEO Borrador", { "Cartelera estelar": [["tres", "cuatro"]] }, { status: "draft" });
+
+  await page.goto(`/eventos/${card.slug}`);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /Evento E2E SEO Borrador/ })).toHaveCount(0);
+
+  await page.goto(`/eventos/${card.slug}?preview=${createPreviewToken("event", card.eventId)}`);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(head.robots(page)).toHaveAttribute("content", /noindex/);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+});
