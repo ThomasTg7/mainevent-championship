@@ -6,6 +6,7 @@ import { PostCard } from "@/features/posts/components/post-card";
 import { postsListHref } from "@/features/posts/public-list";
 import { sitePageMetadata } from "@/features/seo/site-metadata";
 import { parsePageParam } from "@/lib/pagination";
+import { PageHeader, PageShell } from "@/components/site/page-shell";
 
 const text = (value: string | string[] | undefined) => (typeof value === "string" ? value : "");
 
@@ -35,11 +36,8 @@ export default async function NoticiasPage({ searchParams }: PageProps<"/noticia
   const [first, ...rest] = items;
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] pb-24 pt-[calc(76px+clamp(32px,6vw,72px))]">
-      <header className="mb-10">
-        <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">Lo último</p>
-        <h1 className="font-display text-[clamp(44px,8vw,96px)] uppercase leading-[.9] text-white">{active ? active.name : "Noticias"}</h1>
-      </header>
+    <PageShell>
+      <PageHeader title={active ? active.name : "Noticias"} kicker="Lo último" className="mb-10" />
 
       {categories.length > 0 ? (
         <nav aria-label="Categorías de noticias" className="mb-10 flex flex-wrap gap-2">
@@ -104,6 +102,6 @@ export default async function NoticiasPage({ searchParams }: PageProps<"/noticia
           )}
         </nav>
       ) : null}
-    </div>
+    </PageShell>
   );
 }

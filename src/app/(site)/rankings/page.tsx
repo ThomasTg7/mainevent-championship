@@ -6,6 +6,7 @@ import { RankingCard } from "@/features/rankings/components/ranking-card";
 import { parseRankingLevel, rankingsHref } from "@/features/rankings/public-level";
 import { sitePageMetadata } from "@/features/seo/site-metadata";
 import { formatDate } from "@/lib/format-date";
+import { PageHeader, PageShell } from "@/components/site/page-shell";
 
 export async function generateMetadata({ searchParams }: PageProps<"/rankings">): Promise<Metadata> {
   const level = parseRankingLevel((await searchParams).nivel);
@@ -34,15 +35,11 @@ export default async function RankingsPage({ searchParams }: PageProps<"/ranking
   const updated = cards.flatMap((card) => (card.updatedAt ? [card.updatedAt] : [])).sort().at(-1);
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] pb-24 pt-[calc(76px+clamp(32px,6vw,72px))]">
-      <header className="mb-10 flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">
-            Campeones y clasificación
-          </p>
-          <h1 className="font-display text-[clamp(44px,8vw,96px)] uppercase leading-[.9] text-white">Rankings</h1>
+    <PageShell>
+      <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+        <PageHeader title="Rankings" kicker="Campeones y clasificación" className="">
           {updated ? <p className="mt-4 font-cond text-sm font-semibold uppercase tracking-[.1em] text-muted-foreground">Actualizado {formatDate(new Date(updated))}</p> : null}
-        </div>
+        </PageHeader>
         <nav aria-label="Nivel" className="inline-flex border-2 border-border">
           {LEVELS.map((option) => (
             <Link
@@ -57,7 +54,7 @@ export default async function RankingsPage({ searchParams }: PageProps<"/ranking
             </Link>
           ))}
         </nav>
-      </header>
+      </div>
 
       {cards.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -71,6 +68,6 @@ export default async function RankingsPage({ searchParams }: PageProps<"/ranking
           <p className="max-w-md font-cond uppercase tracking-[.06em] text-muted-foreground">Estamos preparando la clasificación {level === "pro" ? "profesional" : "amateur"}. Vuelve pronto.</p>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

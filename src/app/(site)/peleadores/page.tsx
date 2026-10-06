@@ -8,6 +8,7 @@ import { getCachedPublicFighters, getCachedPublicFilterOptions } from "@/feature
 import { fightersCanonicalPath, fightersHref, isFilteredList, parsePublicFilters } from "@/features/fighters/public-filters";
 import { getCachedChampionBadges } from "@/features/rankings/cached-queries";
 import { sitePageMetadata } from "@/features/seo/site-metadata";
+import { PageHeader, PageShell } from "@/components/site/page-shell";
 
 export async function generateMetadata({ searchParams }: PageProps<"/peleadores">): Promise<Metadata> {
   const { filters, page } = parsePublicFilters(await searchParams);
@@ -31,13 +32,8 @@ export default async function PeleadoresPage({ searchParams }: PageProps<"/pelea
   const isFiltered = isFilteredList(filters);
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] pb-24 pt-[calc(76px+clamp(32px,6vw,72px))]">
-      <header className="mb-10">
-        <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">
-          El plantel
-        </p>
-        <h1 className="font-display text-[clamp(44px,8vw,96px)] uppercase leading-[.9] text-white">Peleadores</h1>
-      </header>
+    <PageShell>
+      <PageHeader title="Peleadores" kicker="El plantel" className="mb-10" />
 
       <div className="mb-10">
         <FighterFilters filters={filters} divisions={options.divisions} countries={countries} />
@@ -86,6 +82,6 @@ export default async function PeleadoresPage({ searchParams }: PageProps<"/pelea
           )}
         </nav>
       ) : null}
-    </div>
+    </PageShell>
   );
 }

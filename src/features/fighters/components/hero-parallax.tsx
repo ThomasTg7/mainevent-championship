@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 const SPEED = 0.1;
@@ -10,15 +11,17 @@ const DESKTOP_QUERY = "(min-width: 1024px)";
 
 /**
  * Desplaza su contenido un poco más lento que el scroll (hasta `MAX_SHIFT_PX`), solo en escritorio. Solo `transform`,
- * solo mientras es visible y sin movimiento si la persona lo pidió. El contenedor de la foto debe recortar (`overflow-hidden`).
+ * solo mientras es visible y sin movimiento si la persona lo pidió. Girar una tablet o cambiar el ancho lo enciende o lo apaga.
+ * El contenedor de la foto debe recortar (`overflow-hidden`).
  */
 export function HeroParallax({ children, className }: { children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
 
   useEffect(() => {
     const element = ref.current;
-    if (!element || reducedMotion || !window.matchMedia(DESKTOP_QUERY).matches) return;
+    if (!element || reducedMotion || !isDesktop) return;
 
     let frame = 0;
     let visible = false;
@@ -41,7 +44,7 @@ export function HeroParallax({ children, className }: { children: ReactNode; cla
       cancelAnimationFrame(frame);
       element.style.transform = "";
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, isDesktop]);
 
   return (
     <div ref={ref} className={className}>
