@@ -2,6 +2,8 @@
 
 Rama `plan-07` (desde `main`, que ya incluía el Plan 06 revisado). Ejecutado con `superpowers:executing-plans` (inline, Sonnet). Un commit por tarea (más correcciones). **No se hizo merge ni push.** Alcance acordado: Tasks 1–5 completas (código), de la 6 y la 7 solo la parte de código y documentación; todo lo que necesita **tus cuentas** (Vercel, Postgres, R2, Resend, Google, dominio, primer deploy) y la Task 8 (lanzamiento) quedan como lista de pasos para ti (abajo y en [`docs/deploy.md`](../deploy.md)).
 
+> **Revisado por Opus (2026-10-05):** correcciones y veredictos en [`docs/decisions.md`](../decisions.md) → «Revisión del Plan 07». Lo más importante para el despliegue en VPS: el build ya no usa `host.docker.internal` (usa `network: host`), Caddy reenvía `{hostport}`, la redirección `www` lleva esquema y el cron se llama con `sh`. Caddy sí se probó (imagen `caddy:2.8`).
+
 ## Tareas completadas
 
 | Tarea | Resultado |

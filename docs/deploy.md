@@ -118,7 +118,7 @@ Con imágenes reales el LCP depende del peso de la foto de portada. Mide la URL 
 ```bash
 pnpm lighthouse -- --collect.url=https://guerracampal.cl/ --collect.url=https://guerracampal.cl/peleadores/<slug> --collect.url=https://guerracampal.cl/eventos/<slug>
 ```
-Presupuestos (móvil, 4G): LCP < 2,5 s, CLS < 0,1, TBT < 300 ms, Accesibilidad ≥ 95, SEO = 100 (`lighthouserc.json`). En Windows, si Lighthouse no encuentra Chrome: `$env:CHROME_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe"`.
+Presupuestos (móvil, 4G): LCP < 2,5 s, CLS < 0,1, TBT < 300 ms, Accesibilidad ≥ 95, SEO = 100 (`lighthouserc.json`). En local el margen es chico (LCP 2,3–2,4 s: con CPU lenta el primer pintado espera al JavaScript), así que mira también [PageSpeed Insights](https://pagespeed.web.dev) en móvil y, semanas después del lanzamiento, Search Console → *Métricas web principales* (datos de personas reales). En Windows, si Lighthouse no encuentra Chrome: `$env:CHROME_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe"`.
 
 ## 5. Lanzamiento (cuando la promotora tenga el contenido real)
 
