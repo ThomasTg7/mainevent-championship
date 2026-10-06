@@ -18,7 +18,7 @@ import { LiveRefresher } from "@/features/events/components/live-refresher";
 import { VenueMap } from "@/features/events/components/venue-map";
 import { getPublicEventBySlug } from "@/features/events/queries";
 import { pickMainBout } from "@/features/events/main-bout";
-import { showsCountdown } from "@/features/events/public-format";
+import { sellsTickets, showsCountdown } from "@/features/events/public-format";
 import { PreviewBanner } from "@/features/fighters/components/preview-banner";
 import { getCachedPostsForEvent } from "@/features/posts/cached-queries";
 import { getCachedBoutRankLabels } from "@/features/rankings/cached-queries";
@@ -71,8 +71,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
   if (!event) notFound();
 
   const start = new Date(event.startsAt);
-  const isOver = event.eventStatus === "completed" || event.eventStatus === "cancelled";
-  const canBuy = !isOver;
+  const canBuy = sellsTickets(event);
   // Sin ticketera, «Entradas» lleva a la página de entradas del sitio (tramos y puntos de venta).
   const ticketHref = canBuy ? (event.ticketUrl ?? "/entradas") : undefined;
   const ticketExternal = Boolean(canBuy && event.ticketUrl);

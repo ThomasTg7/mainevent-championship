@@ -53,11 +53,11 @@ export function EventCard({ event, variant, priority = false }: EventCardProps) 
           {status ? <Tag tone={status === "live" ? "red" : "outline"}>{status === "live" ? "● En vivo" : EVENT_STATUS_LABELS[status]}</Tag> : null}
           {main?.isTitleFight ? <Tag tone="outline">Pelea por el título</Tag> : null}
         </div>
-        <h2 className={`font-display uppercase leading-[.95] text-white ${upcoming ? "text-[clamp(30px,5vw,56px)]" : "text-[clamp(26px,4vw,34px)]"}`}>
+        <h3 className={`font-display uppercase leading-[.95] text-white ${upcoming ? "text-[clamp(30px,5vw,56px)]" : "text-[clamp(26px,4vw,34px)]"}`}>
           <Link href={`/eventos/${event.slug}`} className="outline-none after:absolute after:inset-0">
             {event.name}
           </Link>
-        </h2>
+        </h3>
         <p className="font-cond text-[15px] font-semibold uppercase tracking-[.08em] text-muted-foreground">
           {formatShortDate(start)} · <span className="font-bold text-yellow">{formatTime(start)} hrs</span> · {event.venueName}, {event.venueCity}
         </p>

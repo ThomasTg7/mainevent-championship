@@ -1,4 +1,5 @@
 import { formatClock } from "@/domain/clock";
+import { isWithinUpcomingGrace } from "@/domain/event-night";
 import { countryName } from "@/domain/units";
 import type { ManualRecord } from "@/features/fighters/dto";
 import { divisionTitle } from "@/features/fighters/labels";
@@ -63,6 +64,15 @@ export function showsCountdown(event: { eventStatus: "scheduled" | "live" | "com
 }
 
 type EventStatus = "scheduled" | "live" | "completed" | "cancelled";
+
+/**
+ * Si la página del evento vende entradas: en vivo, o programado y todavía «próximo» (sin empezar o empezado hace menos de
+ * 12 h). Un evento pasado que nadie cerró en el panel ya no vende.
+ */
+export function sellsTickets(event: { eventStatus: EventStatus; startsAt: string }, nowMs: number = Date.now()): boolean {
+  if (event.eventStatus === "live") return true;
+  return event.eventStatus === "scheduled" && isWithinUpcomingGrace(new Date(event.startsAt), new Date(nowMs));
+}
 
 /** La etiqueta del estado en la portada del evento: lo único que se dice del evento además de su nombre. */
 export function eventStatusTag(status: EventStatus): { tone: "yellow" | "red" | "outline"; label: string } {

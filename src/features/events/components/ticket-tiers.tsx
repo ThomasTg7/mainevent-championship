@@ -31,8 +31,9 @@ export function TicketTiers({ tiers, ticketUrl, eventName }: TicketTiersProps) {
 
   return (
     <ul aria-label={`Tramos de entradas de ${eventName}`} className="grid gap-3">
-      {tiers.map((tier) => (
-        <li key={tier.name} data-tier={tier.name} data-sold-out={tier.soldOut}>
+      {tiers.map((tier, index) => (
+        // Dos tramos pueden llamarse igual (el formulario no lo impide): la posición hace única la clave.
+        <li key={`${index}-${tier.name}`} data-tier={tier.name} data-sold-out={tier.soldOut}>
           {ticketUrl && !tier.soldOut ? (
             <a
               href={ticketUrl}
