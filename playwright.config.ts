@@ -42,7 +42,9 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
   },
   webServer: {
-    command: `pnpm run dev --port ${PORT}`,
+    // La base se vacía y se siembra en cada corrida: la caché de datos de `unstable_cache` (`.next-e2e/dev/cache`) de la corrida
+    // anterior también se borra, o las páginas mostrarían datos viejos (ids que ya no existen, configuración ya guardada).
+    command: `node -e "require('fs').rmSync('.next-e2e/dev/cache',{recursive:true,force:true})" && pnpm run dev --port ${PORT}`,
     // Un archivo estático, no `/`: Playwright levanta el servidor ANTES del globalSetup (que migra y siembra la base), y una
     // página que lee la base falla mientras faltan las tablas nuevas, así que el servidor nunca quedaría «listo».
     url: `http://localhost:${PORT}/favicon.ico`,

@@ -90,7 +90,7 @@ Detalle en [`docs/deploy.md`](../deploy.md). En orden:
 ```bash
 pnpm db:migrate && pnpm dev          # sitio :3000 · panel admin.localhost:3000
 pnpm test && pnpm lint && pnpm typecheck
-pnpm test:e2e                        # Docker abierto; usa :3100 y .next-e2e (borra .next-e2e/dev/cache si cambias una lectura cacheada)
+pnpm test:e2e                        # Docker abierto; usa :3100 y .next-e2e (la caché .next-e2e/dev/cache se borra sola al arrancar)
 pnpm build && pnpm start             # luego, en otra terminal:
 pnpm lighthouse                      # Chrome instalado (Windows: $env:CHROME_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe")
 ```
