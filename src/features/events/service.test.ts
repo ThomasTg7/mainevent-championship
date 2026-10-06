@@ -101,6 +101,22 @@ describe("updateEvent", () => {
     expect((await auditRows(id)).map((entry) => entry.action).sort()).toEqual(["create", "update"]);
   });
 
+  it("moves the start time of each block to the new day when the event changes date, keeping its hour", async () => {
+    const { id } = await createEvent(db, validEventInput({ name: "Cambia de fecha" }), "admin-1");
+    const [segment] = await db
+      .insert(cardSegments)
+      .values([
+        { eventId: id, name: "Preliminares", sortOrder: 1, startsAt: new Date("2026-11-14T22:00:00Z") }, // 19:00 en Chile
+        { eventId: id, name: "Sin hora", sortOrder: 2 },
+      ])
+      .returning({ id: cardSegments.id });
+
+    await updateEvent(db, id, validEventInput({ name: "Cambia de fecha", startsDate: "2026-11-21" }), "admin-1");
+    const rows = await db.select().from(cardSegments).where(eq(cardSegments.eventId, id)).orderBy(asc(cardSegments.sortOrder));
+    expect(toSantiagoInputs(rows.find((row) => row.id === segment!.id)!.startsAt!)).toEqual({ date: "2026-11-21", time: "19:00" });
+    expect(rows.find((row) => row.name === "Sin hora")!.startsAt).toBeNull();
+  });
+
   it("changes the slug only when a different one is written, and refuses a taken one", async () => {
     const { id } = await createEvent(db, validEventInput({ name: "Enlace" }), "admin-1");
     expect((await updateEvent(db, id, validEventInput({ name: "Enlace", slug: "enlace-nuevo" }), "admin-1")).slug).toBe("enlace-nuevo");
