@@ -124,6 +124,7 @@ Presupuestos (móvil, 4G): LCP < 2,5 s, CLS < 0,1, TBT < 300 ms, Accesibilidad �
 
 1. La promotora carga contenido desde el panel. **Obligatorio antes de abrir a Google:** Configuración → **Privacidad** (la política, Ley 19.628: qué datos piden los formularios, para qué, cuánto se guardan y cómo pedir su eliminación; los formularios enlazan a `/privacidad`), **Contacto** (con el correo de avisos), **Redes**, **Nosotros** e **Imagen al compartir**. Una página fija vacía lleva `noindex` y no sale en el sitemap hasta que tenga contenido.
 2. Con el dominio propio configurado como `SITE_URL`, el sitio ya se abre a los buscadores. Si lanzas bajo un `*.vercel.app`, pon `ALLOW_INDEXING=true`.
+   Cuando el dominio propio ya funcione, en Settings → Domains cambia los alias `*.vercel.app` del sitio y del panel a **Redirect to** `guerracampal.cl` y `admin.guerracampal.cl` (308): así Google no ve el sitio duplicado en el alias (que respondería un `robots.txt` abierto).
 3. [Google Search Console](https://search.google.com/search-console): agrega `guerracampal.cl`, copia la etiqueta de verificación y pégala en **Configuración → SEO** del panel; verifica; envía `https://guerracampal.cl/sitemap.xml`.
 4. Revisa `/rankings`, las fichas y los eventos con datos reales y corrige textos.
 5. Anuncio en redes con el enlace; etiqueta `v1.0.0` en git (`git tag v1.0.0 && git push origin v1.0.0`).
