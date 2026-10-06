@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/format-date";
 
 export async function generateMetadata({ searchParams }: PageProps<"/rankings">): Promise<Metadata> {
   const level = parseRankingLevel((await searchParams).nivel);
+  const { cards } = await getCachedPublicRankings(level);
   return sitePageMetadata({
     title: level === "amateur" ? "Rankings amateur" : "Rankings",
     description:
@@ -17,6 +18,8 @@ export async function generateMetadata({ searchParams }: PageProps<"/rankings">)
         : "Campeones y rankings de Guerra Campal: libra por libra y por división, profesional y amateur.",
     // El amateur es otra página (otro contenido): su canónica lleva el nivel; cualquier otro valor cae en `/rankings`.
     path: rankingsHref(level),
+    // Sin tarjetas (nivel oculto o aún sin armar) es un «Pronto…»: no se indexa, igual que en el sitemap.
+    noindex: cards.length === 0,
   });
 }
 
