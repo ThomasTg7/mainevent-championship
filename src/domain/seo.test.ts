@@ -310,6 +310,8 @@ describe("eventJsonLd", () => {
       { "@type": "Person", name: "Matías Pérez", url: `${SITE}/peleadores/matias-perez` },
       { "@type": "Person", name: "Juan Soto" },
     ]);
+    // Google (resultados enriquecidos de eventos) lee `performer`, no `competitor`.
+    expect(data.performer).toEqual(data.competitor);
   });
 
   it("uses the brand image when the event has no photo", () => {

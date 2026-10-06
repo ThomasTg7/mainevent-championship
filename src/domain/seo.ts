@@ -119,6 +119,8 @@ export function eventJsonLd(e: EventPageDTO, siteUrl: string, fallbackImageUrl?:
   const eventUrl = `${siteUrl}/eventos/${e.slug}`;
   const isOver = e.eventStatus === "completed" || e.eventStatus === "cancelled";
   const main = pickMainBout(e.segments.flatMap((segment) => segment.bouts), (bout) => bout.status === "cancelled");
+  // `competitor` es lo propio de schema.org para un `SportsEvent`; Google (resultados de eventos) lee `performer`.
+  const fighters = main ? [personRef(main.red, siteUrl), personRef(main.blue, siteUrl)] : [];
   const images = [e.heroMedia, e.posterMedia].flatMap((media) => (media ? [ogImage(media, siteUrl, 1920).url] : []));
   if (images.length === 0 && fallbackImageUrl) images.push(fallbackImageUrl);
 
@@ -158,7 +160,7 @@ export function eventJsonLd(e: EventPageDTO, siteUrl: string, fallbackImageUrl?:
     ...(images.length > 0 ? { image: images } : {}),
     organizer: brand(siteUrl),
     ...(offers.length > 0 ? { offers } : {}),
-    ...(main ? { competitor: [personRef(main.red, siteUrl), personRef(main.blue, siteUrl)] } : {}),
+    ...(fighters.length > 0 ? { competitor: fighters, performer: fighters } : {}),
   };
 }
 
