@@ -143,7 +143,7 @@ Formato:
 - **Qué:** `trustedOrigins` solo agrega localhost fuera de producción. Los preview de Vercel corren con `NODE_ENV=production` y otra URL, así que el login no funcionará ahí hasta configurar `BETTER_AUTH_URL`/orígenes por entorno.
 - **Por qué:** se deja anotado para decidirlo al desplegar.
 - **Impacto:** Plan 07 (despliegue).
-- **Estado:** pendiente
+- **Estado:** cerrado (decidido en «[Plan 07 · Task 6]»: el panel se prueba en local o en producción)
 
 ---
 
@@ -402,7 +402,7 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Qué:** el parallax del hero decide escritorio/celular solo al cargar (`matchMedia` una vez); girar una tablet no lo activa ni lo apaga. `queries.ts` de peleadores tiene ~270 líneas (cerca del tope de ~250): si el Plan 03 le agrega lecturas, separar las del panel en `admin-queries.ts`.
 - **Por qué:** impacto menor; no justifica tocarlo ahora.
 - **Impacto:** Plan 03 (si toca `fighters/queries.ts`).
-- **Estado:** pendiente
+- **Estado:** aplicado (`queries.ts` se dividió en el Plan 03; el parallax, en «Pendientes técnicos cerrados», 2026-10-06)
 
 ## [Post Plan 02] Panel en su propio subdominio (`admin.guerracampal.cl`) — 2026-09-29
 - **Qué:** pedido del usuario: todo lo del panel en un subdominio. La app sigue siendo una sola (mismo despliegue y base); `src/proxy.ts` decide por dominio con `routeByHost` (`src/lib/admin-routing.ts`, testeado): en `ADMIN_URL`, `/x` se sirve desde `src/app/admin/x` (sin sesión, solo login/recuperar/restablecer; `/admin/x` redirige a `/x`); en `SITE_URL`, `/admin/...` redirige al subdominio. Enlaces del panel con `adminPath()`; vista previa con URL absoluta del sitio (`publicUrl`). Better Auth recibe `baseURL = ADMIN_URL` (reemplaza `BETTER_AUTH_URL` y el `trustedOrigins` de desarrollo). `next.config.ts` agrega `allowedDevOrigins: ["admin.localhost"]`. `createFighterAction` ya no hace `redirect()` (Next lo resuelve por dentro sin pasar por el proxy y mostraba la ficha pública): devuelve `redirectTo` y navega el cliente. El proxy deja pasar las server actions sin cookie (antes las redirigía con 307 y el navegador reenviaba el POST al login: «Algo salió mal» con la sesión vencida, también antes de este cambio); `requireAdmin()` redirige a la carpeta real cuando está dentro de una action. El proxy lee `x-forwarded-host` antes que `host` (Vercel/Caddy).
@@ -484,7 +484,7 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Qué:** hallazgos menores que se dejan para una tarea futura (ninguno cambia lo que ve el público en el uso normal). (a) Escrituras de cartelera y resultados no se serializan por evento (aislamiento READ COMMITTED): dos admins a la vez pueden dejar `sort_order` repetido (se arregla en el siguiente movimiento), doble reserva de un peleador o un evento que no cierra si dos resultados se guardan en el mismo instante; arreglo estándar: `SELECT … FROM events WHERE id = $1 FOR UPDATE` al inicio de cada transacción. (b) `deleteFighter` revisa las peleas fuera de una transacción: una carrera con `addBout` podría dejar a un peleador en la papelera con una pelea (y la purga fallaría por la FK); arreglo: bloquear la fila del peleador. (c) `getCachedFighterBouts` no lleva la etiqueta de la lista de peleadores: al renombrar o despublicar a un rival, el historial de otro peleador muestra el nombre viejo hasta 5 min. (d) La consola en vivo guarda los ids ya guardados en la sesión: si se borra un resultado con «Corregir», esa pelea no reaparece en «pendientes» hasta recargar. (e) Volver a guardar una pelea con resultado anulado (p. ej. para agregar un video) descarta `overturned_from`, y «Resultado anulado» se puede elegir a mano como motivo de «sin resultado». (f) Las horas de inicio de cada bloque se guardan como fecha completa del día del evento al guardarlas: no se reanclan al cambiar la fecha del evento ni al duplicarlo, y `EventSchedule` las ordena por instante (con bloques de días distintos el orden puede confundirse); arreglo: guardar solo la hora o reanclar en `updateEvent`/`duplicateEvent`. (g) `dnd-kit` se importa de forma estática en `CardBuilder` (CLAUDE.md pide diferirlo; Plan 02 lo hizo con `next/dynamic`); solo pesa en una pantalla del panel. (h) `aria-describedby` del campo de tiempo apunta a `…-endTimeSeconds-error` pero el error se llama `…-endTime-error`. (i) `card-service.ts` pasó de ~250 líneas (unas 330): dividir bloques y peleas. (j) `FightHistory` muestra solo el rostro del rival (el plan decía ambos); `EventCard` usa `h2` dentro de la sección «Próximos» `h2`; `TicketTiers` usa el nombre del tramo como `key`; un evento pasado que nadie cerró sigue mostrando «Comprar entradas»; el mensaje de `deleteFighter` dice «sácalo de la cartelera» aunque la pelea sea de un evento en la papelera. (k) Tests débiles: «un evento en borrador no aparece en /entradas» y la comprobación de `/eventos` en `events-public.spec.ts` pasan aunque el código falle (la lista está en caché y `createE2eCard` no la invalida); «marks fighters that are not public…» no comprueba `isPublic === false`; el test de purga de `card-service.test.ts` no purga.
 - **Por qué:** decidido no ampliar el cambio; el usuario puede pedir cualquiera en un plan aparte.
 - **Impacto:** ninguno en los planes siguientes salvo lo anotado en la entrada anterior.
-- **Estado:** pendiente
+- **Estado:** aplicado (ver «Pendientes técnicos cerrados», 2026-10-06; (g) y la foto de `FightHistory` quedan como decisión)
 
 ## [Plan 03 · Ajustes pedidos tras revisar en el navegador] Portada mínima, cartelera desplegable, mapa de Google y ficha reordenada — 2026-10-01
 - **Qué:** cambios pedidos por el usuario al revisar la rama. (1) **Portada del evento:** solo nombre y estado (Próximo, En vivo, Finalizado, Cancelado) y el botón «Ver cartelera» (se desliza con `SmoothAnchor`, Lenis). Se quitaron de la portada la fecha, el lugar, la cuenta regresiva, las etiquetas de la pelea estelar y «Comprar entradas»: la fecha pasó a «Horarios» (`EventSchedule`, fila «Fecha»), las entradas siguen en la barra fija y en el menú. **Se eliminó la cuenta regresiva** (`Countdown`, `countdownParts`, `showsCountdown`): ya no tenía dónde mostrarse; está en el historial de git si se quiere volver a usar. (2) **Pestañas de bloque** (Estelar, Preliminares): doradas con texto negro (el dorado sobre blanco no se leía) y negras con texto dorado la activa. (3) **Cada pelea se despliega** al tocarla (o con «Ver datos»): récord, país, altura, peso y alcance de los dos frente a frente, con el dato al medio y los valores a los lados en la misma fila; una medida que le falta a uno de los dos no se muestra; solo una pelea abierta a la vez; animación de alto + opacidad (el alto es layout, pero ocurre por acción del usuario y no en el scroll). `BoutFighterDTO` trae `heightCm`, `weightKg` y `reachCm`; el seed agrega alcance a Pérez y Soto (el de desarrollo se actualizó a mano porque el seed no pisa lo existente). (4) **Resultados alineados:** la línea de «Victoria» reserva su alto en las dos esquinas y las esquinas se alinean arriba, así los nombres quedan a la misma altura. (5) **Mapa:** el formulario pide un enlace de Google Maps (`mapsUrl`) en lugar de latitud y longitud, y la página pública usa la inserción de Google Maps en vez de OpenStreetMap; ver `docs/convenciones.md`. No hace falta clave de API: la inserción por coordenadas (`output=embed`) es la que Google permite sin ella, pero no es una API documentada y Google podría cambiarla; si dejara de funcionar el cambio es `mapEmbedUrl` (o pasar a la Maps Embed API con clave). (6) **Ficha del peleador:** orden Próxima pelea → Datos y Redes → Récord → Historial → Galería; «Próxima pelea»/«Última pelea» muestra la foto del rival; «Récord» centrado y más grande con total y Guerra Campal uno bajo el otro (se dejó de abreviar «GC»); «Historial de peleas» centrado y más grande, filas iguales.
@@ -755,7 +755,7 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 
 ## [Plan 06 · Pendientes] Sin cambiar — 2026-10-04
 - **Qué:** (1) `/eventos`, `/peleadores`, `/rankings` y `/noticias` conservan su cabecera escrita a mano (usar `PageHeader` cuando se toquen). (2) Plan 07 debe leer `getCachedSetting("seo")` (verificación de Google) y `getCachedShareImage()` (imagen para compartir) y agregar al sitemap `/nosotros`, `/contacto`, `/privacidad`, `/quiero-pelear` y `/patrocinar`. (3) El correo real (Resend) no se probó contra el servicio; `MAIL_DRIVER=console` imprime el aviso en la terminal de `pnpm dev`. (4) Si el sitio queda detrás de un proxy que no pone `x-forwarded-for`, el límite por IP vería una sola dirección. (5) La imagen para compartir y la etiqueta de Google se guardan pero hoy no se dibujan en ningún `<head>`.
-- **Estado:** (2), (3), (4) y (5) pasan al Plan 07 (Tasks 2, 3, 6 y 7) · aplicada a planes siguientes; (1) sigue pendiente (cuando se toquen esas páginas).
+- **Estado:** (2), (3), (4) y (5) pasan al Plan 07 (Tasks 2, 3, 6 y 7) · aplicada a planes siguientes; (1) aplicado el 2026-10-06 («Pendientes técnicos cerrados»).
 
 ---
 
@@ -860,3 +860,49 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 ## [Revisión Plan 07] Lo que viene — 2026-10-05
 - **No hay Plan 08.** La Task 8 (lanzamiento) es de la persona y quedó ajustada en el plan: medir contra la URL real (Lighthouse con `lighthouserc.json` + PageSpeed Insights + datos de campo), redirigir los alias `*.vercel.app`, `ALLOW_INDEXING` solo importa bajo `*.vercel.app`. Sin tareas «Plan 07-fix»: todo lo encontrado se corrigió en la revisión.
 - **Estado:** aplicado
+
+---
+
+# Pendientes técnicos cerrados (rama `pendientes-tecnicos`) — 2026-10-06
+
+## [Pendientes] Escrituras de cartelera y resultados serializadas por evento (Plan 03 · a, b, i)
+- **Qué:** toda escritura de cartelera (`card-service.ts`) y de resultados (`recordBoutResult`, `clearBoutResult`, `overturnResult`) corre en **una** transacción que primero bloquea la fila del evento (`SELECT … FOR UPDATE`, `src/features/events/event-lock.ts`: `lockEvent`, `lockEventOfSegment`, `lockEventOfBout`); las lecturas y validaciones van dentro, después del bloqueo. `assertBoutSetup` lee a los peleadores `FOR SHARE` y `deleteFighter` bloquea al peleador `FOR UPDATE` y revisa sus peleas en la misma transacción: nunca queda en la papelera alguien con una pelea. `softDelete` acepta una transacción (`Executor`). `card-service.ts` (341 líneas) se dividió: lecturas y reglas de apoyo en `card-lookups.ts`; `card-service.ts` queda con las escrituras (~200). `startLiveEvent` no cambia: su `UPDATE … WHERE event_status = 'scheduled'` ya es atómico.
+- **Por qué:** con READ COMMITTED dos admins a la vez podían dejar `sort_order` repetido, reservar dos veces a un peleador o dejar abierto un evento.
+- **Impacto:** ninguno en la interfaz. Las pruebas con PGlite no ejercitan la concurrencia (una sola conexión, que ya serializa); cubren que todo sigue igual.
+- **Estado:** aplicado
+
+## [Pendientes] Resultado anulado (Plan 03 · e)
+- **Qué:** volver a guardar una pelea anulada (p. ej. para agregar el video) conserva `overturned_from`; «Resultado anulado» ya no se elige a mano: el servidor lo rechaza en una pelea que no estaba anulada (error en el campo «Motivo») y los formularios solo lo ofrecen si la pelea ya lo tiene (`selectableNcReasons`, `src/domain/bout-enums.ts`).
+- **Estado:** aplicado
+
+## [Pendientes] Consola en vivo, caché del historial, horas de bloques, accesibilidad (Plan 03 · c, d, f, h)
+- **Qué:** (c) `getCachedFighterBouts` lleva también `FIGHTERS_LIST_TAG`: renombrar o despublicar a un rival actualiza al instante el historial de los demás. (d) La consola en vivo deja de ocultar a mano una pelea guardada en cuanto el servidor la devuelve terminada: si luego se borra su resultado con «Corregir», vuelve sola a pendientes, sin recargar. (f) `updateEvent`: si el evento cambia de día, cada bloque conserva su hora (en Chile) en el día nuevo, en un solo `UPDATE`. `duplicateEvent` no lo necesita (la copia tiene la misma fecha). (h) El campo «Tiempo (m:ss)» usa el id `…-endTimeSeconds`, el mismo de su error: `aria-describedby` ya apunta al mensaje.
+- **Estado:** aplicado
+
+## [Pendientes] Detalles del sitio (Plan 03 · j)
+- **Qué:** `sellsTickets` (`public-format.ts`): la página de un evento ya no ofrece entradas si pasaron más de 12 h de su inicio aunque nadie lo haya cerrado (misma ventana que «Próximos»: `UPCOMING_GRACE_HOURS` en `src/domain/event-night.ts`, que ahora también usa la consulta SQL). `EventCard` usa `h3` (va dentro de «Próximos»/«Pasados», que son `h2`). `TicketTiers` usa posición + nombre como `key`. `deleteFighter` explica cuando la pelea es de un evento en la papelera («restáuralo y saca la pelea de la cartelera, o espera a que la papelera lo elimine»). **No se cambia:** `FightHistory` muestra solo el rostro del rival (el plan pedía ambos): en la ficha del propio peleador su cara en cada fila sería repetición.
+- **Estado:** aplicado
+
+## [Pendientes] dnd-kit en la cartelera (Plan 03 · g): sin cambio, verificado
+- **Qué:** no se difiere `CardBuilder`. Verificado en el build: los chunks con dnd-kit que se cargan de forma estática solo aparecen en el manifiesto de `/admin/eventos/[id]/cartelera`; el resto del panel y el sitio no los descargan. Diferirlo con `next/dynamic` (`ssr: false`) solo cambiaría el HTML del servidor por un skeleton en la única pantalla que lo usa, porque todo el armador depende de dnd-kit (columnas y tarjetas son zonas de arrastre). En divisiones y galería sí se difiere porque ahí es una parte de una pantalla más grande.
+- **Estado:** aplicado (decisión)
+
+## [Pendientes] Tests que no mordían (Plan 03 · k)
+- **Qué:** el evento en borrador que `/eventos` y `/entradas` no deben listar se crea en `e2e/global-setup.ts` (`evento-e2e-borrador-listados`, antes de la primera visita): creado dentro del spec, la lista en caché ya estaba armada sin él. Comprobado: quitar el filtro de publicación de `listPublicEvents` hace fallar la prueba de `/entradas`. «marks fighters that are not public…» ahora pone a un peleador en borrador en una pelea y exige `isPublic: false`. La prueba de purga de `card-service.test.ts` ahora purga y comprueba que recién entonces el peleador va a la papelera.
+- **Estado:** aplicado
+
+## [Pendientes] Parallax y cabeceras (pendientes de los Planes 02 y 06)
+- **Qué:** `useMediaQuery` (`src/hooks/use-media-query.ts`, tercera repetición del patrón `matchMedia` + `useSyncExternalStore`); `useReducedMotion` lo usa. `HeroParallax` se enciende o se apaga al girar una tablet o cambiar el ancho (antes decidía una sola vez al cargar). `/eventos`, `/peleadores`, `/rankings` y `/noticias` usan `PageShell`/`PageHeader` (mismo HTML y clases que antes; en `/rankings` el selector de nivel queda al lado, fuera del `header`). `use-mobile.ts` (de shadcn) no se toca.
+- **Estado:** aplicado
+
+## [Pendientes] Copias automáticas en el VPS (pendiente del Plan 07)
+- **Qué:** servicios `backup-db` (`pg_dump -Fc`, guarda `BACKUP_KEEP_DAYS` = 14 días) y `backup-media` (`mc mirror` del bucket, solo agrega) en `deploy/docker-compose.prod.yml`, scripts en `deploy/backup/`: una copia al arrancar y luego cada 24 h en `BACKUP_DIR` (`deploy/backups/`, fuera de git); `--once` para una copia a mano. Un dump fallido no deja archivo: los errores se revisan a mano, porque dentro de `fn || …` el shell ignora `set -e` y sin eso un dump fallido quedaba con nombre de bueno (encontrado al probarlo). Probado aquí: dump contra Postgres 17 (restaurable: `pg_restore --list` con 33 tablas), fallo sin archivo a medias, y espejo de un MinIO temporal. Guía: `docs/vps-migration.md` → «Copias».
+- **Sigue siendo de la persona:** sacar `deploy/backups/` fuera del servidor (p. ej. `rclone` a B2 o Drive) y ensayar una restauración.
+- **Estado:** aplicado
+
+## [Pendientes] Lo que sigue abierto y por qué
+- **Logo oficial:** `public/logo.png`, `public/og-default.jpg` y `Logo` siguen provisionales hasta tener el archivo de la promotora.
+- **Caddy y Umami en el servidor real**, Lighthouse contra la URL desplegada y las Tasks 6 y 8 del Plan 07: necesitan las cuentas y el dominio.
+- **Preview deployments de Vercel (Plan 00):** resuelto como decisión en el Plan 07 (el panel se prueba en local o en producción); cerrado.
+- **Búsqueda con `pg_trgm`:** sigue como mejora si el plantel pasa de ~500 peleadores.
+- **Estado:** pendiente (persona)
