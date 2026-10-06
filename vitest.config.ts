@@ -15,7 +15,8 @@ export default defineConfig({
     globals: false,
     // e2e/ son specs de Playwright, no de Vitest; sin esto, Vitest los
     // recoge también por el patrón *.spec.ts y choca con el runner de Playwright.
-    exclude: [...configDefaults.exclude, "e2e/**"],
+    // `.next*`: el build `standalone` copia el código (y sus pruebas) dentro de `.next/standalone`; no son pruebas del proyecto.
+    exclude: [...configDefaults.exclude, "e2e/**", "**/.next*/**"],
     // PGlite (WASM) arranca varias instancias en paralelo durante la suite
     // completa; el timeout por defecto (5s) alcanza a fallar por contención
     // de CPU aunque cada test, aislado, tarde ~1s.

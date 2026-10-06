@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Imagen autocontenida para el VPS (deploy/Dockerfile): `.next/standalone` lleva solo lo que la app necesita. Vercel lo ignora.
+  output: "standalone",
   // Next 16 reescribe CLAUDE.md en cada `next dev` con su propio aviso para
   // agentes de IA; este proyecto ya tiene su CLAUDE.md con reglas propias.
   agentRules: false,

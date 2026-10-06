@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Guerra Campal
 
-## Getting Started
+Plataforma web de la promotora de MMA **Guerra Campal** (Chile): sitio público estilo UFC (eventos, cartelera y resultados, peleadores, rankings, noticias, entradas) y un panel de administración propio.
 
-First, run the development server:
+**Stack:** Next.js (App Router) · TypeScript · Postgres + Drizzle · Better Auth · Tailwind · almacenamiento compatible S3. Solo Postgres estándar y S3: se despliega en Vercel o en un VPS propio sin cambiar código.
+
+## Empezar
+
+Requisitos: Node 22, pnpm y Docker Desktop (Postgres local).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+cp .env.example .env        # y revisa los valores
+docker compose up -d        # Postgres
+pnpm install
+pnpm db:migrate
+pnpm db:seed                # datos de demostración (solo desarrollo)
+pnpm create-admin tu@correo.cl "una-clave-segura"
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Sitio: <http://localhost:3000> · Panel: <http://admin.localhost:3000> (el panel vive en su propio subdominio).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verificar
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm test           # unitarias y de integración (Vitest + PGlite)
+pnpm lint
+pnpm typecheck
+pnpm test:e2e       # Playwright (necesita Docker abierto); incluye accesibilidad con axe
+pnpm build
+pnpm lighthouse     # presupuestos de rendimiento; con `pnpm build && pnpm start` corriendo en :3000
+```
 
-## Learn More
+## Documentación
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Documento | Para qué |
+|---|---|
+| [`docs/guia-admin.md`](docs/guia-admin.md) | cómo usar el panel (para la promotora) |
+| [`docs/deploy.md`](docs/deploy.md) | publicar en Vercel, paso a paso, y lanzamiento |
+| [`docs/vps-migration.md`](docs/vps-migration.md) | pasar a un VPS propio (Docker Compose) |
+| [`docs/configuracion-externa.md`](docs/configuracion-externa.md) | Google (login) y Resend (correo) |
+| [`docs/superpowers/specs/2026-09-28-guerra-campal-design.md`](docs/superpowers/specs/2026-09-28-guerra-campal-design.md) | especificación |
+| [`docs/convenciones.md`](docs/convenciones.md) · [`docs/decisions.md`](docs/decisions.md) | patrones construidos y registro de decisiones |
+| [`CLAUDE.md`](CLAUDE.md) · [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | reglas del proyecto y flujo de trabajo por planes |
