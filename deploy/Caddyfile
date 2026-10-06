@@ -18,9 +18,10 @@
 	}
 }
 
-# `www` → el dominio principal.
+# `www` → el dominio principal. Con `SITE_URL` (lleva el esquema): `SITE_HOST` en producción no lo lleva, y un `Location` sin
+# esquema el navegador lo resuelve como ruta relativa (`www.guerracampal.cl/guerracampal.cl/…`).
 {$WWW_HOST} {
-	redir {$SITE_HOST}{uri} permanent
+	redir {$SITE_URL}{uri} permanent
 }
 
 # Imágenes (MinIO). Mismos encabezados que el dominio de medios de R2: un SVG abierto directo no puede ejecutar nada.

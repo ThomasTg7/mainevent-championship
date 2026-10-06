@@ -21,7 +21,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d:ro
-    # Solo en el propio servidor: `next build` lee la base al construir (host.docker.internal) y pg_dump/pg_restore.
+    # Solo en el propio servidor: `next build` lee la base al construir (red del servidor, 127.0.0.1) y pg_dump/pg_restore.
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     healthcheck:
@@ -86,8 +86,9 @@ services:
       dockerfile: deploy/Dockerfile
       target: runner
       secrets: [buildenv]
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+      # `next build` lee la base: el build usa la red del servidor para llegar al Postgres publicado en 127.0.0.1
+      # (`host.docker.internal` no sirve en Linux: apunta al puente de Docker, que no alcanza un puerto ligado a 127.0.0.1).
+      network: host
     restart: unless-stopped
     depends_on:
       postgres:
@@ -151,6 +152,7 @@ services:
       SITE_HOST: ${SITE_HOST:?define SITE_HOST en deploy/.env}
       ADMIN_HOST: ${ADMIN_HOST:?define ADMIN_HOST en deploy/.env}
       WWW_HOST: ${WWW_HOST:?define WWW_HOST en deploy/.env}
+      SITE_URL: ${SITE_URL:?define SITE_URL en deploy/.env}
       MEDIA_HOST: ${MEDIA_HOST:?define MEDIA_HOST en deploy/.env}
       STATS_HOST: ${STATS_HOST:?define STATS_HOST en deploy/.env}
       ACME_EMAIL: ${ACME_EMAIL:-}

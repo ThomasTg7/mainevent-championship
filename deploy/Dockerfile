@@ -27,7 +27,7 @@ CMD ["pnpm", "db:migrate"]
 
 # ─── Build ────────────────────────────────────────────────────────────────────────────────────────
 # `next build` genera estáticas la home y otras páginas leyendo la base: tiene que estar migrada y accesible AHORA (en el
-# VPS, el Postgres del compose publicado en 127.0.0.1; la imagen lo alcanza por `host.docker.internal`). Las variables
+# VPS, el Postgres del compose publicado en 127.0.0.1; el build usa la red del servidor, `network: host` en el compose). Las variables
 # viajan como *secreto de build* (no quedan en las capas de la imagen): el archivo `deploy/.env`. `BUILD_DATABASE_URL`
 # es la dirección de la base vista desde el build; en tiempo de ejecución la app usa `DATABASE_URL` (dentro de la red).
 FROM deps AS build

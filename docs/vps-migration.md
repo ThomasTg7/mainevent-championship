@@ -38,7 +38,7 @@ Sirve para comprobar que todo levanta (imágenes desde MinIO, panel, cron). Sin 
    CADDY_HTTP_PORT=8080
    CADDY_HTTPS_PORT=8443
    POSTGRES_PORT=5433
-   BUILD_DATABASE_URL=postgres://postgres:<POSTGRES_PASSWORD>@host.docker.internal:5433/guerra_campal
+   BUILD_DATABASE_URL=postgres://postgres:<POSTGRES_PASSWORD>@127.0.0.1:5433/guerra_campal
    NEXT_PUBLIC_MODEL_BASE_URL=
    ```
    (Y contraseñas cualquiera. `POSTGRES_PASSWORD` debe coincidir con la de `BUILD_DATABASE_URL`. El puerto `5433` evita chocar con el Postgres de desarrollo del 5432.)
