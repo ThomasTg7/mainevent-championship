@@ -46,9 +46,9 @@ Necesitas un **dominio propio** (p. ej. `guerracampal.cl`) para enviar a cualqui
    El correo de `MAIL_FROM` debe ser del dominio verificado.
 6. Prueba: en el panel, **Usuarios → Dar acceso** a tu propio correo, o **¿Olvidaste tu contraseña?** en el login.
 
-## 3. En producción (Vercel)
+## 3. En producción
 
-Las mismas variables se cargan en Vercel → Project → Settings → Environment Variables, junto con `BETTER_AUTH_URL="https://<tu-dominio>"` y un `BETTER_AUTH_SECRET` nuevo (`openssl rand -base64 32`). Esto se hace en el Plan 07.
+Las mismas variables se cargan en Vercel → Project → Settings → Environment Variables (o en `deploy/.env` del VPS), junto con `SITE_URL`, `ADMIN_URL` (obligatorias en producción; **ya no se usa `BETTER_AUTH_URL`**) y un `BETTER_AUTH_SECRET` nuevo (`openssl rand -base64 32`). Para producción el redirect de Google es `https://admin.guerracampal.cl/api/auth/callback/google`. Paso a paso, con todas las variables: [`deploy.md`](deploy.md) (Vercel) y [`vps-migration.md`](vps-migration.md) (servidor propio).
 
 ## Cómo entra un administrador
 

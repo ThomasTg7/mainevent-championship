@@ -1,8 +1,15 @@
 /// <reference lib="webworker" />
 import { AutoModel, AutoProcessor, RawImage, env } from "@huggingface/transformers";
+import { modelSource } from "./model-source";
 
-// El modelo se baja del Hub de Hugging Face la primera vez y el navegador lo guarda en caché.
+// El modelo se baja la primera vez y el navegador lo guarda en caché. En producción viene del propio bucket
+// (`NEXT_PUBLIC_MODEL_BASE_URL`, ver docs/deploy.md); sin la variable (desarrollo), del Hub de Hugging Face.
 env.allowLocalModels = false;
+const source = modelSource(process.env.NEXT_PUBLIC_MODEL_BASE_URL);
+if (source) {
+  env.remoteHost = source.remoteHost;
+  env.remotePathTemplate = source.remotePathTemplate;
+}
 
 const MODEL_ID = "Xenova/modnet";
 // Lado mayor del PNG resultante. A tamaño completo, una foto de celular de 12 MP pasa de 15 MB en PNG con
