@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyHasEmbed, collectBodyMediaIds, EMPTY_POST_BODY, hasPostBodyContent, validatePostBody } from "./post-body";
+import { bodyHasEmbed, collectBodyMediaIds, DEFAULT_TEXT_ALIGN, EMPTY_POST_BODY, hasPostBodyContent, TEXT_ALIGNS, textAlignOf, validatePostBody } from "./post-body";
 
 const MEDIA_A = "0b6f0c40-7d4c-4f3a-9d0a-5f1d2b8f6a11";
 const MEDIA_B = "9a1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d";
@@ -131,5 +131,31 @@ describe("collectBodyMediaIds", () => {
   it("returns nothing for a body without images or one that is not a document", () => {
     expect(collectBodyMediaIds(EMPTY_POST_BODY)).toEqual([]);
     expect(collectBodyMediaIds(null)).toEqual([]);
+  });
+});
+
+describe("text alignment", () => {
+  const aligned = (type: "paragraph" | "heading", textAlign: unknown) => ({
+    type: "doc",
+    content: [{ type, attrs: { ...(type === "heading" ? { level: 2 } : {}), textAlign }, content: [{ type: "text", text: "Hola" }] }],
+  });
+
+  it("accepts justify, left, center and right on paragraphs and headings, or no alignment", () => {
+    for (const align of [...TEXT_ALIGNS, null]) {
+      expect(validatePostBody(aligned("paragraph", align))).toBe(true);
+      expect(validatePostBody(aligned("heading", align))).toBe(true);
+    }
+  });
+
+  it("rejects any other alignment", () => {
+    expect(validatePostBody(aligned("paragraph", "start"))).toBe(false);
+    expect(validatePostBody(aligned("heading", "center; color:red"))).toBe(false);
+  });
+
+  it("justifies by default", () => {
+    expect(DEFAULT_TEXT_ALIGN).toBe("justify");
+    expect(textAlignOf({ type: "paragraph" })).toBe("justify");
+    expect(textAlignOf({ type: "paragraph", attrs: { textAlign: "center" } })).toBe("center");
+    expect(textAlignOf({ type: "paragraph", attrs: { textAlign: "bogus" } })).toBe("justify");
   });
 });

@@ -1,11 +1,13 @@
 "use client";
 
 import { RotateCcw, RotateCw } from "lucide-react";
+import { useRef } from "react";
 import Cropper from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { Crop } from "@/domain/media-specs";
 import { RangeField } from "./range-field";
+import { useRemeasureAfterOpen } from "./use-remeasure-after-open";
 
 const FREE_ASPECTS = [
   { value: "original", label: "Original" },
@@ -39,8 +41,11 @@ type CropStageProps = {
 
 /** Zona de recorte: llena el contenedor que la envuelve (el editor le da la altura). */
 export function CropStage(props: CropStageProps) {
+  const cropperRef = useRef<Cropper>(null);
+  useRemeasureAfterOpen(cropperRef);
   return (
     <Cropper
+      ref={cropperRef}
       image={props.src}
       crop={props.crop}
       zoom={props.zoom}

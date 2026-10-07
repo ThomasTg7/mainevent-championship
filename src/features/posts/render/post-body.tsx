@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import { MediaImage } from "@/components/media/media-image";
 import { embedFromAttrs } from "@/domain/embed";
-import { isSafeHref, type PostMark, type PostNode } from "@/domain/post-body";
+import { isSafeHref, textAlignOf, type PostMark, type PostNode, type TextAlign } from "@/domain/post-body";
 import type { MediaDTO } from "@/features/media/dto";
 import { EmbedFacade } from "./embed-facade";
 
@@ -12,6 +12,10 @@ export const BODY_IMAGE_SIZES = "(min-width: 768px) 720px, 100vw";
 const MAX_DEPTH = 12;
 const EXTERNAL_REL = "noopener noreferrer nofollow";
 const LINK_CLASS = "text-yellow underline underline-offset-4 hover:text-yellow-hover";
+
+/** Justificado (el de siempre) con guiones en español: en celular la columna es angosta y sin cortar palabras quedan huecos. */
+const ALIGN_CLASS: Record<TextAlign, string> = { justify: "text-justify hyphens-auto", left: "text-left", center: "text-center", right: "text-right" };
+const alignProps = (node: PostNode) => ({ "data-align": textAlignOf(node) });
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -75,7 +79,7 @@ function renderNode(node: PostNode, media: Record<string, MediaDTO>, depth: numb
       return <br key={key} />;
     case "paragraph":
       return (
-        <p key={key} className="my-5 text-lg leading-relaxed text-white/90">
+        <p key={key} {...alignProps(node)} className={`my-5 text-lg leading-relaxed text-white/90 ${ALIGN_CLASS[textAlignOf(node)]}`}>
           {children()}
         </p>
       );
@@ -83,14 +87,14 @@ function renderNode(node: PostNode, media: Record<string, MediaDTO>, depth: numb
       const level = node.attrs?.level;
       if (level === 2) {
         return (
-          <h2 key={key} className="mt-12 mb-4 font-display text-3xl leading-tight tracking-wide uppercase md:text-4xl">
+          <h2 key={key} {...alignProps(node)} className={`mt-12 mb-4 font-display text-3xl leading-tight tracking-wide uppercase md:text-4xl ${ALIGN_CLASS[textAlignOf(node)]}`}>
             {children()}
           </h2>
         );
       }
       if (level === 3) {
         return (
-          <h3 key={key} className="mt-8 mb-3 font-cond text-2xl font-bold tracking-wide text-yellow uppercase">
+          <h3 key={key} {...alignProps(node)} className={`mt-8 mb-3 font-cond text-2xl font-bold tracking-wide text-yellow uppercase ${ALIGN_CLASS[textAlignOf(node)]}`}>
             {children()}
           </h3>
         );

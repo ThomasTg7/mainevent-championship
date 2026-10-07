@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EMPTY_POST_BODY } from "@/domain/post-body";
 import { PostEditor } from "./post-editor";
@@ -45,5 +45,19 @@ describe("PostEditor: restricted mode", () => {
     expect(screen.queryByRole("button", { name: "Imagen" })).toBeNull();
     expect(screen.queryByRole("button", { name: /Video o publicación/ })).toBeNull();
     expect(screen.getByRole("button", { name: "Negrita" })).toBeTruthy();
+  });
+});
+
+describe("PostEditor alignment buttons", () => {
+  it("offers Justificar, Izquierda, Centrar and Derecha, with Justificar on by default", async () => {
+    const onChange = vi.fn();
+    render(<PostEditor value={{ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Hola" }] }] }} onChange={onChange} label="Cuerpo de la noticia" />);
+    await screen.findByRole("textbox", { name: "Cuerpo de la noticia" });
+    const group = screen.getByRole("group", { name: "Alineación" });
+    for (const name of ["Justificar", "Alinear a la izquierda", "Centrar", "Alinear a la derecha"]) expect(within(group).getByRole("button", { name })).toBeInTheDocument();
+    expect(within(group).getByRole("button", { name: "Justificar" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(within(group).getByRole("button", { name: "Centrar" }));
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ content: [expect.objectContaining({ attrs: { textAlign: "center" } })] }));
   });
 });

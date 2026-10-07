@@ -1,9 +1,18 @@
 "use client";
 
 import type { Editor } from "@tiptap/react";
-import { Bold, Clapperboard, Heading2, Heading3, ImagePlus, Italic, Link as LinkIcon, List, ListOrdered, Minus, Quote } from "lucide-react";
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Clapperboard, Heading2, Heading3, ImagePlus, Italic, Link as LinkIcon, List, ListOrdered, Minus, Quote } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import type { TextAlign } from "@/domain/post-body";
+
+/** Se aplica al párrafo o título donde está el cursor, o a los que toca la selección (nunca a todo el texto). */
+const ALIGN_BUTTONS: { align: TextAlign; label: string; icon: ComponentType<{ "aria-hidden"?: boolean }> }[] = [
+  { align: "justify", label: "Justificar", icon: AlignJustify },
+  { align: "left", label: "Alinear a la izquierda", icon: AlignLeft },
+  { align: "center", label: "Centrar", icon: AlignCenter },
+  { align: "right", label: "Alinear a la derecha", icon: AlignRight },
+];
 
 export type ToolbarPanel = "link" | "embed" | null;
 
@@ -54,7 +63,7 @@ type EditorToolbarProps = {
   allowMedia?: boolean;
 };
 
-/** Barra del editor: títulos, formato, listas, cita, enlace, separador, imagen y publicación de una red. Se envuelve en celular. */
+/** Barra del editor: títulos, formato, alineación, listas, cita, enlace, separador, imagen y publicación de una red. Se envuelve en celular. */
 export function EditorToolbar({ editor, panel, onPanelChange, onInsertImage, allowMedia = true }: EditorToolbarProps) {
   return (
     <div role="toolbar" aria-label="Formato del texto" className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-card p-2">
@@ -66,6 +75,11 @@ export function EditorToolbar({ editor, panel, onPanelChange, onInsertImage, all
         <ToolButton label="Negrita" icon={Bold} active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} />
         <ToolButton label="Cursiva" icon={Italic} active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} />
         <ToolButton label="Enlace" icon={LinkIcon} active={editor.isActive("link") || panel === "link"} onClick={() => onPanelChange(panel === "link" ? null : "link")} />
+      </Group>
+      <Group label="Alineación">
+        {ALIGN_BUTTONS.map(({ align, label, icon }) => (
+          <ToolButton key={align} label={label} icon={icon} active={editor.isActive({ textAlign: align })} onClick={() => editor.chain().focus().setTextAlign(align).run()} />
+        ))}
       </Group>
       <Group label="Bloques">
         <ToolButton label="Lista con viñetas" icon={List} active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} />

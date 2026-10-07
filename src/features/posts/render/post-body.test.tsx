@@ -148,3 +148,23 @@ describe("PostBody", () => {
     expect(container.textContent).toBe("");
   });
 });
+
+describe("PostBody alignment", () => {
+  it("justifies paragraphs and headings by default and keeps the alignment chosen for each one", () => {
+    render(
+      <PostBody
+        doc={doc(
+          paragraph(text("Por defecto")),
+          { type: "paragraph", attrs: { textAlign: "center" }, content: [text("Centrado")] },
+          { type: "heading", attrs: { level: 2, textAlign: "right" }, content: [text("A la derecha")] },
+          { type: "heading", attrs: { level: 3 }, content: [text("Subtítulo")] },
+        )}
+        media={{}}
+      />,
+    );
+    expect(screen.getByText("Por defecto").closest("p")?.dataset.align).toBe("justify");
+    expect(screen.getByText("Centrado").closest("p")?.dataset.align).toBe("center");
+    expect(screen.getByText("A la derecha").closest("h2")?.dataset.align).toBe("right");
+    expect(screen.getByText("Subtítulo").closest("h3")?.dataset.align).toBe("justify");
+  });
+});

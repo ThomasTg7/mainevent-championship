@@ -2,8 +2,9 @@ import Link from "@tiptap/extension-link";
 import { Extension, mergeAttributes, Node, type AnyExtension } from "@tiptap/react";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
+import TextAlign from "@tiptap/extension-text-align";
 import { embedCanonicalUrl, embedFromAttrs, embedSrc, isVerticalEmbed, parseEmbedUrl } from "@/domain/embed";
-import { isSafeHref, withProtocol } from "@/domain/post-body";
+import { DEFAULT_TEXT_ALIGN, TEXT_ALIGNS, isSafeHref, withProtocol } from "@/domain/post-body";
 import type { MediaDTO } from "@/features/media/dto";
 import { EMBED_FRAME_ATTRIBUTES, EMBED_PROVIDER_NAME, embedFrameClass } from "../embed-frame";
 
@@ -196,6 +197,8 @@ export function createPostExtensions(getMedia: MediaLookup, { media = true }: { 
       isAllowedUri: (url) => isSafeHref(url),
       HTMLAttributes: { rel: "noopener noreferrer nofollow", target: "_blank" },
     }),
+    // Por párrafo o título (lo que toca la selección), nunca todo el texto; justificado si no se elige otra.
+    TextAlign.configure({ types: ["paragraph", "heading"], alignments: [...TEXT_ALIGNS], defaultAlignment: DEFAULT_TEXT_ALIGN }),
   ];
   return media ? [...base, EmbedNode, createImageNode(getMedia), PasteEmbed] : base;
 }

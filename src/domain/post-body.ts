@@ -35,6 +35,19 @@ const CHILDREN: Record<string, ReadonlySet<string>> = {
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 
+/** Alineaciones de párrafos y títulos. Sin alineación guardada, el texto va justificado. */
+export const TEXT_ALIGNS = ["justify", "left", "center", "right"] as const;
+export type TextAlign = (typeof TEXT_ALIGNS)[number];
+export const DEFAULT_TEXT_ALIGN: TextAlign = "justify";
+
+const isTextAlign = (value: unknown): value is TextAlign => (TEXT_ALIGNS as readonly unknown[]).includes(value);
+const hasValidAlign = (attrs: unknown) => !isRecord(attrs) || attrs.textAlign === undefined || attrs.textAlign === null || isTextAlign(attrs.textAlign);
+
+/** La alineación con que se dibuja un párrafo o título (justificado si no tiene una válida). */
+export function textAlignOf(node: PostNode): TextAlign {
+  return isTextAlign(node.attrs?.textAlign) ? node.attrs.textAlign : DEFAULT_TEXT_ALIGN;
+}
+
 /** Enlaces permitidos: http(s), correo o una ruta del propio sitio. Nunca `javascript:` ni `data:`. */
 export function isSafeHref(href: unknown): href is string {
   if (typeof href !== "string" || href.length === 0 || href.length > MAX_HREF_LENGTH) return false;
@@ -60,7 +73,9 @@ function isValidMarks(marks: unknown): boolean {
 function isValidAttrs(node: Record<string, unknown>): boolean {
   switch (node.type) {
     case "heading":
-      return isRecord(node.attrs) && (node.attrs.level === 2 || node.attrs.level === 3);
+      return isRecord(node.attrs) && (node.attrs.level === 2 || node.attrs.level === 3) && hasValidAlign(node.attrs);
+    case "paragraph":
+      return hasValidAlign(node.attrs);
     case "image":
       return isRecord(node.attrs) && typeof node.attrs.mediaId === "string" && UUID.test(node.attrs.mediaId);
     case "embed":

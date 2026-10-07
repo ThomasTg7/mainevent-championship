@@ -165,3 +165,28 @@ describe("createPostExtensions without media (Configuración)", () => {
     expect(names).toEqual(expect.arrayContaining(["image", "embed", "pasteEmbed"]));
   });
 });
+
+describe("text alignment in the editor", () => {
+  const twoParagraphs = { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Primero" }] }, { type: "paragraph", content: [{ type: "text", text: "Segundo" }] }] };
+
+  it("justifies by default and aligns only the paragraph where the cursor is", () => {
+    const current = editorWith(twoParagraphs);
+    expect(current.getJSON().content?.map((node) => node.attrs?.textAlign)).toEqual(["justify", "justify"]);
+
+    current.chain().setTextSelection(2).setTextAlign("center").run();
+    const body = current.getJSON() as PostBody;
+    expect(body.content?.map((node) => node.attrs?.textAlign)).toEqual(["center", "justify"]);
+    expect(validatePostBody(body)).toBe(true);
+  });
+
+  it("aligns every paragraph inside the selection, and only those", () => {
+    const current = editorWith({ ...twoParagraphs, content: [...twoParagraphs.content, { type: "paragraph", content: [{ type: "text", text: "Tercero" }] }] });
+    current.chain().setTextSelection({ from: 2, to: 12 }).setTextAlign("right").run();
+    expect(current.getJSON().content?.map((node) => node.attrs?.textAlign)).toEqual(["right", "right", "justify"]);
+  });
+
+  it("does not offer alignments the site does not allow", () => {
+    const current = editorWith(twoParagraphs);
+    expect(current.chain().setTextSelection(2).setTextAlign("start").run()).toBe(false);
+  });
+});

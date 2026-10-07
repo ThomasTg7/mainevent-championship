@@ -279,6 +279,27 @@ test("la vista previa en vivo muestra la noticia como en el sitio y cambia al es
   await expect(frame.getByRole("heading", { level: 1, name: "Rojas defiende en casa" })).toBeVisible();
 });
 
+test("el texto va justificado y cada párrafo se puede alinear por separado", async ({ page }) => {
+  await page.goto(adminUrl("/noticias/nueva"));
+  await page.getByRole("tab", { name: "Texto" }).click();
+  const editor = page.getByRole("textbox", { name: "Cuerpo de la noticia" });
+  await editor.click();
+  await page.keyboard.type("Párrafo justificado.");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Párrafo centrado.");
+  const alignment = page.getByRole("group", { name: "Alineación" });
+  await expect(alignment.getByRole("button", { name: "Justificar" })).toHaveAttribute("aria-pressed", "true");
+  await alignment.getByRole("button", { name: "Centrar" }).click();
+
+  // En el editor solo cambia el párrafo del cursor.
+  await expect(editor.getByText("Párrafo centrado.")).toHaveCSS("text-align", "center");
+  await expect(editor.getByText("Párrafo justificado.")).toHaveCSS("text-align", "justify");
+  // Y la vista previa (igual que el sitio) lo muestra así.
+  const frame = page.frameLocator('iframe[title^="Vista previa de la noticia"]');
+  await expect(frame.getByText("Párrafo centrado.")).toHaveCSS("text-align", "center");
+  await expect(frame.getByText("Párrafo justificado.")).toHaveCSS("text-align", "justify");
+});
+
 test("el listado y el formulario no desbordan en celular ni en PC", async ({ page }) => {
   for (const size of [{ width: 375, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);

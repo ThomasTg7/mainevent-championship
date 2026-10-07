@@ -13,7 +13,7 @@ import { EmbedPanel, LinkPanel } from "./toolbar-panels";
 
 // Tipografía del texto dentro del editor (la misma jerarquía que ve el público, sin su tamaño).
 const CONTENT_CLASS =
-  "min-h-72 px-4 py-3 text-base leading-relaxed outline-none [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-primary [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-xl [&_h3]:font-bold [&_hr]:my-6 [&_hr]:border-border [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text-primary [&_a]:underline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-primary";
+  "min-h-72 px-4 py-3 text-base leading-relaxed outline-none [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-primary [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-xl [&_h3]:font-bold [&_hr]:my-6 [&_hr]:border-border [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_p]:text-justify [&_h2]:text-justify [&_h3]:text-justify [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text-primary [&_a]:underline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-primary";
 
 type PostEditorProps = {
   /** Cuerpo guardado (JSON de Tiptap). */
