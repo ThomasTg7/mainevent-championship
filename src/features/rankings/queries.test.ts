@@ -91,21 +91,28 @@ describe("rankings of the seed", () => {
     expect(badges[await fighterIdBySlug(db, "diego-soto")]).toBeUndefined();
   });
 
-  it("hides a level everywhere on the site while it can still be edited", async () => {
+  it("hiding a level hides its ranked positions but keeps its champions in view everywhere", async () => {
     const perez = await fighterIdBySlug(db, "matias-perez");
+    const soto = await fighterIdBySlug(db, "diego-soto");
     const eventId = await eventIdBySlug(db, "guerra-campal-5");
     const boutIds = (await db.select({ id: bouts.id }).from(bouts).where(eq(bouts.eventId, eventId))).map((row) => row.id);
 
     await setRankingVisibility(db, "pro", false, "admin-1");
-    expect((await getPublicRankings(db, "pro")).cards).toEqual([]);
-    expect(await getFighterRankingTags(db, perez)).toEqual([]);
-    expect((await getBoutRankLabels(db, boutIds)).has(perez)).toBe(false);
-    expect((await getChampionBadges(db))[perez]).toBeUndefined();
-    // El amateur sigue a la vista.
+    const { cards } = await getPublicRankings(db, "pro");
+    // Solo la tarjeta del campeón de cada división: sin puestos ni libra por libra.
+    expect(cards.length).toBeGreaterThan(0);
+    expect(cards.every((card) => card.champion !== null && card.entries.length === 0 && card.division !== null)).toBe(true);
+    expect(cards.some((card) => card.champion?.name === "Matías Pérez")).toBe(true);
+    expect(await getFighterRankingTags(db, perez)).toEqual([{ label: "Campeón pro · Peso Ligero", isTitle: true }]);
+    const labels = await getBoutRankLabels(db, boutIds);
+    expect(labels.get(perez)).toBe("C");
+    expect(labels.has(soto)).toBe(false);
+    expect((await getChampionBadges(db))[perez]).toBe("Campeón");
+    // El amateur sigue completo a la vista.
     expect((await getPublicRankings(db, "amateur")).cards).toHaveLength(1);
 
     await setRankingVisibility(db, "pro", true, "admin-1");
-    expect((await getBoutRankLabels(db, boutIds)).get(perez)).toBe("C");
+    expect((await getBoutRankLabels(db, boutIds)).get(soto)).toBe("#1");
   });
 
   it("returns no labels without bouts", async () => {

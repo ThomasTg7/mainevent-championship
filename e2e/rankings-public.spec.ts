@@ -78,32 +78,35 @@ test("la cartelera de la pelea por el título muestra «Campeón» y «#1» junt
 
 test("en Peleadores los campeones llevan su insignia: «Campeón» o «Campeona»", async ({ page }) => {
   await page.goto("/peleadores?q=P%C3%A9rez");
-  await expect(page.getByRole("listitem").filter({ hasText: "Matías Pérez" })).toContainText("Campeón");
+  // Otro spec crea un «Matías Pérez» de prueba (con apodo raro): se elige el del seed por su apodo.
+  await expect(page.getByRole("listitem").filter({ hasText: "Matías Pérez" }).filter({ hasText: "“El Toro”" })).toContainText("Campeón");
   await page.goto("/peleadores?q=Rojas");
   await expect(page.getByRole("listitem").filter({ hasText: "Camila Rojas" })).toContainText("Campeona");
   await page.goto("/peleadores?q=Soto");
   await expect(page.getByRole("listitem").filter({ hasText: "Diego Soto" })).not.toContainText("Campe");
 });
 
-test("ocultar los rankings amateur en el panel los saca del sitio hasta volver a mostrarlos", async ({ page }) => {
+test("ocultar los rankings amateur saca los puestos del sitio pero deja a la vista a los campeones", async ({ page }) => {
   await signInAsAdmin(page);
   await page.goto(adminUrl("/rankings?nivel=amateur"));
   await expect(page.getByRole("heading", { name: "Rankings amateur visibles en el sitio" })).toBeVisible();
-  await page.getByRole("button", { name: "Ocultar del sitio" }).click();
-  await expect(page.getByRole("heading", { name: "Rankings amateur ocultos al público" })).toBeVisible();
+  await page.getByRole("button", { name: "Ocultar puestos" }).click();
+  await expect(page.getByRole("heading", { name: "Puestos amateur ocultos: solo se ven los campeones" })).toBeVisible();
 
   try {
     await page.goto("/rankings?nivel=amateur");
-    await expect(page.getByText("Pronto publicaremos los rankings")).toBeVisible();
-    // Sin tarjetas no se indexa (y el sitemap tampoco la lista).
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    const card = page.getByRole("article", { name: "Ranking Peso Paja fem." });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("Valentina Cortés");
+    // Sin puestos: solo el campeón.
+    await expect(card.getByRole("listitem")).toHaveCount(0);
     await page.goto("/peleadores/valentina-cortes");
     const tags = page.locator('[data-slot="fighter-tags"]');
     await expect(tags.getByText("#1 Peso Paja fem.")).toBeVisible();
-    await expect(tags.getByText("Campeona amateur · Peso Paja fem.")).toHaveCount(0);
+    await expect(tags.getByText("Campeona amateur · Peso Paja fem.")).toBeVisible();
   } finally {
     await page.goto(adminUrl("/rankings?nivel=amateur"));
-    await page.getByRole("button", { name: "Mostrar en el sitio" }).click();
+    await page.getByRole("button", { name: "Mostrar puestos" }).click();
     await expect(page.getByRole("heading", { name: "Rankings amateur visibles en el sitio" })).toBeVisible();
   }
   await page.goto("/rankings?nivel=amateur");

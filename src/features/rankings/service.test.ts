@@ -242,7 +242,7 @@ describe("setRankingVisibility", () => {
       await setRankingVisibility(fresh.db, "amateur", false, "admin-1");
       expect(await isLevelPublic(fresh.db, "amateur")).toBe(false);
       const logs = await fresh.db.select().from(auditLog).where(and(eq(auditLog.entityType, "ranking"), eq(auditLog.entityId, "amateur")));
-      expect(logs.map((log) => log.summary).sort()).toEqual(["Mostró en el sitio los rankings y campeones amateur", "Ocultó del sitio los rankings y campeones amateur"]);
+      expect(logs.map((log) => log.summary).sort()).toEqual(["Mostró en el sitio los rankings amateur", "Ocultó del sitio los puestos del ranking amateur (los campeones siguen a la vista)"]);
     } finally {
       await fresh.close();
     }

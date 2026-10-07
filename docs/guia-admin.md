@@ -65,7 +65,7 @@ En **Cartelera**, el botón **Resultado** de la pelea (o **Corregir resultado** 
 
 **Títulos.** Cuando en una pelea por el título gana el retador, el panel te pide **confirmar el nuevo campeón** («Confirmar cambio»): nunca cambia solo. El campeón anterior, si sigue activo, pasa al puesto 1 de su división. Si el título queda sin dueño, **«Dejar vacante»**.
 
-**Ocultar del sitio / Mostrar en el sitio.** Un nivel nuevo parte **oculto**: puedes armar y probar los rankings y campeones sin que el público los vea (el sitio dice «Pronto publicaremos los rankings»). Cuando esté listo, **Mostrar en el sitio**. Los campeones visibles llevan su insignia («Campeón» / «Campeona») en el listado y en su ficha.
+**Ocultar puestos / Mostrar puestos.** Un nivel nuevo parte con los **puestos ocultos**: puedes armar y probar los rankings sin que el público vea los números (#1, #2, libra por libra). **Los campeones se ven siempre**: en Rankings (solo la tarjeta del campeón de cada división), en las carteleras, en su ficha y en el listado, con su insignia («Campeón» / «Campeona»). Cuando los puestos estén listos, **Mostrar puestos**.
 
 ## Noticias
 

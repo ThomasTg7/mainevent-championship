@@ -72,8 +72,8 @@ export const dismissedSuggestions = pgTable(
 );
 
 /**
- * Si el sitio muestra los rankings y campeones de un nivel. Sin fila, el nivel está oculto: una instalación nueva arma
- * sus rankings en el panel sin que el público los vea hasta que la promotora toca «Mostrar en el sitio».
+ * Si el sitio muestra los puestos de un nivel. Sin fila, están ocultos: una instalación nueva arma
+ * sus puestos en el panel sin que el público los vea hasta que la promotora toca «Mostrar puestos» (los campeones se ven siempre).
  */
 export const rankingLevels = pgTable("ranking_levels", {
   level: boutLevel("level").primaryKey(),

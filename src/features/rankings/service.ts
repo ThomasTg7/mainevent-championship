@@ -216,7 +216,7 @@ export async function setRankingVisibility(db: Db, level: BoutLevel, isPublic: b
       action: "update",
       entityType: "ranking",
       entityId: level,
-      summary: `${isPublic ? "Mostró en el sitio" : "Ocultó del sitio"} los rankings y campeones ${LEVEL_LABEL[level]}`,
+      summary: isPublic ? `Mostró en el sitio los rankings ${LEVEL_LABEL[level]}` : `Ocultó del sitio los puestos del ranking ${LEVEL_LABEL[level]} (los campeones siguen a la vista)`,
     });
   });
 }

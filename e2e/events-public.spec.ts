@@ -222,6 +222,14 @@ test("una pelea tiene su página con todo el detalle y, al final, las tarjetas d
   const blueFace = page.locator('[data-corner="blue"] [data-slot="bout-face"]');
   expect((await blueFace.locator("svg").boundingBox())!.y).toBeGreaterThanOrEqual((await blueFace.boundingBox())!.y);
   await expect(page.locator('[data-slot="bout-result"]')).toContainText("Gana Diego Soto");
+  // En celular cada dato del resultado (método, dónde terminó, árbitro) va centrado, uno bajo otro.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const resultBox = (await page.locator('[data-slot="bout-result"] dl').boundingBox())!;
+  for (const item of await page.locator('[data-slot="bout-result"] dl > div').all()) {
+    const box = (await item.boundingBox())!;
+    expect(Math.abs(box.x + box.width / 2 - (resultBox.x + resultBox.width / 2))).toBeLessThanOrEqual(2);
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
   await expect(page.locator('[data-slot="bout-result"]')).toContainText("Decisión unánime");
   await expect(page.locator('[data-slot="bout-result"]')).toContainText("Ricardo Salas");
 

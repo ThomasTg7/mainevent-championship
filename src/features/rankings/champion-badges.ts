@@ -1,26 +1,23 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
 import { fighters } from "@/db/schema/fighters";
 import { titles } from "@/db/schema/rankings";
 import { championWord } from "@/domain/rankings";
 import { visibleRankedFighter } from "./eligibility";
-import { listPublicLevels } from "./visibility";
 
 /**
  * La insignia de cada campeón actual para las tarjetas del listado (`FighterCard badge`): «Campeón»/«Campeona» (pro) o
- * «Campeón amateur». Solo títulos de niveles visibles y divisiones activas, de peleadores que se ven; el pro gana si
+ * «Campeón amateur». Títulos de divisiones activas (también de un nivel con los puestos ocultos), de peleadores que se ven; el pro gana si
  * tiene los dos. Una consulta: los títulos son pocos (dos por división).
  */
 export async function getChampionBadges(db: Db): Promise<Record<string, string>> {
-  const publicLevels = await listPublicLevels(db);
-  if (publicLevels.size === 0) return {};
   const rows = await db
     .select({ fighterId: fighters.id, level: titles.level, gender: divisions.gender })
     .from(titles)
     .innerJoin(divisions, eq(divisions.id, titles.divisionId))
     .innerJoin(fighters, eq(fighters.id, titles.championFighterId))
-    .where(and(inArray(titles.level, [...publicLevels]), eq(divisions.active, true), visibleRankedFighter));
+    .where(and(eq(divisions.active, true), visibleRankedFighter));
 
   const badges: Record<string, string> = {};
   for (const row of rows.toSorted((a, b) => (a.level === b.level ? 0 : a.level === "pro" ? 1 : -1))) {

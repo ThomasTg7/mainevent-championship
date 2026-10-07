@@ -40,8 +40,9 @@ export function BoutResultSummary({ bout }: { bout: BoutDTO }) {
         <p className={LABEL}>Resultado</p>
         <p className="mt-2 font-display text-[clamp(30px,7vw,60px)] uppercase leading-[.95] text-yellow">{verdict}</p>
       </div>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-5 text-center sm:grid-cols-4">
-        <div className="col-span-2 sm:col-span-2">
+      {/* En celular, un dato bajo otro y centrados; desde `sm`, en una fila (el método ocupa dos columnas). */}
+      <dl className="grid grid-cols-1 gap-x-4 gap-y-5 text-center sm:grid-cols-4">
+        <div className="sm:col-span-2">
           <dt className={LABEL}>Método</dt>
           <dd className={`mt-1.5 ${VALUE}`}>{result.methodText}</dd>
         </div>

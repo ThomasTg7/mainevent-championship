@@ -75,7 +75,7 @@ export async function setRankingVisibilityAction(level: unknown, isPublic: unkno
     revalidateRankings();
     revalidatePath("/admin/rankings");
     revalidatePath("/admin/rankings/[level]/[scope]", "page");
-    return { success: parsed.data.isPublic ? "Rankings visibles en el sitio" : "Rankings ocultos: el público ya no los ve" };
+    return { success: parsed.data.isPublic ? "Rankings visibles en el sitio" : "Puestos ocultos: el público solo ve a los campeones" };
   });
 }
 
