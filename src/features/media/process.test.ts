@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { renderVariants, sanitizeSvg } from "./process";
 import type { MediaEdit } from "./schema";
 
@@ -142,6 +142,11 @@ describe("renderVariants", () => {
 });
 
 describe("sanitizeSvg", () => {
+  // DOMPurify (jsdom) se importa recién al limpiar el primer SVG: se carga aquí para que esa espera no caiga dentro de un test.
+  beforeAll(async () => {
+    await import("isomorphic-dompurify");
+  }, 60_000);
+
   it("removes scripts and inline event handlers", async () => {
     const clean = await sanitizeSvg(fixture("logo-with-script.svg").toString("utf8"));
 

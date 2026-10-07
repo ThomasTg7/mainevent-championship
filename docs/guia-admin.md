@@ -113,7 +113,7 @@ Una página sin texto (Nosotros, Privacidad) o sin datos (Contacto) muestra «Pr
 
 ## Imágenes
 
-Al subir una foto se abre el **editor**: recorte con la proporción correcta (mover, acercar, rotar), vista previa en las tarjetas reales, punto de enfoque y ajustes de brillo, contraste y saturación. Máximo **15 MB** por archivo; bajo el mínimo el panel avisa pero deja subir.
+Al subir una foto se abre el **editor**: recorte con la proporción correcta (mover, acercar, rotar), vista previa en las tarjetas reales, punto de enfoque y ajustes de brillo, contraste y saturación. Máximo **15 MB** por archivo; bajo el mínimo el panel avisa pero deja subir. Cada campo muestra su proporción y tamaño recomendado antes de elegir el archivo. Se aceptan **JPG, PNG, WebP, AVIF y HEIC** (la foto HEIC del iPhone se convierte sola a JPG antes de subirla; la primera vez descarga el convertidor, ~3 MB); los logos aceptan además SVG.
 
 | Dónde se usa | Proporción | Ideal | Mínimo | Formato |
 |---|---|---|---|---|

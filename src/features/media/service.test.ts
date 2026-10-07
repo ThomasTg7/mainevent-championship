@@ -171,6 +171,19 @@ describe("media service", () => {
       expect(row.mime).toBe("image/png");
     });
 
+    it("accepts an AVIF photo, stores it as .avif and renders WebP variants", async () => {
+      const avif = await sharp({ create: { width: 1200, height: 1800, channels: 3, background: "#369" } }).avif().toBuffer();
+      const mediaId = await upload("fighter_body", "image/avif", avif);
+
+      await expect(finalizeUpload(db, storage, mediaId)).resolves.toMatchObject({ width: 1200, height: 1800 });
+      const [row] = await db.select().from(media).where(eq(media.id, mediaId));
+      expect(row.mime).toBe("image/avif");
+      expect(row.originalKey).toMatch(/\.avif$/);
+
+      const saved = await saveMediaEdit(db, storage, mediaId, NEUTRAL_EDIT);
+      expect(saved.variants.map((variant) => variant.url.endsWith(".webp"))).not.toContain(false);
+    });
+
     it("rejects a raster image uploaded as SVG and the other way around", async () => {
       const png = await sharp({ create: { width: 300, height: 150, channels: 3, background: "#369" } }).png().toBuffer();
       const asSvg = await upload("sponsor_logo", "image/svg+xml", png);

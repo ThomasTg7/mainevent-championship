@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MEDIA_SPECS, checkResolution, clampCrop, describeSpec, variantWidthsFor } from "./media-specs";
+import { MEDIA_SPECS, checkResolution, clampCrop, describeSpec, formatsLabel, variantWidthsFor } from "./media-specs";
 
 describe("checkResolution", () => {
   it("warns with the exact minimum when the image is too small", () => {
@@ -95,5 +95,16 @@ describe("describeSpec", () => {
 
   it("has a description for every kind", () => {
     for (const kind of Object.keys(MEDIA_SPECS) as (keyof typeof MEDIA_SPECS)[]) expect(describeSpec(kind)).toMatch(/^Proporción .+ · Recomendado: .+ px.* · Mínimo: .+ px$/);
+  });
+});
+
+describe("formatsLabel", () => {
+  it("lists the photo formats, HEIC included (it is converted before uploading)", () => {
+    expect(formatsLabel("fighter_body")).toBe("JPG, PNG, WebP, AVIF o HEIC");
+    expect(formatsLabel("gallery")).toBe("JPG, PNG, WebP, AVIF o HEIC");
+  });
+
+  it("adds SVG where logos are allowed", () => {
+    expect(formatsLabel("sponsor_logo")).toBe("JPG, PNG, WebP, AVIF, HEIC o SVG");
   });
 });

@@ -21,6 +21,7 @@ const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
+  "image/avif": "avif",
   "image/svg+xml": "svg",
 };
 
@@ -30,6 +31,12 @@ const FORMAT_MIME: Record<string, string> = {
   webp: "image/webp",
   svg: "image/svg+xml",
 };
+
+/** Tipo real según el contenido. AVIF y HEIC comparten contenedor (`heif`): solo AVIF (AV1) se puede procesar aquí. */
+function detectMime({ format, compression }: Metadata): string | undefined {
+  if (format === "heif") return compression === "av1" ? "image/avif" : undefined;
+  return format ? FORMAT_MIME[format] : undefined;
+}
 
 /** Error con un mensaje pensado para mostrarse tal cual a la persona. */
 /** Error de imágenes con mensaje para la persona (la action lo muestra tal cual). */
@@ -115,7 +122,7 @@ export async function finalizeUpload(
   const { w, h } = visibleSize(metadata);
   // Se confía en el contenido real, no en la etiqueta del archivo (un PNG guardado como .jpg es común).
   // Lo que no puede cambiar es ser SVG o no: el SVG se sanitiza y no lleva variantes.
-  const actualMime = metadata.format ? FORMAT_MIME[metadata.format] : undefined;
+  const actualMime = detectMime(metadata);
   const isSvg = row.mime === "image/svg+xml";
   if (!actualMime || w === 0 || h === 0 || (actualMime === "image/svg+xml") !== isSvg || !MEDIA_SPECS[row.kind].accepts.includes(actualMime)) {
     await discardUpload(db, storage, row);

@@ -58,6 +58,20 @@ test("avisa cuando la imagen es más chica que el mínimo pero deja continuar", 
   await expect(field.locator('input[name="fighterBody"]')).toHaveValue(/^[0-9a-f-]{36}$/);
 });
 
+test("acepta fotos AVIF y lo dice junto a los demás formatos (también HEIC)", async ({ page }) => {
+  const field = section(page, "Foto de cuerpo completo");
+  await expect(field.getByText(/JPG, PNG, WebP, AVIF o HEIC/)).toBeVisible();
+  await expect(field.locator('input[type="file"]')).toHaveAttribute("accept", /image\/avif.*\.heic/);
+  const avif = await sharp({ create: { width: 1200, height: 1800, channels: 3, background: "#363" } }).avif().toBuffer();
+  await field.locator('input[type="file"]').setInputFiles({ name: "peleador.avif", mimeType: "image/avif", buffer: avif });
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("button", { name: "Guardar imagen" })).toBeVisible();
+  await dialog.getByRole("button", { name: "Guardar imagen" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(field.locator('input[name="fighterBody"]')).toHaveValue(/^[0-9a-f-]{36}$/);
+});
+
 test("rechaza formatos no permitidos con un mensaje claro", async ({ page }) => {
   const field = section(page, "Foto de cuerpo completo");
   await field.locator('input[type="file"]').setInputFiles({ name: "animacion.gif", mimeType: "image/gif", buffer: Buffer.from("GIF89a") });

@@ -29,7 +29,7 @@ export type MediaSpec = {
   label: string;
 };
 
-const RASTER = ["image/jpeg", "image/png", "image/webp"];
+const RASTER = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 
 export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
   fighter_body: { aspect: 2 / 3, aspectLabel: "2:3", recommended: { w: 1200, h: 1800 }, min: { w: 800, h: 1200 }, variantWidths: [400, 800, 1200], accepts: RASTER, label: "Foto de cuerpo completo" },
@@ -84,6 +84,17 @@ export function clampCrop(crop: Crop, img: Size): Crop {
   const width = Math.max(1, Math.min(Math.round(crop.width), img.w - x));
   const height = Math.max(1, Math.min(Math.round(crop.height), img.h - y));
   return { x, y, width, height };
+}
+
+const FORMAT_NAMES: Record<string, string> = { "image/jpeg": "JPG", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/svg+xml": "SVG" };
+
+/** Formatos que la persona puede elegir. HEIC va donde se aceptan fotos: el navegador lo convierte a JPG antes de subirlo. */
+export function formatsLabel(kind: MediaKind): string {
+  const { accepts } = MEDIA_SPECS[kind];
+  const names = accepts.filter((type) => type !== "image/svg+xml").map((type) => FORMAT_NAMES[type] ?? type);
+  if (accepts.includes("image/jpeg")) names.push("HEIC");
+  if (accepts.includes("image/svg+xml")) names.push("SVG");
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} o ${names.at(-1)}` : names.join("");
 }
 
 /** «vertical», «horizontal» o «cuadrada», para que la proporción se entienda sin hacer cuentas. */

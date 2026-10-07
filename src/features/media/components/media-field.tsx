@@ -4,8 +4,9 @@ import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { MediaImage } from "@/components/media/media-image";
 import { Button } from "@/components/ui/button";
-import { MEDIA_SPECS, describeSpec, type MediaKind } from "@/domain/media-specs";
+import { MEDIA_SPECS, describeSpec, formatsLabel, type MediaKind } from "@/domain/media-specs";
 import type { MediaDTO } from "../dto";
+import { HEIC_ACCEPT, acceptsHeic } from "../heic";
 import { EditorDialog, mediaTriggerAttribute } from "./editor-dialog";
 import { MediaDropzone } from "./media-dropzone";
 import { useMediaEditing } from "./use-media-editing";
@@ -67,10 +68,10 @@ export function MediaField({ kind, name, media: initialMedia = null, onChange }:
         </div>
       ) : (
         <MediaDropzone
-          accept={spec.accepts}
+          accept={acceptsHeic(kind) ? [...spec.accepts, ...HEIC_ACCEPT] : spec.accepts}
           disabled={busy}
           label={`Subir ${spec.label.toLowerCase()}`}
-          hint={`Arrastra la imagen aquí o toca para elegirla · JPG, PNG o WebP${spec.accepts.includes("image/svg+xml") ? " o SVG" : ""} · máx. 15 MB`}
+          hint={`Arrastra la imagen aquí o toca para elegirla · ${formatsLabel(kind)} · máx. 15 MB`}
           onFiles={([file]) => editing.pickFile(file)}
         />
       )}

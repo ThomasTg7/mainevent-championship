@@ -4,13 +4,14 @@ import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, us
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Loader2 } from "lucide-react";
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { MEDIA_SPECS, describeSpec } from "@/domain/media-specs";
+import { MEDIA_SPECS, describeSpec, formatsLabel } from "@/domain/media-specs";
 import type { MediaDTO } from "../dto";
+import { HEIC_ACCEPT } from "../heic";
 import { EditorDialog } from "./editor-dialog";
 import { GalleryItem } from "./gallery-item";
 import { MediaDropzone } from "./media-dropzone";
 import { uploadAndSave } from "./upload-original";
-import { useMediaEditing, validateFile } from "./use-media-editing";
+import { prepareFile, useMediaEditing } from "./use-media-editing";
 
 type GalleryEditorProps = {
   /** Fotos ya guardadas, en orden (las carga el servidor con `getMediaByIds`). */
@@ -63,10 +64,8 @@ export function GalleryEditor({ media: initialMedia = [], onChange, onMediaChang
     setProgress({ done: 0, total: files.length });
 
     for (const [index, file] of files.entries()) {
-      const problem = validateFile("gallery", file);
       try {
-        if (problem) throw new Error(problem);
-        added.push(await uploadAndSave("gallery", file));
+        added.push(await uploadAndSave("gallery", await prepareFile("gallery", file)));
       } catch (error) {
         failures.push(`${file.name}: ${error instanceof Error ? error.message : "no se pudo subir"}`);
       }
@@ -117,10 +116,10 @@ export function GalleryEditor({ media: initialMedia = [], onChange, onMediaChang
       </p>
       <MediaDropzone
         multiple
-        accept={SPEC.accepts}
+        accept={[...SPEC.accepts, ...HEIC_ACCEPT]}
         disabled={busy}
         label={items.length > 0 ? uploadLabels.more : uploadLabels.empty}
-        hint="Arrastra las fotos aquí o toca para elegirlas · JPG, PNG o WebP · máx. 15 MB cada una"
+        hint={`Arrastra las fotos aquí o toca para elegirlas · ${formatsLabel("gallery")} · máx. 15 MB cada una`}
         onFiles={addFiles}
       />
 

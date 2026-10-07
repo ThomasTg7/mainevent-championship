@@ -6,6 +6,7 @@ import { getMediaEditAction, saveMediaEditAction } from "../actions";
 import type { MediaDTO } from "../dto";
 import type { MediaEdit } from "../schema";
 import { DEFAULT_EDIT } from "../schema";
+import { acceptsHeic, convertHeic, isHeicFile } from "../heic";
 import { uploadOriginal } from "./upload-original";
 
 export type EditingSession = {
@@ -19,10 +20,25 @@ type Phase = { name: "idle" } | { name: "uploading"; progress: number } | { name
 
 const SVG_TYPE = "image/svg+xml";
 /** Valida en el navegador para avisar al tiro; el servidor vuelve a validar todo. */
-export function validateFile(kind: MediaKind, file: File): string | null {
+function validateFile(kind: MediaKind, file: File): string | null {
   if (!MEDIA_SPECS[kind].accepts.includes(file.type)) return "Formato no permitido";
   if (file.size > MAX_UPLOAD_BYTES) return "El archivo supera 15 MB";
   return null;
+}
+
+/** El archivo listo para subir: un HEIC se convierte a JPG; lo que no se acepta lanza el error para la persona. */
+export async function prepareFile(kind: MediaKind, file: File): Promise<File> {
+  let ready = file;
+  if (acceptsHeic(kind) && isHeicFile(file)) {
+    try {
+      ready = await convertHeic(file);
+    } catch {
+      throw new Error("No se pudo convertir la foto HEIC. Ábrela y expórtala como JPG, e inténtalo de nuevo.");
+    }
+  }
+  const problem = validateFile(kind, ready);
+  if (problem) throw new Error(problem);
+  return ready;
 }
 
 /** Flujo completo de un campo de imagen: subir → editar → guardar, y reabrir para seguir editando. */
@@ -72,11 +88,11 @@ export function useMediaEditing(kind: MediaKind, onSaved: (media: MediaDTO) => v
   );
 
   const pickFile = useCallback(
-    (file: File) => {
-      const problem = validateFile(kind, file);
-      if (problem) return setError(problem);
-      return run(() => uploadAndOpen(file));
-    },
+    (file: File) =>
+      run(async () => {
+        setPhase({ name: "busy" });
+        await uploadAndOpen(await prepareFile(kind, file));
+      }),
     [kind, run, uploadAndOpen],
   );
 
