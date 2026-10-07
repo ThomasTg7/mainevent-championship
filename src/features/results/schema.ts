@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BONUSES, DECISION_TYPES, KO_TKO_TYPES, METHODS, NC_REASONS, OUTCOMES, SUBMISSION_TYPES } from "@/domain/bout-enums";
+import { MAX_SCORECARDS } from "@/domain/bout-result";
 import { optionalEnum, optionalNumber, optionalText } from "@/lib/zod-fields";
 
 // Forma del resultado que llega de un formulario o de la consola en vivo. Aquí solo se convierte el tipo (texto →
@@ -9,6 +10,10 @@ const scorecard = z.object({
   judge: z.string().trim().max(80, "El nombre del juez es demasiado largo"),
   red: z.number({ error: "Los puntajes deben ser números enteros" }),
   blue: z.number({ error: "Los puntajes deben ser números enteros" }),
+  rounds: z
+    .array(z.object({ red: z.number({ error: "Los puntajes deben ser números enteros" }), blue: z.number({ error: "Los puntajes deben ser números enteros" }) }))
+    .max(10, "Demasiados rounds")
+    .nullish(),
 });
 
 export const boutResultInputSchema = z.object({
@@ -27,7 +32,7 @@ export const boutResultInputSchema = z.object({
   endRound: optionalNumber("El round", { min: 0, max: 99, integer: true }),
   endTimeSeconds: optionalNumber("El tiempo", { min: 0, max: 3600, integer: true }),
   referee: optionalText(80, "El árbitro"),
-  scorecards: z.array(scorecard).max(5, "Máximo 5 tarjetas").nullish(),
+  scorecards: z.array(scorecard).max(MAX_SCORECARDS, `Máximo ${MAX_SCORECARDS} tarjetas`).nullish(),
   bonuses: z.array(z.enum(BONUSES, { error: "Bono no válido" })).max(BONUSES.length).nullish(),
   videoUrl: optionalText(300, "El enlace del video"),
   notes: optionalText(600, "Las notas"),

@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { BONUSES, BONUS_LABELS, METHODS, METHOD_LABELS, type Bonus, type Outcome } from "@/domain/bout-enums";
-import { suggestDecisionType, type BoutResultInput } from "@/domain/bout-result";
+import type { BoutResultInput } from "@/domain/bout-result";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { RecordResultState } from "../actions";
-import { EMPTY_DRAFT, draftToInput, methodsForOutcome, setOutcome, type ResultDraft } from "../result-draft";
+import { EMPTY_DRAFT, draftToInput, methodsForOutcome, setOutcome, suggestFromCards, type ResultDraft } from "../result-draft";
 import { ResultMethodFields, type ResultBoutInfo } from "./result-method-fields";
 
 type ResultFormProps = {
@@ -74,12 +74,10 @@ export function ResultForm({ bout, techniques, initial = EMPTY_DRAFT, onSubmit, 
     setGeneralError(null);
   }
 
-  /** Con las tres tarjetas, propone quién ganó y cómo (el resultado y el tipo de decisión). */
+  /** Con 3 a 5 tarjetas completas, propone quién ganó y cómo (el resultado y el tipo de decisión). */
   function suggest(): string | null {
-    const cards = draft.scorecards.map((card) => ({ red: Number(card.red), blue: Number(card.blue) }));
-    const valid = draft.scorecards.length === 3 && draft.scorecards.every((card) => card.red.trim() && card.blue.trim()) && cards.every((card) => Number.isFinite(card.red) && Number.isFinite(card.blue));
-    const suggestion = valid ? suggestDecisionType(cards) : null;
-    if (!suggestion) return "Completa los puntos de las tres tarjetas para poder sugerirlo.";
+    const suggestion = suggestFromCards(draft, ctx);
+    if (!suggestion) return "Completa los puntos de todas las tarjetas (al menos tres) para poder sugerirlo.";
     setDraft((current) => ({ ...setOutcome(current, suggestion.outcome), decisionType: suggestion.decisionType }));
     setErrors({});
     return null;

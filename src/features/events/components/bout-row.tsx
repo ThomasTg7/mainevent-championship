@@ -5,7 +5,9 @@ import { Flag } from "@/components/ui-gc/flag";
 import { championWord } from "@/domain/rankings";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import type { BoutDTO, BoutFighterDTO } from "../dto";
-import { boutMeasure, fighterComparison, roundsLabel } from "../public-format";
+import { boutMeasure, roundsLabel } from "../public-format";
+import { BoutComparison } from "./bout-comparison";
+import { JudgesScorecards } from "./judges-scorecards";
 import { BoutItem } from "./bout-accordion";
 
 type Side = "red" | "blue";
@@ -95,47 +97,6 @@ function Corner({
   );
 }
 
-const VALUE_CLASS = "px-2 py-2.5 text-center font-display text-[clamp(18px,4.6vw,26px)] uppercase leading-none text-black";
-
-/** Frente a frente de las dos esquinas: valores a los lados, el dato en el medio, todo en la misma fila. */
-function Comparison({ bout }: { bout: BoutDTO }) {
-  const rows = fighterComparison(bout.red, bout.blue);
-  return (
-    <table data-slot="bout-comparison" className="mx-auto my-4 w-full max-w-[760px] table-fixed border-collapse">
-      <caption className="sr-only">
-        Datos de {bout.red.lastName} y {bout.blue.lastName}
-      </caption>
-      <colgroup>
-        <col className="w-[38%]" />
-        <col />
-        <col className="w-[38%]" />
-      </colgroup>
-      <thead>
-        <tr>
-          <th scope="col" className="border-b-4 border-[#D7263D] px-2 pb-2 font-cond text-[13px] font-extrabold uppercase tracking-[.1em] text-black">
-            {bout.red.lastName}
-          </th>
-          <td className="border-b-4 border-neutral-200" />
-          <th scope="col" className="border-b-4 border-[#1E6FD9] px-2 pb-2 font-cond text-[13px] font-extrabold uppercase tracking-[.1em] text-black">
-            {bout.blue.lastName}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr key={row.label} className="border-b border-neutral-200">
-            <td className={VALUE_CLASS}>{row.red}</td>
-            <th scope="row" className="px-1 text-center font-cond text-[11px] font-extrabold uppercase tracking-[.14em] text-neutral-500 sm:text-xs">
-              {row.label}
-            </th>
-            <td className={VALUE_CLASS}>{row.blue}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
 /** Una pelea de la cartelera: las dos esquinas, categoría, rounds y, si ya se peleó, quién ganó y cómo. Al tocarla se despliegan los datos de los dos. */
 export function BoutRow({ bout, rankLabels }: { bout: BoutDTO; /** `C` (campeón) o `#n` por id de peleador (ranking de hoy). */ rankLabels?: Record<string, string> }) {
   const measure = boutMeasure(bout);
@@ -188,7 +149,12 @@ export function BoutRow({ bout, rankLabels }: { bout: BoutDTO; /** `C` (campeón
       label={`${bout.red.lastName} vs ${bout.blue.lastName}`}
       className={`border-b border-neutral-200 py-6 md:py-7 ${cancelled ? "opacity-60" : ""}`}
       summary={summary}
-      details={<Comparison bout={bout} />}
+      details={
+        <>
+          <BoutComparison bout={bout} />
+          {result?.scorecards?.length ? <JudgesScorecards scorecards={result.scorecards} redName={bout.red.lastName} blueName={bout.blue.lastName} /> : null}
+        </>
+      }
     />
   );
 }

@@ -1,4 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { events } from "@/db/schema/events";
 import { createPreviewToken } from "@/features/publication/preview";
 import { adminUrl, signInAsAdmin } from "./fixtures/admin";
 import { createE2eCard } from "./fixtures/events";
@@ -193,7 +196,29 @@ test("mientras el evento está en vivo la página pública muestra cada resultad
   await saved;
 
   // La página se refresca sola cada 20 s mientras está en vivo (el margen del timeout cubre un servidor de desarrollo cargado).
-  await expect(page.locator("[data-result-line]")).toHaveText("Siete vence a Ocho · Decisión unánime · R3 5:00", { timeout: 60_000 });
+  await expect(page.locator("[data-result-line]")).toHaveText("Siete vence a Ocho · Decisión unánime", { timeout: 60_000 });
   await admin.close();
   await visitor.close();
+});
+
+test("una pelea por decisión muestra «Ver tarjetas de los jueces» al final de sus datos, sin round en el resultado", async ({ page }) => {
+  await page.goto("/eventos/guerra-campal-1");
+  const bout = page.locator("[data-bout]").filter({ hasText: "Soto vence a Araya" });
+  await expect(bout.locator("[data-result-line]")).toHaveText("Soto vence a Araya · Decisión unánime");
+
+  await bout.getByRole("button", { name: /Ver datos/ }).click();
+  const cards = bout.locator('[data-slot="judges-scorecards"]');
+  await cards.getByText("Ver tarjetas de los jueces").click();
+  const judge = cards.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "Juez 3" }) });
+  await expect(judge.getByRole("cell")).toHaveText(["30", "27"]);
+});
+
+test("a su hora de inicio el evento sale «en vivo» solo, sin que nadie lo marque en el panel", async ({ page }) => {
+  const card = await createE2eCard("Evento E2E En Vivo Automático", { "Cartelera estelar": [["cinco", "seis"]] });
+  // Empezó hace una hora y sigue «Programado» en la base: nadie abrió la noche de pelea.
+  await db.update(events).set({ startsAt: new Date(Date.now() - 60 * 60 * 1000), eventStatus: "scheduled" }).where(eq(events.id, card.eventId));
+
+  await page.goto(`/eventos/${card.slug}`);
+  await expect(page.getByRole("region", { name: /Cinco\s*VS\s*Seis/ }).getByText("● En vivo")).toBeVisible();
+  await expect(page.getByText("EN VIVO").first()).toBeVisible();
 });

@@ -5,7 +5,7 @@ import { publicScope } from "@/db/public-scope";
 import { divisions } from "@/db/schema/divisions";
 import { bouts, events, submissionTechniques } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
-import { formatMethod } from "@/domain/bout-result";
+import { formatMethod, roundAndTime } from "@/domain/bout-result";
 import { resultFor, type BoutOutcomeForRecord } from "@/domain/record";
 import type { MediaDTO } from "@/features/media/dto";
 import { getMediaByIds } from "@/features/media/queries";
@@ -132,8 +132,7 @@ export async function getFighterFightHistory(db: Db, fighterId: string): Promise
         level: row.level,
         fighterResult: resultFor({ outcome: row.outcome, redFighterId: row.redFighterId }, fighterId),
         methodText: formatMethod({ method: row.method, koTkoType: row.koTkoType, decisionType: row.decisionType, dqReason: row.dqReason, techniqueName: row.techniqueName }),
-        endRound: row.endRound,
-        endTimeSeconds: row.endTimeSeconds,
+        roundTime: roundAndTime({ method: row.method, endRound: row.endRound, endTimeSeconds: row.endTimeSeconds }),
         date: row.date.toISOString(),
         eventId: row.eventId,
         eventSlug: row.eventSlug,

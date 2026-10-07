@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { MediaImage } from "@/components/media/media-image";
 import { BOUT_LEVEL_LABELS, type BoutLevel } from "@/domain/bout-enums";
-import { formatClock } from "@/domain/clock";
 import type { FightHistoryRow } from "@/features/events/dto";
 import { formatDate } from "@/lib/format-date";
 import { FighterSilhouette } from "./fighter-silhouette";
@@ -93,9 +92,7 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
               </div>
               <p className="col-span-2 font-cond text-base font-bold uppercase tracking-[.06em] text-white sm:col-span-1 sm:text-right">
                 {row.methodText}
-                <span className="block text-sm font-semibold text-muted-foreground">
-                  R{row.endRound} {formatClock(row.endTimeSeconds)}
-                </span>
+                {row.roundTime ? <span className="block text-sm font-semibold text-muted-foreground">{row.roundTime}</span> : null}
               </p>
             </li>
           );

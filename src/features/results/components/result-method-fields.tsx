@@ -15,7 +15,7 @@ import {
   SUBMISSION_TYPES,
 } from "@/domain/bout-enums";
 import { formatClock } from "@/domain/clock";
-import type { ResultDraft } from "../result-draft";
+import { scorecardRoundCount, type ResultDraft } from "../result-draft";
 import { ScorecardsEditor } from "./scorecards-editor";
 
 export type ResultBoutInfo = { redName: string; blueName: string; scheduledRounds: number; roundSeconds: number };
@@ -150,10 +150,13 @@ export function ResultMethodFields({ draft, errors, techniques, bout, onChange, 
         <div className="md:col-span-2">
           <ScorecardsEditor
             cards={draft.scorecards}
+            mode={draft.scorecardMode}
+            roundCount={scorecardRoundCount(draft, bout)}
             redName={bout.redName}
             blueName={bout.blueName}
             error={errors.scorecards}
             onChange={(scorecards) => onChange({ scorecards })}
+            onModeChange={(scorecardMode) => onChange({ scorecardMode })}
             onSuggest={onSuggest}
           />
         </div>

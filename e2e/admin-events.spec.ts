@@ -205,7 +205,7 @@ test("registrar un resultado por sumisión (Mataleón, R2 3:42), corregirlo y an
   await dialog.getByLabel("Tipo de decisión").selectOption("unanimous");
   await dialog.getByRole("button", { name: "Guardar resultado" }).click();
   await expect(dialog).toBeHidden();
-  await expect(page.getByText("Cinco vence a Seis · Decisión unánime · R3 5:00")).toBeVisible();
+  await expect(page.getByText("Cinco vence a Seis · Decisión unánime")).toBeVisible();
 
   // Anular: queda «sin resultado» por anulación.
   await page.getByRole("button", { name: /Corregir el resultado de/ }).click();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatResultLine, suggestDecisionType, validateBoutResult, type BoutContext, type BoutResultInput } from "./bout-result";
+import { formatResultLine, roundAndTime, suggestDecisionType, validateBoutResult, type BoutContext, type BoutResultInput } from "./bout-result";
 
 const THREE_ROUNDS: BoutContext = { scheduledRounds: 3, roundSeconds: 300 };
 const FIVE_ROUNDS: BoutContext = { scheduledRounds: 5, roundSeconds: 300 };
@@ -138,6 +138,29 @@ describe("validateBoutResult — optional data", () => {
     expect(valueOf(decision).scorecards).toBeNull();
   });
 
+  it("takes up to five judges", () => {
+    const decision: BoutResultInput = { outcome: "red_win", method: "decision", decisionType: "unanimous" };
+    const card = (judge: string) => ({ judge, red: 29, blue: 28 });
+    expect(valueOf({ ...decision, scorecards: ["A", "B", "C", "D", "E"].map(card) }).scorecards).toHaveLength(5);
+    expect(errorsOf({ ...decision, scorecards: ["A", "B", "C", "D", "E", "F"].map(card) }).scorecards).toBe("Máximo 5 tarjetas");
+  });
+
+  it("adds up a card written round by round, and checks each round", () => {
+    const decision: BoutResultInput = { outcome: "red_win", method: "decision", decisionType: "unanimous" };
+    const rounds = [
+      { red: 10, blue: 9 },
+      { red: 9, blue: 10 },
+      { red: 10, blue: 8 },
+    ];
+    expect(valueOf({ ...decision, scorecards: [{ judge: "A", red: 0, blue: 0, rounds }] }).scorecards).toEqual([{ judge: "A", red: 29, blue: 27, rounds }]);
+    expect(errorsOf({ ...decision, scorecards: [{ judge: "A", red: 0, blue: 0, rounds: [{ red: 11, blue: 9 }] }] }).scorecards).toBe(
+      "Cada round se puntúa con números enteros de 0 a 10",
+    );
+    expect(errorsOf({ ...decision, scorecards: [{ judge: "A", red: 0, blue: 0, rounds: [...rounds, { red: 10, blue: 9 }] }] }).scorecards).toBe(
+      "La tarjeta tiene más rounds que la pelea (3)",
+    );
+  });
+
   it("keeps each bonus once", () => {
     expect(valueOf({ ...koWin, bonuses: ["ko_of_night", "ko_of_night", "fight_of_night"] }).bonuses).toEqual(["ko_of_night", "fight_of_night"]);
     expect(valueOf(koWin).bonuses).toEqual([]);
@@ -167,7 +190,18 @@ describe("suggestDecisionType", () => {
     expect(suggestDecisionType([{ red: 29, blue: 28 }, { red: 28, blue: 28 }, { red: 29, blue: 29 }])).toEqual({ outcome: "draw", decisionType: "majority" });
   });
 
-  it("gives no suggestion unless there are three scorecards", () => {
+  it("also works with five judges: the winner needs most of the cards", () => {
+    const red = { red: 29, blue: 28 };
+    const blue = { red: 28, blue: 29 };
+    const even = { red: 28, blue: 28 };
+    expect(suggestDecisionType([red, red, red, red, red])).toEqual({ outcome: "red_win", decisionType: "unanimous" });
+    expect(suggestDecisionType([red, red, red, blue, even])).toEqual({ outcome: "red_win", decisionType: "split" });
+    expect(suggestDecisionType([red, red, red, even, even])).toEqual({ outcome: "red_win", decisionType: "majority" });
+    expect(suggestDecisionType([red, red, blue, even, even])).toEqual({ outcome: "draw", decisionType: "split" });
+    expect(suggestDecisionType([red, even, even, even, blue])).toEqual({ outcome: "draw", decisionType: "majority" });
+  });
+
+  it("gives no suggestion with fewer than three scorecards", () => {
     expect(suggestDecisionType([])).toBeNull();
     expect(suggestDecisionType([{ red: 29, blue: 28 }, { red: 29, blue: 28 }])).toBeNull();
   });
@@ -191,9 +225,9 @@ describe("formatResultLine", () => {
     expect(line({ ...input, koTkoType: "ko" })).toBe("Soto vence a Pérez · KO · R1 0:45");
   });
 
-  it("writes decisions with their type and the full time", () => {
-    expect(line({ outcome: "red_win", method: "decision", decisionType: "split" })).toBe("Pérez vence a Soto · Decisión dividida · R3 5:00");
-    expect(line({ outcome: "red_win", method: "decision", decisionType: "unanimous" }, {}, FIVE_ROUNDS)).toBe("Pérez vence a Soto · Decisión unánime · R5 5:00");
+  it("writes decisions with their type only: a decision goes the distance, the round adds nothing", () => {
+    expect(line({ outcome: "red_win", method: "decision", decisionType: "split" })).toBe("Pérez vence a Soto · Decisión dividida");
+    expect(line({ outcome: "red_win", method: "decision", decisionType: "unanimous" }, {}, FIVE_ROUNDS)).toBe("Pérez vence a Soto · Decisión unánime");
   });
 
   it("writes technical decisions and disqualifications", () => {
@@ -205,8 +239,17 @@ describe("formatResultLine", () => {
     );
   });
 
-  it("writes a draw without a winner", () => {
+  it("writes a draw without a winner, with the round only when it was stopped (technical decision)", () => {
     expect(line({ outcome: "draw", method: "decision", decisionType: "majority" })).toBe("Pérez y Soto empatan · Decisión mayoritaria");
+    expect(line({ outcome: "draw", method: "technical_decision", decisionType: "split", endRound: 2, endTimeSeconds: 100 })).toBe(
+      "Pérez y Soto empatan · Decisión técnica dividida · R2 1:40",
+    );
+  });
+
+  it("roundAndTime says where the fight ended, and nothing for a decision", () => {
+    expect(roundAndTime({ method: "ko_tko", endRound: 1, endTimeSeconds: 45 })).toBe("R1 0:45");
+    expect(roundAndTime({ method: "technical_decision", endRound: 2, endTimeSeconds: 100 })).toBe("R2 1:40");
+    expect(roundAndTime({ method: "decision", endRound: 3, endTimeSeconds: 300 })).toBeNull();
   });
 
   it("writes a no contest with its reason", () => {

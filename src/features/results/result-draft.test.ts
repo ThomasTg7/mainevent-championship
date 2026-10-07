@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BoutContext } from "@/domain/bout-result";
-import { EMPTY_DRAFT, draftFromResult, draftToInput, methodsForOutcome, setOutcome, type ResultDraft } from "./result-draft";
+import { EMPTY_DRAFT, draftFromResult, draftToInput, methodsForOutcome, scorecardRoundCount, setOutcome, suggestFromCards, type ResultDraft } from "./result-draft";
 
 const FIVE_MINUTES: BoutContext = { scheduledRounds: 3, roundSeconds: 300 };
 const draft = (overrides: Partial<ResultDraft>): ResultDraft => ({ ...EMPTY_DRAFT, ...overrides });
@@ -68,6 +68,45 @@ describe("draftToInput", () => {
     expect(errorsOf({ ...base, scorecards: [{ judge: "", red: "29", blue: "28" }] }).scorecards).toBe("Cada tarjeta necesita el nombre del juez");
   });
 
+  it("adds up the cards written round by round, one row per round fought", () => {
+    const base = draft({ outcome: "red_win", method: "decision", decisionType: "unanimous", scorecardMode: "rounds" });
+    const rounds = [
+      { red: "10", blue: "9" },
+      { red: "9", blue: "10" },
+      { red: "10", blue: "9" },
+    ];
+    expect(draftToInput({ ...base, scorecards: [{ judge: "Juez 1", red: "", blue: "", rounds }] }, FIVE_MINUTES)).toMatchObject({
+      ok: true,
+      value: { scorecards: [{ judge: "Juez 1", red: 29, blue: 28, rounds: [{ red: 10, blue: 9 }, { red: 9, blue: 10 }, { red: 10, blue: 9 }] }] },
+    });
+    expect(errorsOf({ ...base, scorecards: [{ judge: "Juez 1", red: "", blue: "", rounds: rounds.slice(0, 2) }] }).scorecards).toBe("Completa los puntos de cada round");
+  });
+
+  it("scores only the rounds that were fought in a technical decision", () => {
+    const technical = draft({ outcome: "red_win", method: "technical_decision", decisionType: "unanimous", endRound: "2", endTime: "1:00", scorecardMode: "rounds" });
+    expect(scorecardRoundCount(technical, FIVE_MINUTES)).toBe(2);
+    expect(scorecardRoundCount({ ...technical, endRound: "" }, FIVE_MINUTES)).toBe(3);
+    expect(scorecardRoundCount(draft({ method: "decision" }), { scheduledRounds: 5 })).toBe(5);
+    const rounds = [{ red: "10", blue: "9" }, { red: "10", blue: "9" }, { red: "", blue: "" }];
+    expect(draftToInput({ ...technical, scorecards: [{ judge: "Juez 1", red: "", blue: "", rounds }] }, FIVE_MINUTES)).toMatchObject({
+      ok: true,
+      value: { scorecards: [{ red: 20, blue: 18 }] },
+    });
+  });
+
+  it("suggests the decision from three to five complete cards, in either mode", () => {
+    const totals = draft({ scorecards: ["29-28", "29-28", "28-29"].map((score, index) => ({ judge: `J${index}`, red: score.split("-")[0]!, blue: score.split("-")[1]! })) });
+    expect(suggestFromCards(totals, FIVE_MINUTES)).toEqual({ outcome: "red_win", decisionType: "split" });
+    expect(suggestFromCards(draft({ scorecards: totals.scorecards.slice(0, 2) }), FIVE_MINUTES)).toBeNull();
+
+    const byRound = draft({
+      method: "decision",
+      scorecardMode: "rounds",
+      scorecards: [0, 1, 2].map((index) => ({ judge: `J${index}`, red: "", blue: "", rounds: [{ red: "9", blue: "10" }, { red: "9", blue: "10" }, { red: "10", blue: "9" }] })),
+    });
+    expect(suggestFromCards(byRound, FIVE_MINUTES)).toEqual({ outcome: "blue_win", decisionType: "unanimous" });
+  });
+
   it("keeps the details of the chosen method only", () => {
     const result = draftToInput(
       draft({ outcome: "no_contest", method: "no_contest", ncReason: "accidental_foul", endRound: "1", endTime: "1:15", koTkoType: "ko", dqReason: "x" }),
@@ -102,6 +141,32 @@ describe("draftFromResult", () => {
       videoUrl: null,
       notes: "Buen combate",
     });
-    expect(shown).toMatchObject({ outcome: "red_win", method: "submission", submissionTechniqueId: "t-1", endRound: "2", endTime: "3:42", referee: "Salas", koTkoType: "", notes: "Buen combate", scorecards: [] });
+    expect(shown).toMatchObject({ outcome: "red_win", method: "submission", submissionTechniqueId: "t-1", endRound: "2", endTime: "3:42", referee: "Salas", koTkoType: "", notes: "Buen combate", scorecards: [], scorecardMode: "total" });
+  });
+
+  it("opens cards saved round by round in that mode", () => {
+    const saved = draftFromResult({
+      ...draftFromResultBase,
+      scorecards: [{ judge: "Rojas", red: 19, blue: 19, rounds: [{ red: 10, blue: 9 }, { red: 9, blue: 10 }] }],
+    });
+    expect(saved).toMatchObject({ scorecardMode: "rounds", scorecards: [{ judge: "Rojas", red: "19", blue: "19", rounds: [{ red: "10", blue: "9" }, { red: "9", blue: "10" }] }] });
   });
 });
+
+const draftFromResultBase = {
+  outcome: "draw" as const,
+  method: "decision" as const,
+  koTkoType: null,
+  submissionTechniqueId: null,
+  submissionType: null,
+  decisionType: "split" as const,
+  dqReason: null,
+  ncReason: null,
+  ncNote: null,
+  endRound: 2,
+  endTimeSeconds: 300,
+  referee: null,
+  bonuses: [],
+  videoUrl: null,
+  notes: null,
+};
