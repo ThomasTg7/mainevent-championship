@@ -40,7 +40,7 @@ function CornerPhoto({ fighter, side, won }: { fighter: BoutFighterDTO; side: Si
       }`}
     >
       {media ? (
-        <MediaImage media={media} sizes="(min-width: 640px) 190px, 30vw" className={`size-full object-cover ${photo === "body" ? "object-top" : ""}`} />
+        <MediaImage media={media} sizes="(min-width: 640px) 190px, 30vw" anchorTop={photo === "body"} className="size-full object-cover" />
       ) : (
         <FighterSilhouette className="absolute bottom-0 left-1/2 h-[92%] -translate-x-1/2 text-neutral-900" />
       )}

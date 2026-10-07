@@ -77,3 +77,11 @@ describe("MediaImage", () => {
     expect(screen.getByRole("img")).toHaveClass("size-full", "object-cover");
   });
 });
+
+describe("MediaImage anchorTop", () => {
+  it("keeps the horizontal focal point but shows the top of the photo", () => {
+    const media = { id: "m", kind: "fighter_body" as const, width: 1200, height: 1800, focal: { x: 0.3, y: 0.5 }, alt: "Pérez", variants: [{ width: 400, url: "/v/400.webp" }], originalUrl: "/o.jpg" };
+    const { container } = render(<MediaImage media={media} sizes="100px" anchorTop />);
+    expect(container.querySelector("img")?.style.objectPosition).toBe("30% 0%");
+  });
+});
