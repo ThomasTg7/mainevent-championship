@@ -2,10 +2,12 @@
 
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
+import { MoneyInput } from "@/components/admin/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import type { TicketTier } from "@/db/schema/events";
+import { formatThousands, parseThousands } from "@/lib/format-money";
 
 type TierDraft = { key: number; name: string; description: string; price: string; soldOut: boolean };
 
@@ -18,17 +20,11 @@ type TicketTiersFieldProps = {
 
 const MAX_TIERS = 12;
 
-/** «15.000» o «15000» → 15000. Vacío o con letras → `null`: el servidor pide un precio válido. */
-function parsePrice(text: string): number | null {
-  const digits = text.trim().replace(/\./g, "");
-  return /^\d+$/.test(digits) ? Number(digits) : null;
-}
-
 /** Tramos de precio de las entradas (nombre, descripción, precio en pesos, agotado). Envía todo junto como JSON en `ticketTiers`. */
 export function TicketTiersField({ initial, error }: TicketTiersFieldProps) {
   const uid = useId();
   const [tiers, setTiers] = useState<TierDraft[]>(() =>
-    initial.map((tier, index) => ({ key: index, name: tier.name, description: tier.description, price: String(tier.priceClp), soldOut: tier.soldOut })),
+    initial.map((tier, index) => ({ key: index, name: tier.name, description: tier.description, price: formatThousands(String(tier.priceClp)), soldOut: tier.soldOut })),
   );
   const [nextKey, setNextKey] = useState(initial.length);
 
@@ -40,7 +36,7 @@ export function TicketTiersField({ initial, error }: TicketTiersFieldProps) {
       return next;
     });
 
-  const serialized = JSON.stringify(tiers.map((tier) => ({ name: tier.name, description: tier.description, priceClp: parsePrice(tier.price), soldOut: tier.soldOut })));
+  const serialized = JSON.stringify(tiers.map((tier) => ({ name: tier.name, description: tier.description, priceClp: parseThousands(tier.price), soldOut: tier.soldOut })));
 
   return (
     <fieldset className="flex flex-col gap-3">
@@ -60,8 +56,8 @@ export function TicketTiersField({ initial, error }: TicketTiersFieldProps) {
                 <Input id={`${uid}-description-${tier.key}`} value={tier.description} maxLength={120} onChange={(event) => update(tier.key, { description: event.target.value })} placeholder="Galería · Acceso 19:30" autoComplete="off" />
               </label>
               <label className="flex flex-col gap-1 text-sm" htmlFor={`${uid}-price-${tier.key}`}>
-                Precio ($ CLP)
-                <Input id={`${uid}-price-${tier.key}`} value={tier.price} inputMode="numeric" onChange={(event) => update(tier.key, { price: event.target.value })} placeholder="15000" autoComplete="off" />
+                Precio (CLP)
+                <MoneyInput id={`${uid}-price-${tier.key}`} value={tier.price} onChange={(price) => update(tier.key, { price })} placeholder="15.000" />
               </label>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2">
