@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
@@ -6,9 +6,9 @@ import { championWord } from "@/domain/rankings";
 import { FighterName } from "@/features/fighters/components/fighter-name";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import type { BoutDTO, BoutFighterDTO } from "../dto";
+import { boutHref } from "../bout-lookup";
 import { boutMeasure, roundsLabel } from "../public-format";
 import { BoutComparison } from "./bout-comparison";
-import { JudgesScorecards } from "./judges-scorecards";
 import { BoutItem } from "./bout-accordion";
 
 type Side = "red" | "blue";
@@ -92,7 +92,17 @@ function Corner({
 }
 
 /** Una pelea de la cartelera: las dos esquinas, categoría, rounds y, si ya se peleó, quién ganó y cómo. Al tocarla se despliegan los datos de los dos. */
-export function BoutRow({ bout, rankLabels }: { bout: BoutDTO; /** `C` (campeón) o `#n` por id de peleador (ranking de hoy). */ rankLabels?: Record<string, string> }) {
+export function BoutRow({
+  bout,
+  eventSlug,
+  rankLabels,
+}: {
+  bout: BoutDTO;
+  /** Para el enlace a la página de la pelea. */
+  eventSlug: string;
+  /** `C` (campeón) o `#n` por id de peleador (ranking de hoy). */
+  rankLabels?: Record<string, string>;
+}) {
   const measure = boutMeasure(bout);
   const { result } = bout;
   const winner = result && (result.outcome === "red_win" || result.outcome === "blue_win") ? WINNER_OF[result.outcome] : null;
@@ -145,7 +155,15 @@ export function BoutRow({ bout, rankLabels }: { bout: BoutDTO; /** `C` (campeón
       details={
         <>
           <BoutComparison bout={bout} />
-          {result?.scorecards?.length ? <JudgesScorecards scorecards={result.scorecards} redName={bout.red.lastName} blueName={bout.blue.lastName} /> : null}
+          {/* La pelea completa (resultado, árbitro, bonos y las tarjetas de los jueces round por round) tiene su página. */}
+          <Link
+            href={boutHref(eventSlug, bout.id)}
+            className="mx-auto mb-2 flex min-h-11 w-fit items-center gap-2 bg-black px-5 font-cond text-xs font-extrabold uppercase tracking-[.14em] text-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+          >
+            {result?.scorecards?.length ? "Ver la pelea y las tarjetas" : "Ver la pelea completa"}
+            <span className="sr-only">: {bout.red.lastName} vs {bout.blue.lastName}</span>
+            <ArrowRight aria-hidden className="size-4" />
+          </Link>
         </>
       }
     />

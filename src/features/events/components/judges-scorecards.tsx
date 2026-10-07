@@ -1,69 +1,66 @@
-import { ChevronDown } from "lucide-react";
 import type { Scorecard } from "@/domain/bout-result";
 
 type JudgesScorecardsProps = { scorecards: Scorecard[]; redName: string; blueName: string };
 
-const SCORE_CLASS = "px-2 py-2.5 text-center font-display text-[clamp(20px,5vw,28px)] leading-none tabular-nums";
+const CELL = "px-3 py-2 text-center font-display text-xl leading-none tabular-nums";
+
+const winnerClass = (mine: number, theirs: number) => (mine > theirs ? "text-black" : "text-neutral-500");
+
+/** Para quién fue la tarjeta: «Para Soto», o «Empate». */
+function verdict(card: Scorecard, redName: string, blueName: string): string {
+  if (card.red === card.blue) return "Empate";
+  return `Para ${card.red > card.blue ? redName : blueName}`;
+}
 
 /**
- * «Ver tarjetas de los jueces», al final de los datos de una pelea: el total de cada juez con la esquina roja a la
- * izquierda y la azul a la derecha (como el frente a frente) y, si se anotó round por round, cada round debajo. Es un
- * `<details>` nativo: abre sin JavaScript y con teclado.
+ * Las tarjetas de los jueces con todo el detalle (al final de la página de la pelea): por juez, cada round con el
+ * puntaje de las dos esquinas (si se anotó round por round) y el total, con el ganador de cada fila destacado.
  */
 export function JudgesScorecards({ scorecards, redName, blueName }: JudgesScorecardsProps) {
   return (
-    <details data-slot="judges-scorecards" className="group mx-auto mb-2 w-full max-w-[760px] border-t border-neutral-200">
-      <summary className="mx-auto flex min-h-11 w-fit cursor-pointer list-none items-center gap-2 px-4 font-cond text-xs font-extrabold uppercase tracking-[.14em] text-neutral-600 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black [&::-webkit-details-marker]:hidden">
-        Ver tarjetas de los jueces
-        <ChevronDown aria-hidden className="size-4 transition-transform duration-300 group-open:rotate-180 motion-reduce:transition-none" />
-      </summary>
-      <table className="w-full table-fixed border-collapse">
-        <caption className="sr-only">
-          Tarjetas de los jueces: {redName} y {blueName}
-        </caption>
-        <colgroup>
-          <col className="w-[30%]" />
-          <col />
-          <col className="w-[30%]" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th scope="col" className="border-b-4 border-[#D7263D] px-2 pb-2 font-cond text-[13px] font-extrabold uppercase tracking-[.1em] text-black">
-              {redName}
-            </th>
-            <th scope="col" className="border-b-4 border-neutral-200 px-1 pb-2 font-cond text-[11px] font-extrabold uppercase tracking-[.14em] text-neutral-500">
-              Juez
-            </th>
-            <th scope="col" className="border-b-4 border-[#1E6FD9] px-2 pb-2 font-cond text-[13px] font-extrabold uppercase tracking-[.1em] text-black">
-              {blueName}
-            </th>
-          </tr>
-        </thead>
-        {scorecards.map((card, position) => (
-          <tbody key={position} className="border-b border-neutral-200">
-            <tr>
-              <td className={`${SCORE_CLASS} ${card.red > card.blue ? "text-black" : "text-neutral-500"}`}>{card.red}</td>
-              <th scope="row" className="px-1 text-center font-cond text-sm font-bold uppercase tracking-[.06em] text-neutral-700">
-                {card.judge}
-              </th>
-              <td className={`${SCORE_CLASS} ${card.blue > card.red ? "text-black" : "text-neutral-500"}`}>{card.blue}</td>
-            </tr>
-            {card.rounds?.length ? (
+    <ul data-slot="judges-scorecards" className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      {scorecards.map((card, position) => (
+        <li key={position} className="flex flex-col border border-neutral-200 bg-white">
+          <div className="flex items-baseline justify-between gap-3 border-b border-neutral-200 px-4 py-3">
+            <h3 className="font-cond text-lg font-extrabold uppercase tracking-[.06em] text-black">{card.judge}</h3>
+            <span className="font-cond text-xs font-bold uppercase tracking-[.12em] text-neutral-500">{verdict(card, redName, blueName)}</span>
+          </div>
+          <table className="w-full table-fixed border-collapse">
+            <caption className="sr-only">Tarjeta de {card.judge}</caption>
+            <thead>
               <tr>
-                <td colSpan={3} className="pb-3 text-center">
-                  <ol aria-label={`Rounds de ${card.judge}`} className="inline-flex flex-wrap justify-center gap-1.5">
-                    {card.rounds.map((round, index) => (
-                      <li key={index} className="bg-neutral-100 px-2 py-0.5 font-cond text-xs font-bold tabular-nums tracking-[.04em] text-neutral-700">
-                        R{index + 1} {round.red}-{round.blue}
-                      </li>
-                    ))}
-                  </ol>
-                </td>
+                <th scope="col" className="w-[28%] px-3 py-2 text-left font-cond text-[11px] font-extrabold uppercase tracking-[.14em] text-neutral-500">
+                  {card.rounds?.length ? "Round" : ""}
+                </th>
+                <th scope="col" className="border-b-4 border-[#D7263D] px-3 py-2 font-cond text-xs font-extrabold uppercase tracking-[.1em] text-black">
+                  {redName}
+                </th>
+                <th scope="col" className="border-b-4 border-[#1E6FD9] px-3 py-2 font-cond text-xs font-extrabold uppercase tracking-[.1em] text-black">
+                  {blueName}
+                </th>
               </tr>
-            ) : null}
-          </tbody>
-        ))}
-      </table>
-    </details>
+            </thead>
+            <tbody>
+              {(card.rounds ?? []).map((round, index) => (
+                <tr key={index} className="border-b border-neutral-100">
+                  <th scope="row" className="px-3 py-2 text-left font-cond text-sm font-bold uppercase tracking-[.06em] text-neutral-600">
+                    R{index + 1}
+                  </th>
+                  <td className={`${CELL} ${winnerClass(round.red, round.blue)}`}>{round.red}</td>
+                  <td className={`${CELL} ${winnerClass(round.blue, round.red)}`}>{round.blue}</td>
+                </tr>
+              ))}
+              <tr className="bg-neutral-100">
+                <th scope="row" className="px-3 py-3 text-left font-cond text-sm font-extrabold uppercase tracking-[.08em] text-black">
+                  Total
+                </th>
+                <td className={`${CELL} py-3 text-2xl ${winnerClass(card.red, card.blue)}`}>{card.red}</td>
+                <td className={`${CELL} py-3 text-2xl ${winnerClass(card.blue, card.red)}`}>{card.blue}</td>
+              </tr>
+            </tbody>
+          </table>
+        </li>
+      ))}
+    </ul>
   );
 }

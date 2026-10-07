@@ -201,16 +201,31 @@ test("mientras el evento está en vivo la página pública muestra cada resultad
   await visitor.close();
 });
 
-test("una pelea por decisión muestra «Ver tarjetas de los jueces» al final de sus datos, sin round en el resultado", async ({ page }) => {
+test("una pelea tiene su página con todo el detalle y, al final, las tarjetas de los jueces", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-1");
   const bout = page.locator("[data-bout]").filter({ hasText: "Soto vence a Araya" });
+  // Una decisión no lleva round ni tiempo: llegó al final.
   await expect(bout.locator("[data-result-line]")).toHaveText("Soto vence a Araya · Decisión unánime");
 
   await bout.getByRole("button", { name: /Ver datos/ }).click();
-  const cards = bout.locator('[data-slot="judges-scorecards"]');
-  await cards.getByText("Ver tarjetas de los jueces").click();
-  const judge = cards.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "Juez 3" }) });
-  await expect(judge.getByRole("cell")).toHaveText(["30", "27"]);
+  await bout.getByRole("link", { name: /Ver la pelea y las tarjetas/ }).click();
+  await expect(page).toHaveURL(/\/eventos\/guerra-campal-1\/peleas\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { name: /Soto\s*vs\s*Araya/i, level: 1 })).toBeVisible();
+  await expect(page.locator('[data-corner="red"] [data-result="win"]')).toHaveText("Victoria");
+  await expect(page.locator('[data-slot="bout-result"]')).toContainText("Gana Diego Soto");
+  await expect(page.locator('[data-slot="bout-result"]')).toContainText("Decisión unánime");
+  await expect(page.locator('[data-slot="bout-result"]')).toContainText("Ricardo Salas");
+
+  const judge = page.getByRole("table", { name: "Tarjeta de Juez 3" });
+  const total = judge.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "Total" }) });
+  await expect(total.getByRole("cell")).toHaveText(["30", "27"]);
+  // Anotada round por round: cada round con los dos puntajes.
+  const round2 = judge.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "R2" }) });
+  await expect(round2.getByRole("cell")).toHaveText(["10", "8"]);
+  await expectNoHorizontalScroll(page);
+
+  await page.goto("/eventos/guerra-campal-1/peleas/00000000-0000-4000-8000-000000000000");
+  await expect(page.getByRole("heading", { name: "Pelea no encontrada" })).toBeVisible();
 });
 
 test("a su hora de inicio el evento sale «en vivo» solo, sin que nadie lo marque en el panel", async ({ page }) => {

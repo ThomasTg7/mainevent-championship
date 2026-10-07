@@ -5,23 +5,28 @@ import { JudgesScorecards } from "./judges-scorecards";
 
 afterEach(cleanup);
 
+const totalRow = (table: HTMLElement) => within(table).getByRole("rowheader", { name: "Total" }).closest("tr")!;
+
 describe("JudgesScorecards", () => {
-  it("lists each judge with both totals, red on the left and blue on the right", () => {
-    render(<JudgesScorecards redName="Pérez" blueName="Soto" scorecards={[{ judge: "Rojas", red: 29, blue: 28 }, { judge: "Muñoz", red: 28, blue: 29 }]} />);
-    expect(screen.getByText("Ver tarjetas de los jueces")).toBeDefined();
-    const rojas = screen.getByRole("rowheader", { name: "Rojas" }).closest("tr")!;
-    expect(within(rojas).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["29", "28"]);
-    expect(screen.queryByRole("list")).toBeNull();
+  it("shows each judge's total for both corners and who the card went to", () => {
+    render(<JudgesScorecards redName="Pérez" blueName="Soto" scorecards={[{ judge: "Rojas", red: 29, blue: 28 }, { judge: "Muñoz", red: 28, blue: 28 }]} />);
+    const rojas = screen.getByRole("table", { name: "Tarjeta de Rojas" });
+    expect(within(totalRow(rojas)).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["29", "28"]);
+    expect(screen.getByText("Para Pérez")).toBeDefined();
+    expect(screen.getByText("Empate")).toBeDefined();
+    expect(within(rojas).queryByRole("rowheader", { name: "R1" })).toBeNull();
   });
 
-  it("shows each round when the card was written round by round", () => {
+  it("lists every round when the card was written round by round", () => {
     const rounds = [
       { red: 10, blue: 9 },
       { red: 9, blue: 10 },
       { red: 10, blue: 9 },
     ];
     render(<JudgesScorecards redName="Pérez" blueName="Soto" scorecards={[{ judge: "Rojas", red: 29, blue: 28, rounds }]} />);
-    const list = screen.getByRole("list", { name: "Rounds de Rojas" });
-    expect(within(list).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["R1 10-9", "R2 9-10", "R3 10-9"]);
+    const table = screen.getByRole("table", { name: "Tarjeta de Rojas" });
+    const r2 = within(table).getByRole("rowheader", { name: "R2" }).closest("tr")!;
+    expect(within(r2).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["9", "10"]);
+    expect(within(totalRow(table)).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["29", "28"]);
   });
 });

@@ -44,7 +44,7 @@ export function HomeCardSummary({ event, rankLabels, kind }: HomeCardSummaryProp
               segments={segments.map((segment) => ({
                 id: segment.id,
                 name: segment.name,
-                content: segment.bouts.map((bout) => <BoutRow key={bout.id} bout={bout} rankLabels={rankLabels} />),
+                content: segment.bouts.map((bout) => <BoutRow key={bout.id} bout={bout} eventSlug={event.slug} rankLabels={rankLabels} />),
               }))}
             />
           </BoutAccordion>

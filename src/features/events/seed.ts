@@ -64,6 +64,14 @@ type SeedSegment = { name: string; time: string; bouts: SeedBout[] };
 type SeedEvent = { number: number; weeksBefore: number; segments: SeedSegment[] };
 
 const cards = (...scores: [number, number][]) => scores.map(([red, blue], index) => ({ judge: `Juez ${index + 1}`, red, blue }));
+/** Tarjetas anotadas round por round: el total es la suma. */
+const roundCards = (...judges: [number, number][][]) =>
+  judges.map((rounds, index) => ({
+    judge: `Juez ${index + 1}`,
+    red: rounds.reduce((sum, [red]) => sum + red, 0),
+    blue: rounds.reduce((sum, [, blue]) => sum + blue, 0),
+    rounds: rounds.map(([red, blue]) => ({ red, blue })),
+  }));
 
 // Cuatro eventos pasados (todos los métodos de resultado) y el próximo, sin resultados. Cada peleador pelea una vez por evento.
 const PAST_EVENTS: SeedEvent[] = [
@@ -75,7 +83,7 @@ const PAST_EVENTS: SeedEvent[] = [
         name: "Cartelera estelar",
         time: "21:30",
         bouts: [
-          { red: F.soto, blue: F.araya, division: "peso-ligero", result: { outcome: "red_win", method: "decision", decisionType: "unanimous", scorecards: cards([29, 28], [29, 28], [30, 27]), referee: "Ricardo Salas" } },
+          { red: F.soto, blue: F.araya, division: "peso-ligero", result: { outcome: "red_win", method: "decision", decisionType: "unanimous", scorecards: roundCards([[10, 9], [10, 9], [9, 10]], [[10, 9], [9, 10], [10, 9]], [[10, 9], [10, 8], [10, 10]]), referee: "Ricardo Salas" } },
           { red: F.fuentes, blue: F.andrade, division: "peso-welter", result: { outcome: "red_win", method: "ko_tko", koTkoType: "tko_strikes", endRound: 2, endTimeSeconds: 110 } },
         ],
       },

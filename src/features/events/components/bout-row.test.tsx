@@ -42,7 +42,7 @@ const renderRow = (props: { rankLabels?: Record<string, string> } = {}) =>
   render(
     <BoutAccordion>
       <ul>
-        <BoutRow bout={bout} {...props} />
+        <BoutRow bout={bout} eventSlug="guerra-campal-5" {...props} />
       </ul>
     </BoutAccordion>,
   ).container;
@@ -60,7 +60,7 @@ describe("BoutRow rank labels", () => {
     const container = render(
       <BoutAccordion>
         <ul>
-          <BoutRow bout={{ ...bout, division: { name: "Paja", slug: "peso-paja-femenino", gender: "female" } }} rankLabels={{ "red-1": "C" }} />
+          <BoutRow bout={{ ...bout, division: { name: "Paja", slug: "peso-paja-femenino", gender: "female" } }} eventSlug="guerra-campal-5" rankLabels={{ "red-1": "C" }} />
         </ul>
       </BoutAccordion>,
     ).container;
