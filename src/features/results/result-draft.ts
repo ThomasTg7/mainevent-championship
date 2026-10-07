@@ -7,13 +7,14 @@ import {
   type Outcome,
   type SubmissionType,
 } from "@/domain/bout-enums";
-import { suggestDecisionType, validateBoutResult, type BoutContext, type BoutResultInput, type NormalizedResult, type Scorecard } from "@/domain/bout-result";
+import { roundsTotal, scoredRounds, suggestDecisionType, validateBoutResult, type BoutContext, type BoutResultInput, type NormalizedResult, type Scorecard } from "@/domain/bout-result";
 import { formatClock, parseClock } from "@/domain/clock";
 
 // El resultado tal como se escribe en el formulario (todo texto) y su conversión al resultado que valida el dominio.
 // Lo comparten el formulario de resultado y la consola de la noche de pelea.
 
-export type RoundScoreDraft = { red: string; blue: string };
+/** Un round como se escribe; los descuentos son opcionales (vacío = sin descuento). */
+export type RoundScoreDraft = { red: string; blue: string; redDeduction?: string; blueDeduction?: string };
 
 /** Una tarjeta como se escribe: el total de cada esquina o, en el modo «por round», cada round (`rounds`). */
 export type ScorecardDraft = { judge: string; red: string; blue: string; rounds?: RoundScoreDraft[] };
@@ -118,7 +119,16 @@ export function draftFromResult(result: SavedResult): ResultDraft {
       judge: card.judge,
       red: String(card.red),
       blue: String(card.blue),
-      ...(card.rounds?.length ? { rounds: card.rounds.map((round) => ({ red: String(round.red), blue: String(round.blue) })) } : {}),
+      ...(card.rounds?.length
+        ? {
+            rounds: card.rounds.map((round) => ({
+              red: String(round.red),
+              blue: String(round.blue),
+              redDeduction: round.redDeduction ? String(round.redDeduction) : "",
+              blueDeduction: round.blueDeduction ? String(round.blueDeduction) : "",
+            })),
+          }
+        : {}),
     })),
     scorecardMode: result.scorecards?.some((card) => card.rounds?.length) ? "rounds" : "total",
     bonuses: result.bonuses,
@@ -131,14 +141,17 @@ const CLOCK_MESSAGE = "Escribe el tiempo como m:ss, por ejemplo 3:42";
 const SCORE_MESSAGE = "Los puntajes deben ser números enteros";
 const ROUNDS_MESSAGE = "Completa los puntos de cada round";
 
-/** Cuántos rounds se puntúan: todos los de la pelea en una decisión; en una decisión técnica, hasta el round en que se detuvo. */
+/** Cuántos rounds se puntúan con lo escrito hasta ahora (`scoredRounds`: el round vacío o inválido cuenta como «todavía no se sabe»). */
 export function scorecardRoundCount(draft: Pick<ResultDraft, "method" | "endRound">, ctx: { scheduledRounds: number }): number {
   const stoppedAt = Number(draft.endRound);
-  return draft.method === "technical_decision" && Number.isInteger(stoppedAt) && stoppedAt >= 1 ? Math.min(stoppedAt, ctx.scheduledRounds) : ctx.scheduledRounds;
+  const endRound = draft.method !== "decision" && Number.isInteger(stoppedAt) && stoppedAt >= 1 ? stoppedAt : null;
+  return scoredRounds({ method: draft.method, endRound }, ctx.scheduledRounds);
 }
 
 const isBlank = (text: string | undefined) => !text?.trim();
 const toNumber = (text: string) => (text.trim() ? Number(text) : Number.NaN);
+/** Un descuento vacío es 0. */
+const toDeduction = (text: string | undefined) => (isBlank(text) ? 0 : Number(text));
 
 /**
  * Las tarjetas escritas → las del dominio. Se saltan las vacías; en el modo «por round» cada round hasta `roundCount`
@@ -150,8 +163,14 @@ function cardsFromDraft(draft: ResultDraft, roundCount: number): { cards: Scorec
     if (draft.scorecardMode === "rounds") {
       const rounds = (card.rounds ?? []).slice(0, roundCount);
       if (isBlank(card.judge) && rounds.every((round) => isBlank(round.red) && isBlank(round.blue))) continue;
-      const scores = rounds.map((round) => ({ red: toNumber(round.red), blue: toNumber(round.blue) }));
+      const scores = rounds.map((round) => ({
+        red: toNumber(round.red),
+        blue: toNumber(round.blue),
+        redDeduction: toDeduction(round.redDeduction),
+        blueDeduction: toDeduction(round.blueDeduction),
+      }));
       if (scores.length < roundCount || scores.some((round) => Number.isNaN(round.red) || Number.isNaN(round.blue))) return { cards, error: ROUNDS_MESSAGE };
+      if (scores.some((round) => Number.isNaN(round.redDeduction) || Number.isNaN(round.blueDeduction))) return { cards, error: SCORE_MESSAGE };
       cards.push({ judge: card.judge, red: 0, blue: 0, rounds: scores });
       continue;
     }
@@ -167,8 +186,7 @@ function cardsFromDraft(draft: ResultDraft, roundCount: number): { cards: Scorec
 export function suggestFromCards(draft: ResultDraft, ctx: BoutContext): ReturnType<typeof suggestDecisionType> {
   const { cards, error } = cardsFromDraft(draft, scorecardRoundCount(draft, ctx));
   if (error) return null;
-  const totals = cards.map((card) => (card.rounds ? { red: card.rounds.reduce((sum, round) => sum + round.red, 0), blue: card.rounds.reduce((sum, round) => sum + round.blue, 0) } : card));
-  return suggestDecisionType(totals);
+  return suggestDecisionType(cards.map((card) => (card.rounds ? roundsTotal(card.rounds) : card)));
 }
 
 export type DraftResult =

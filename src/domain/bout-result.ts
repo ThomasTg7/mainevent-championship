@@ -14,7 +14,8 @@ import {
 } from "./bout-enums";
 import { formatClock } from "./clock";
 
-export type RoundScore = { red: number; blue: number };
+/** Un round en la tarjeta de un juez: el puntaje de cada esquina y, si hubo, los puntos descontados (por faltas). */
+export type RoundScore = { red: number; blue: number; redDeduction?: number; blueDeduction?: number };
 
 /**
  * Tarjeta de un juez: el total de cada esquina y, si se anotó round por round, el puntaje de cada round (entonces el
@@ -24,6 +25,26 @@ export type Scorecard = { judge: string; red: number; blue: number; rounds?: Rou
 
 export const MAX_SCORECARDS = 5;
 const MAX_ROUND_SCORE = 10;
+const MAX_DEDUCTION = 5;
+
+/**
+ * Cuántos rounds se puntúan en las tarjetas: todos en una decisión; hasta el round en que se detuvo en una decisión
+ * técnica; en un final antes del límite (KO, sumisión…), los rounds ya terminados (las tarjetas muestran cómo iba). Sin
+ * round todavía, todos.
+ */
+export function scoredRounds(result: { method: Method | ""; endRound: number | null }, scheduledRounds: number): number {
+  if (result.method === "decision" || result.endRound === null) return scheduledRounds;
+  const stoppedAt = Math.min(result.endRound, scheduledRounds);
+  return result.method === "technical_decision" ? stoppedAt : Math.max(stoppedAt - 1, 0);
+}
+
+/** El total de una tarjeta anotada round por round: la suma de los puntajes menos los descuentos. */
+export function roundsTotal(rounds: RoundScore[]): { red: number; blue: number } {
+  return rounds.reduce(
+    (total, round) => ({ red: total.red + round.red - (round.redDeduction ?? 0), blue: total.blue + round.blue - (round.blueDeduction ?? 0) }),
+    { red: 0, blue: 0 },
+  );
+}
 
 export type BoutResultInput = {
   outcome: Outcome;
@@ -85,7 +106,7 @@ function coherenceError(outcome: Outcome, method: Method): string | null {
 
 const isScore = (score: number, max: number) => Number.isInteger(score) && score >= 0 && score <= max;
 
-function validateScorecards(scorecards: Scorecard[] | null | undefined, scheduledRounds: number): { value: Scorecard[] | null; error?: string } {
+function validateScorecards(scorecards: Scorecard[] | null | undefined, roundLimit: number): { value: Scorecard[] | null; error?: string } {
   if (!scorecards || scorecards.length === 0) return { value: null };
   if (scorecards.length > MAX_SCORECARDS) return { value: null, error: `Máximo ${MAX_SCORECARDS} tarjetas` };
   const cleaned: Scorecard[] = [];
@@ -94,13 +115,21 @@ function validateScorecards(scorecards: Scorecard[] | null | undefined, schedule
     if (!judge) return { value: null, error: "Cada tarjeta necesita el nombre del juez" };
 
     if (card.rounds && card.rounds.length > 0) {
-      if (card.rounds.length > scheduledRounds) return { value: null, error: `La tarjeta tiene más rounds que la pelea (${scheduledRounds})` };
+      if (card.rounds.length > roundLimit) return { value: null, error: `La tarjeta tiene más rounds de los que se puntúan (${roundLimit})` };
       if (card.rounds.some((round) => !isScore(round.red, MAX_ROUND_SCORE) || !isScore(round.blue, MAX_ROUND_SCORE))) {
         return { value: null, error: `Cada round se puntúa con números enteros de 0 a ${MAX_ROUND_SCORE}` };
       }
-      const rounds = card.rounds.map((round) => ({ red: round.red, blue: round.blue }));
-      const sum = (side: keyof RoundScore) => rounds.reduce((total, round) => total + round[side], 0);
-      cleaned.push({ judge, red: sum("red"), blue: sum("blue"), rounds });
+      if (card.rounds.some((round) => !isScore(round.redDeduction ?? 0, MAX_DEDUCTION) || !isScore(round.blueDeduction ?? 0, MAX_DEDUCTION))) {
+        return { value: null, error: `Los descuentos son números enteros de 0 a ${MAX_DEDUCTION}` };
+      }
+      // Un descuento en 0 no se guarda: la tarjeta pública solo muestra los que hubo.
+      const rounds: RoundScore[] = card.rounds.map((round) => ({
+        red: round.red,
+        blue: round.blue,
+        ...(round.redDeduction ? { redDeduction: round.redDeduction } : {}),
+        ...(round.blueDeduction ? { blueDeduction: round.blueDeduction } : {}),
+      }));
+      cleaned.push({ judge, ...roundsTotal(rounds), rounds });
       continue;
     }
 
@@ -163,7 +192,8 @@ export function validateBoutResult(input: BoutResultInput, ctx: BoutContext): Va
   else if (!Number.isInteger(endTimeSeconds) || endTimeSeconds <= 0) errors.endTimeSeconds = "El tiempo debe ser mayor a 0:00";
   else if (endTimeSeconds > ctx.roundSeconds) errors.endTimeSeconds = `El tiempo no puede superar ${formatClock(ctx.roundSeconds)}`;
 
-  const scorecards = validateScorecards(isDecision ? input.scorecards : null, ctx.scheduledRounds);
+  // Opcionales en cualquier final: en uno antes del límite muestran cómo iba la pelea.
+  const scorecards = validateScorecards(input.scorecards, scoredRounds({ method, endRound }, ctx.scheduledRounds));
   if (scorecards.error) errors.scorecards = scorecards.error;
 
   const videoUrl = trimmed(input.videoUrl);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boutMeasure, countdownParts, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, sellsTickets, showsCountdown, youtubeEmbedUrl } from "./public-format";
+import { boutMeasure, countdownParts, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, scorecardsLine, sellsTickets, showsCountdown, youtubeEmbedUrl } from "./public-format";
 
 describe("boutMeasure", () => {
   it("writes the division like the rest of the site", () => {
@@ -133,5 +133,22 @@ describe("sellsTickets", () => {
     expect(sellsTickets({ eventStatus: "scheduled", startsAt: "2026-10-24T23:00:00Z" }, now)).toBe(false);
     expect(sellsTickets({ eventStatus: "completed", startsAt: "2026-10-31T00:00:00Z" }, now)).toBe(false);
     expect(sellsTickets({ eventStatus: "cancelled", startsAt: "2026-10-31T00:00:00Z" }, now)).toBe(false);
+  });
+});
+
+describe("scorecardsLine", () => {
+  const cards = [
+    { red: 29, blue: 28 },
+    { red: 28, blue: 29 },
+    { red: 30, blue: 27 },
+  ];
+
+  it("puts the winner's score first, like the announcer", () => {
+    expect(scorecardsLine(cards, "red_win")).toBe("29-28 · 28-29 · 30-27");
+    expect(scorecardsLine(cards, "blue_win")).toBe("28-29 · 29-28 · 27-30");
+  });
+
+  it("puts the higher score first in a draw", () => {
+    expect(scorecardsLine([{ red: 28, blue: 29 }, { red: 28, blue: 28 }], "draw")).toBe("29-28 · 28-28");
   });
 });

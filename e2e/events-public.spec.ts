@@ -220,8 +220,10 @@ test("una pelea tiene su página con todo el detalle y, al final, las tarjetas d
   const total = judge.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "Total" }) });
   await expect(total.getByRole("cell")).toHaveText(["30", "27"]);
   // Anotada round por round: cada round con los dos puntajes.
-  const round2 = judge.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "R2" }) });
-  await expect(round2.getByRole("cell")).toHaveText(["10", "8"]);
+  const round2 = judge.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "2", exact: true }) });
+  await expect(round2.getByRole("cell")).toHaveText(["10", "", "", "8"]);
+  // Debajo de las tarjetas, el resultado con los puntajes del ganador primero.
+  await expect(page.locator('[data-slot="scorecards-verdict"]')).toContainText("29-28 · 29-28 · 30-27");
   await expectNoHorizontalScroll(page);
 
   await page.goto("/eventos/guerra-campal-1/peleas/00000000-0000-4000-8000-000000000000");

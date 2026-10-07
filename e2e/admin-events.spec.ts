@@ -186,7 +186,7 @@ test("registrar un resultado por sumisión (Mataleón, R2 3:42), corregirlo y an
   await dialog.getByLabel(/Gana Seis/).check();
   await dialog.getByLabel("Método").selectOption("submission");
   await dialog.getByLabel("Técnica").selectOption({ label: "Mataleón" });
-  await dialog.getByLabel("Round").selectOption("2");
+  await dialog.getByLabel("Round", { exact: true }).selectOption("2");
   await dialog.getByLabel("Tiempo (m:ss)").fill("6:00");
   await dialog.getByRole("button", { name: "Guardar resultado" }).click();
   await expect(dialog.getByRole("alert").filter({ hasText: "El tiempo no puede superar 5:00" }).first()).toBeVisible();

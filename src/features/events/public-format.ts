@@ -110,3 +110,17 @@ export function fighterComparison(red: Comparable, blue: Comparable): { label: s
   }
   return rows;
 }
+
+/**
+ * Los puntajes de las tarjetas como se anuncian: «29-28 · 29-28 · 30-27», con el puntaje del ganador primero (en un empate
+ * o sin resultado, el más alto primero).
+ */
+export function scorecardsLine(scorecards: { red: number; blue: number }[], outcome: "red_win" | "blue_win" | "draw" | "no_contest"): string {
+  return scorecards
+    .map(({ red, blue }) => {
+      if (outcome === "red_win") return `${red}-${blue}`;
+      if (outcome === "blue_win") return `${blue}-${red}`;
+      return `${Math.max(red, blue)}-${Math.min(red, blue)}`;
+    })
+    .join(" · ");
+}

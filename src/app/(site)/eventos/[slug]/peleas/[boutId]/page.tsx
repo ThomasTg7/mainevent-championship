@@ -92,8 +92,8 @@ export default async function BoutPage({ params }: PageProps<"/eventos/[slug]/pe
 
           {result?.scorecards?.length ? (
             <section aria-labelledby="scorecards-title">
-              <SectionHeading kicker="Decisión" title={<span id="scorecards-title">Tarjetas de los jueces</span>} tone="light" />
-              <JudgesScorecards scorecards={result.scorecards} redName={bout.red.lastName} blueName={bout.blue.lastName} />
+              <SectionHeading kicker="Jueces" title={<span id="scorecards-title">Tarjetas de los jueces</span>} tone="light" />
+              <JudgesScorecards bout={bout} scorecards={result.scorecards} />
             </section>
           ) : null}
         </div>

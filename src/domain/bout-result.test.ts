@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatResultLine, roundAndTime, suggestDecisionType, validateBoutResult, type BoutContext, type BoutResultInput } from "./bout-result";
+import { formatResultLine, roundAndTime, scoredRounds, suggestDecisionType, validateBoutResult, type BoutContext, type BoutResultInput } from "./bout-result";
 
 const THREE_ROUNDS: BoutContext = { scheduledRounds: 3, roundSeconds: 300 };
 const FIVE_ROUNDS: BoutContext = { scheduledRounds: 5, roundSeconds: 300 };
@@ -157,9 +157,38 @@ describe("validateBoutResult — optional data", () => {
       "Cada round se puntúa con números enteros de 0 a 10",
     );
     expect(errorsOf({ ...decision, scorecards: [{ judge: "A", red: 0, blue: 0, rounds: [...rounds, { red: 10, blue: 9 }] }] }).scorecards).toBe(
-      "La tarjeta tiene más rounds que la pelea (3)",
+      "La tarjeta tiene más rounds de los que se puntúan (3)",
     );
   });
+
+  it("subtracts each round's point deductions from the total", () => {
+    const decision: BoutResultInput = { outcome: "blue_win", method: "decision", decisionType: "unanimous" };
+    const rounds = [
+      { red: 10, blue: 9, redDeduction: 1 },
+      { red: 9, blue: 10 },
+      { red: 10, blue: 9, blueDeduction: 0 },
+    ];
+    expect(valueOf({ ...decision, scorecards: [{ judge: "A", red: 0, blue: 0, rounds }] }).scorecards).toEqual([
+      { judge: "A", red: 28, blue: 28, rounds: [{ red: 10, blue: 9, redDeduction: 1 }, { red: 9, blue: 10 }, { red: 10, blue: 9 }] },
+    ]);
+    expect(errorsOf({ ...decision, scorecards: [{ judge: "A", red: 0, blue: 0, rounds: [{ red: 10, blue: 9, redDeduction: 6 }] }] }).scorecards).toBe(
+      "Los descuentos son números enteros de 0 a 5",
+    );
+  });
+
+  it("keeps the cards of a fight stopped early (how it was going), only for the rounds already finished", () => {
+    const tko: BoutResultInput = { outcome: "red_win", method: "ko_tko", koTkoType: "tko_strikes", endRound: 3, endTimeSeconds: 100 };
+    const twoRounds = [
+      { red: 10, blue: 9 },
+      { red: 9, blue: 10 },
+    ];
+    expect(valueOf({ ...tko, scorecards: [{ judge: "A", red: 0, blue: 0, rounds: twoRounds }] }).scorecards).toEqual([{ judge: "A", red: 19, blue: 19, rounds: twoRounds }]);
+    expect(errorsOf({ ...tko, scorecards: [{ judge: "A", red: 0, blue: 0, rounds: [...twoRounds, { red: 10, blue: 9 }] }] }).scorecards).toBe(
+      "La tarjeta tiene más rounds de los que se puntúan (2)",
+    );
+    expect(valueOf(tko).scorecards).toBeNull();
+  });
+
 
   it("keeps each bonus once", () => {
     expect(valueOf({ ...koWin, bonuses: ["ko_of_night", "ko_of_night", "fight_of_night"] }).bonuses).toEqual(["ko_of_night", "fight_of_night"]);
@@ -244,6 +273,14 @@ describe("formatResultLine", () => {
     expect(line({ outcome: "draw", method: "technical_decision", decisionType: "split", endRound: 2, endTimeSeconds: 100 })).toBe(
       "Pérez y Soto empatan · Decisión técnica dividida · R2 1:40",
     );
+  });
+
+  it("scoredRounds: all of them in a decision, up to the stop in a technical decision, the finished ones otherwise", () => {
+    expect(scoredRounds({ method: "decision", endRound: null }, 5)).toBe(5);
+    expect(scoredRounds({ method: "technical_decision", endRound: 3 }, 5)).toBe(3);
+    expect(scoredRounds({ method: "ko_tko", endRound: 3 }, 5)).toBe(2);
+    expect(scoredRounds({ method: "submission", endRound: 1 }, 3)).toBe(0);
+    expect(scoredRounds({ method: "ko_tko", endRound: null }, 3)).toBe(3);
   });
 
   it("roundAndTime says where the fight ended, and nothing for a decision", () => {

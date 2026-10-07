@@ -11,7 +11,14 @@ const scorecard = z.object({
   red: z.number({ error: "Los puntajes deben ser números enteros" }),
   blue: z.number({ error: "Los puntajes deben ser números enteros" }),
   rounds: z
-    .array(z.object({ red: z.number({ error: "Los puntajes deben ser números enteros" }), blue: z.number({ error: "Los puntajes deben ser números enteros" }) }))
+    .array(
+      z.object({
+        red: z.number({ error: "Los puntajes deben ser números enteros" }),
+        blue: z.number({ error: "Los puntajes deben ser números enteros" }),
+        redDeduction: z.number({ error: "Los descuentos deben ser números enteros" }).optional(),
+        blueDeduction: z.number({ error: "Los descuentos deben ser números enteros" }).optional(),
+      }),
+    )
     .max(10, "Demasiados rounds")
     .nullish(),
 });

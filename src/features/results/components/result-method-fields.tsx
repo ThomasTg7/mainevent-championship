@@ -146,7 +146,7 @@ export function ResultMethodFields({ draft, errors, techniques, bout, onChange, 
         </>
       ) : null}
 
-      {isDecision ? (
+      {method !== "" ? (
         <div className="md:col-span-2">
           <ScorecardsEditor
             cards={draft.scorecards}
@@ -157,7 +157,9 @@ export function ResultMethodFields({ draft, errors, techniques, bout, onChange, 
             error={errors.scorecards}
             onChange={(scorecards) => onChange({ scorecards })}
             onModeChange={(scorecardMode) => onChange({ scorecardMode })}
-            onSuggest={onSuggest}
+            // Sugerir el resultado desde las tarjetas solo tiene sentido en una decisión.
+            onSuggest={isDecision ? onSuggest : undefined}
+            hint={isDecision ? undefined : "Opcional: cómo iban las tarjetas hasta que terminó la pelea (los rounds ya terminados)."}
           />
         </div>
       ) : null}

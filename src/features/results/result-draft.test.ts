@@ -94,6 +94,16 @@ describe("draftToInput", () => {
     });
   });
 
+  it("passes the point deductions of each round (blank = none), and scores the finished rounds of a stoppage", () => {
+    const tko = draft({ outcome: "red_win", method: "ko_tko", koTkoType: "ko", endRound: "3", endTime: "1:00", scorecardMode: "rounds" });
+    expect(scorecardRoundCount(tko, FIVE_MINUTES)).toBe(2);
+    const rounds = [{ red: "10", blue: "9", redDeduction: "1", blueDeduction: "" }, { red: "9", blue: "10" }, { red: "", blue: "" }];
+    expect(draftToInput({ ...tko, scorecards: [{ judge: "Juez 1", red: "", blue: "", rounds }] }, FIVE_MINUTES)).toMatchObject({
+      ok: true,
+      value: { scorecards: [{ red: 18, blue: 19, rounds: [{ red: 10, blue: 9, redDeduction: 1 }, { red: 9, blue: 10 }] }] },
+    });
+  });
+
   it("suggests the decision from three to five complete cards, in either mode", () => {
     const totals = draft({ scorecards: ["29-28", "29-28", "28-29"].map((score, index) => ({ judge: `J${index}`, red: score.split("-")[0]!, blue: score.split("-")[1]! })) });
     expect(suggestFromCards(totals, FIVE_MINUTES)).toEqual({ outcome: "red_win", decisionType: "split" });
