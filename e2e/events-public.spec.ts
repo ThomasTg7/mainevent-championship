@@ -214,11 +214,13 @@ test("una pelea por decisión muestra «Ver tarjetas de los jueces» al final de
 });
 
 test("a su hora de inicio el evento sale «en vivo» solo, sin que nadie lo marque en el panel", async ({ page }) => {
-  const card = await createE2eCard("Evento E2E En Vivo Automático", { "Cartelera estelar": [["cinco", "seis"]] });
+  // En borrador y visto con la vista previa: un evento publicado que empezó hace una hora sería el «próximo» de la home y de
+  // `/eventos`, y les cambiaría la portada a los otros specs que corren a la vez.
+  const card = await createE2eCard("Evento E2E En Vivo Automático", { "Cartelera estelar": [["cinco", "seis"]] }, { status: "draft" });
   // Empezó hace una hora y sigue «Programado» en la base: nadie abrió la noche de pelea.
   await db.update(events).set({ startsAt: new Date(Date.now() - 60 * 60 * 1000), eventStatus: "scheduled" }).where(eq(events.id, card.eventId));
 
-  await page.goto(`/eventos/${card.slug}`);
+  await page.goto(`/eventos/${card.slug}?preview=${createPreviewToken("event", card.eventId)}`);
   await expect(page.getByRole("region", { name: /Cinco\s*VS\s*Seis/ }).getByText("● En vivo")).toBeVisible();
   await expect(page.getByText("EN VIVO").first()).toBeVisible();
 });
