@@ -143,6 +143,7 @@ Presupuestos (móvil, 4G): LCP < 2,5 s, CLS < 0,1, TBT < 300 ms, Accesibilidad �
 | El build falla conectando a la base | `DATABASE_URL` mal copiada o con IP restringida; el build necesita acceso al Postgres. |
 | Ingresar al panel da error de origen | `ADMIN_URL` no coincide con el dominio desde el que entras (Better Auth confía solo en él). |
 | Las fotos no suben (error de CORS en la consola) | Falta el origen del panel en el CORS del bucket, o falta el encabezado `If-None-Match` permitido. |
+| Las fotos no suben (error de CORS) pero el CORS del bucket está bien | Las llaves `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` de Vercel están mal pegadas (p. ej. falta un carácter): R2 rechaza la firma y su respuesta de error no lleva encabezados CORS, así que el navegador lo informa como CORS. Vuelve a pegarlas completas (32 y 64 caracteres) y redespliega. Recién guardado el CORS, R2 puede tardar unos segundos en aplicarlo. |
 | «Quitar fondo» tarda mucho o baja de huggingface.co | Falta `NEXT_PUBLIC_MODEL_BASE_URL` (se aplica al construir) o los archivos del modelo no están en el bucket. |
 | No llegan los avisos por correo | `MAIL_DRIVER=resend` sin `RESEND_API_KEY`/`MAIL_FROM`, dominio de envío sin verificar, o falta el «Correo para avisos» en Configuración → Contacto. |
 | Google ve «Disallow: /» | `SITE_URL` termina en `.vercel.app` y falta `ALLOW_INDEXING=true` (o es el dominio del panel). |
