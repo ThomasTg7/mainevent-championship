@@ -63,7 +63,9 @@ describe("media service", () => {
   beforeAll(async () => {
     testDb = await createTestDb();
     db = testDb.db;
-  });
+    // DOMPurify (jsdom) se importa recién al limpiar el primer SVG: se carga aquí para que esa espera no caiga dentro de un test.
+    await import("isomorphic-dompurify");
+  }, 60_000);
 
   afterAll(() => testDb.close());
 
