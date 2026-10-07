@@ -1,5 +1,8 @@
+import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
+import { fighters } from "@/db/schema/fighters";
+import { insertMedia } from "@/features/fighters/test-helpers";
 import { createTestDb } from "@/test/db";
 import { getAdminCard } from "./admin-card-queries";
 import { cancelBout } from "./card-service";
@@ -27,6 +30,18 @@ describe("getAdminCard", () => {
     expect(main).toMatchObject({ isTitleFight: true, scheduledRounds: 5, divisionName: "Ligero", status: "scheduled", result: null, resultLine: null });
     expect([main.red.lastName, main.blue.lastName]).toEqual(["Pérez", "Soto"]);
     expect(card.segments[1]!.bouts.some((bout) => bout.catchweightKg === 73.5 && bout.divisionId === null)).toBe(true);
+  });
+
+  it("brings each fighter's face and body photos (one query for all), so the panel can fall back to the body one", async () => {
+    const id = await eventIdBySlug(db, "guerra-campal-5");
+    const main = (await getAdminCard(db, id))!.segments[0]!.bouts[0]!;
+    const bodyId = await insertMedia(db, "fighter_body");
+    await db.update(fighters).set({ bodyMediaId: bodyId, headshotMediaId: null }).where(eq(fighters.id, main.red.id));
+
+    const after = (await getAdminCard(db, id))!.segments[0]!.bouts[0]!;
+    expect(after.red.headshotMedia).toBeNull();
+    expect(after.red.bodyMedia?.id).toBe(bodyId);
+    expect(after.blue.bodyMedia).toBeNull();
   });
 
   it("carries the saved result and its line, ready to be corrected", async () => {

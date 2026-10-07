@@ -14,7 +14,16 @@ import { toSantiagoInputs } from "@/lib/santiago-time";
 // La cartelera tal como la ve el panel: todas las peleas (también canceladas y con resultado) con lo necesario para
 // editarlas, moverlas y registrar su resultado. Tres consultas y una lectura de medios, sin importar cuántas peleas.
 
-export type AdminBoutFighter = { id: string; firstName: string; lastName: string; nickname: string | null; nationality: string; headshotMedia: MediaDTO | null };
+export type AdminBoutFighter = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  nickname: string | null;
+  nationality: string;
+  headshotMedia: MediaDTO | null;
+  /** Si no hay foto de rostro, el panel muestra la de cuerpo recortada desde arriba. */
+  bodyMedia: MediaDTO | null;
+};
 
 export type AdminBout = {
   id: string;
@@ -63,6 +72,7 @@ export async function getAdminCard(db: Db, eventId: string): Promise<AdminCard |
     nickname: table.nickname,
     nationality: table.nationality,
     headshotMediaId: table.headshotMediaId,
+    bodyMediaId: table.bodyMediaId,
   });
 
   const [segmentRows, boutRows] = await Promise.all([
@@ -85,11 +95,14 @@ export async function getAdminCard(db: Db, eventId: string): Promise<AdminCard |
       .orderBy(asc(bouts.sortOrder), asc(bouts.id)),
   ]);
 
-  const headshotIds = boutRows.flatMap((row) => [row.red.headshotMediaId, row.blue.headshotMediaId]).filter((id): id is string => id !== null);
-  const mediaById = await getMediaByIds(db, [...new Set(headshotIds)]);
-  const toFighter = ({ headshotMediaId, ...fighter }: (typeof boutRows)[number]["red"]): AdminBoutFighter => ({
+  const photoIds = boutRows
+    .flatMap((row) => [row.red.headshotMediaId, row.red.bodyMediaId, row.blue.headshotMediaId, row.blue.bodyMediaId])
+    .filter((id): id is string => id !== null);
+  const mediaById = await getMediaByIds(db, [...new Set(photoIds)]);
+  const toFighter = ({ headshotMediaId, bodyMediaId, ...fighter }: (typeof boutRows)[number]["red"]): AdminBoutFighter => ({
     ...fighter,
     headshotMedia: headshotMediaId ? (mediaById.get(headshotMediaId) ?? null) : null,
+    bodyMedia: bodyMediaId ? (mediaById.get(bodyMediaId) ?? null) : null,
   });
 
   const boutsBySegment = new Map<string, AdminBout[]>();

@@ -3,28 +3,13 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { computeRecord } from "@/domain/record";
 import type { MediaDTO } from "@/features/media/dto";
+import { stubBrowserApis } from "@/test/browser-stubs";
 import type { FighterCardDTO, FighterProfileDTO } from "../dto";
 import { FIGHTER_CARD_SIZES, FighterCard } from "./fighter-card";
 import { FIGHTER_HERO_SIZES, FighterHero } from "./fighter-hero";
 import { RecordSummary, formatRecord } from "./record-summary";
 
-beforeAll(() => {
-  // jsdom no trae IntersectionObserver ni matchMedia; las hojas cliente los usan al montar.
-  window.IntersectionObserver = class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-    takeRecords() {
-      return [];
-    }
-  } as unknown as typeof IntersectionObserver;
-  window.matchMedia = ((query: string) => ({
-    matches: false,
-    media: query,
-    addEventListener() {},
-    removeEventListener() {},
-  })) as unknown as typeof window.matchMedia;
-});
+beforeAll(stubBrowserApis);
 
 afterEach(cleanup);
 

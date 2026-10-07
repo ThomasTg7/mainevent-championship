@@ -3,15 +3,14 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ArrowDown, ArrowUp, Ban, ClipboardCheck, GripVertical, MoreVertical, Pencil, RotateCcw, Trash2 } from "lucide-react";
-import { MediaImage } from "@/components/media/media-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Flag } from "@/components/ui-gc/flag";
 import { BOUT_LEVEL_LABELS } from "@/domain/bout-enums";
 import { formatClock } from "@/domain/clock";
-import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import type { AdminBout, AdminBoutFighter } from "../admin-card-queries";
+import { AdminFighterThumb } from "./admin-fighter-thumb";
 
 export type BoutCardHandlers = {
   onEdit: () => void;
@@ -35,9 +34,7 @@ type BoutCardProps = BoutCardHandlers & {
 function Corner({ fighter, corner }: { fighter: AdminBoutFighter; corner: "red" | "blue" }) {
   return (
     <div className={`flex min-w-0 flex-1 items-center gap-2 border-l-4 pl-2 ${corner === "red" ? "border-l-[#D7263D]" : "border-l-[#1E6FD9]"}`}>
-      <div className="size-10 shrink-0 overflow-hidden bg-muted">
-        {fighter.headshotMedia ? <MediaImage media={fighter.headshotMedia} sizes="40px" className="size-full object-cover" /> : <FighterSilhouette className="size-full text-black drop-shadow-[0_0_1px_rgba(255,180,0,.6)]" />}
-      </div>
+      <AdminFighterThumb fighter={fighter} className="size-10" />
       <div className="flex min-w-0 flex-col">
         <span className="flex items-center gap-1.5 font-medium">
           <Flag code={fighter.nationality} />

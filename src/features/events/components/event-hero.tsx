@@ -92,10 +92,14 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
   return (
     <section id={EVENT_HERO_ID} aria-labelledby="event-title" className="relative isolate flex min-h-[max(640px,100svh)] flex-col justify-end overflow-hidden bg-black pt-[76px]">
       <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_55%_at_50%_38%,#2a1f06_0%,#0b0b0b_55%,#000_100%)]" />
-      {event.heroMedia ? <HeroPicture desktop={event.heroMedia} mobile={event.heroMobileMedia} /> : null}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[12%] -z-[7] select-none text-center font-display text-[24vw] leading-[.85] whitespace-nowrap text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,.07)]">
-        GUERRA CAMPAL
-      </div>
+      {/* Con imagen de portada subida, va sola: el «GUERRA CAMPAL» de contorno solo acompaña al careo (sin imagen). */}
+      {event.heroMedia ? (
+        <HeroPicture desktop={event.heroMedia} mobile={event.heroMobileMedia} />
+      ) : (
+        <div data-slot="hero-watermark" aria-hidden className="pointer-events-none absolute inset-x-0 top-[12%] -z-[7] select-none text-center font-display text-[24vw] leading-[.85] whitespace-nowrap text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,.07)]">
+          GUERRA CAMPAL
+        </div>
+      )}
       {main && !event.heroMedia ? (
         <>
           <FighterFigure fighter={main.red} side="red" priority />

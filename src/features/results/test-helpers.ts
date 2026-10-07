@@ -1,7 +1,7 @@
 import type { AdminBout, AdminBoutFighter } from "@/features/events/admin-card-queries";
 import type { SavedResult } from "./result-draft";
 
-const fighter = (id: string, lastName: string): AdminBoutFighter => ({ id, firstName: "Peleador", lastName, nickname: null, nationality: "CL", headshotMedia: null });
+const fighter = (id: string, lastName: string): AdminBoutFighter => ({ id, firstName: "Peleador", lastName, nickname: null, nationality: "CL", headshotMedia: null, bodyMedia: null });
 
 /** Una pelea programada (Pérez vs Soto, 3 × 5 min) como la entrega el panel; `overrides` pisa lo que haga falta. */
 export function adminBout(overrides: Partial<AdminBout> = {}): AdminBout {

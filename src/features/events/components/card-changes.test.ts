@@ -3,7 +3,7 @@ import type { AdminBout, AdminSegment } from "../admin-card-queries";
 import { applyChange, resolveDrop } from "./card-changes";
 
 function bout(id: string, segmentId: string): AdminBout {
-  const fighter = { id: `${id}-f`, firstName: id, lastName: id, nickname: null, nationality: "CL", headshotMedia: null };
+  const fighter = { id: `${id}-f`, firstName: id, lastName: id, nickname: null, nationality: "CL", headshotMedia: null, bodyMedia: null };
   return {
     id,
     segmentId,
