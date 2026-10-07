@@ -93,15 +93,16 @@ describe("buildHomeData", () => {
     expect(home.sponsors).toEqual([]);
   });
 
-  it("with the pro rankings hidden there are no ranking cards, and the fighters fall back to the public list without labels", async () => {
+  it("with the pro positions hidden the home keeps showing the champions, without numbers", async () => {
     await seedRankings(db);
     await db.update(rankingLevels).set({ isPublic: false }).where(eq(rankingLevels.level, "pro"));
 
     const home = await buildHomeData(sourcesFor(db));
 
-    expect(home.rankings.pro).toEqual([]);
+    expect(home.rankings.pro.length).toBeGreaterThan(0);
+    expect(home.rankings.pro.every((card) => card.champion !== null && card.entries.length === 0 && card.division !== null)).toBe(true);
     expect(home.fighters.length).toBeGreaterThan(0);
-    expect(home.fighters.every((item) => item.badge === null && item.backdrop === null)).toBe(true);
+    await db.update(rankingLevels).set({ isPublic: true }).where(eq(rankingLevels.level, "pro"));
   });
 
   it("with a fighter that is no longer public, the highlights skip it without leaving a gap", async () => {

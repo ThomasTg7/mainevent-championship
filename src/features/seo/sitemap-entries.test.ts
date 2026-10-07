@@ -75,15 +75,13 @@ describe("getSitemapEntries", () => {
     expect(all.has(`${SITE}/rankings?nivel=amateur`)).toBe(true);
   });
 
-  it("leaves a ranking level out while it is hidden from the public", async () => {
+  it("keeps a ranking level with hidden positions while it still shows its champions", async () => {
     await setRankingVisibility(db, "amateur", false, "admin-1");
-    const hidden = await urls();
-    expect(hidden).not.toContain(`${SITE}/rankings?nivel=amateur`);
-    expect(hidden).toContain(`${SITE}/rankings`);
-
-    await setRankingVisibility(db, "amateur", true, "admin-1");
     await setRankingVisibility(db, "pro", false, "admin-1");
-    expect(await urls()).not.toContain(`${SITE}/rankings`);
+    const hidden = await urls();
+    expect(hidden).toContain(`${SITE}/rankings?nivel=amateur`);
+    expect(hidden).toContain(`${SITE}/rankings`);
+    await setRankingVisibility(db, "amateur", true, "admin-1");
     await setRankingVisibility(db, "pro", true, "admin-1");
   });
 
