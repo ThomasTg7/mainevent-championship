@@ -106,7 +106,7 @@ test("el panel de datos se anima: pasa por alturas intermedias al abrirse y al c
   await expect.poll(height).toBeLessThan(1);
 });
 
-test("en un evento con resultado, los nombres van al centro en celular y junto a su foto en PC, y «Victoria» va bajo la foto del ganador", async ({ page }) => {
+test("en un evento con resultado, los nombres van al centro en celular y junto a su foto en PC, y «Victoria» va sobre los pies de la foto del ganador", async ({ page }) => {
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/eventos/guerra-campal-4");
@@ -117,11 +117,19 @@ test("en un evento con resultado, los nombres van al centro en celular y junto a
     // Celular: uno sobre otro al centro de la tarjeta. PC: a la misma altura, cada uno junto a su foto.
     if (width === 375) expect(await top(red)).toBeLessThan(await top(blue));
     else expect(await top(red)).toBe(await top(blue));
-    // La etiqueta va justo debajo de la foto del ganador (no ocupa una línea sobre el nombre).
+    // La etiqueta va sobre la foto del ganador, a sus pies (sobre el borde de color) y sin tapar más de un quinto.
     const winBox = (await main.locator('[data-result="win"]').boundingBox())!;
     const faceBox = (await main.locator('[data-corner="red"] [data-slot="bout-face"]').boundingBox())!;
-    expect(winBox.y).toBeGreaterThanOrEqual(faceBox.y + faceBox.height - 1);
-    expect(Math.abs(winBox.x - faceBox.x)).toBeLessThanOrEqual(1);
+    const faceBottom = faceBox.y + faceBox.height;
+    expect(winBox.y + winBox.height).toBeLessThanOrEqual(faceBottom);
+    expect(winBox.y + winBox.height).toBeGreaterThanOrEqual(faceBottom - 6);
+    expect(winBox.height).toBeLessThan(faceBox.height / 5);
+    expect(winBox.x).toBeGreaterThanOrEqual(faceBox.x - 1);
+    expect(winBox.x + winBox.width).toBeLessThanOrEqual(faceBox.x + faceBox.width + 1);
+    // La silueta entra completa en el recuadro: no se le corta la cabeza.
+    const blueFace = main.locator('[data-corner="blue"] [data-slot="bout-face"]');
+    const headBox = (await blueFace.locator("svg").boundingBox())!;
+    expect(headBox.y).toBeGreaterThanOrEqual((await blueFace.boundingBox())!.y);
     await expectNoHorizontalScroll(page);
   }
 });

@@ -26,8 +26,8 @@ function RankBadge({ rankLabel, gender }: { rankLabel?: string; gender: "male" |
   );
 }
 
-/** Foto de la esquina: la de cuerpo si existe (recortada a medio cuerpo), si no la de rostro y si no la silueta. */
-function CornerPhoto({ fighter, side }: { fighter: BoutFighterDTO; side: Side }) {
+/** Foto de la esquina: la de cuerpo si existe (recortada a medio cuerpo), si no la de rostro y si no la silueta. Si ganó, «Victoria» va sobre sus pies. */
+function CornerPhoto({ fighter, side, won }: { fighter: BoutFighterDTO; side: Side; won: boolean }) {
   const photo = fighter.bodyMedia ? "body" : fighter.headshotMedia ? "headshot" : "silhouette";
   const media = fighter.bodyMedia ?? fighter.headshotMedia;
   return (
@@ -41,25 +41,23 @@ function CornerPhoto({ fighter, side }: { fighter: BoutFighterDTO; side: Side })
       {media ? (
         <MediaImage media={media} sizes="(min-width: 640px) 190px, 30vw" className={`size-full object-cover ${photo === "body" ? "object-top" : ""}`} />
       ) : (
-        <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[108%] -translate-x-1/2 text-neutral-900" />
+        <FighterSilhouette className="absolute bottom-0 left-1/2 h-[92%] -translate-x-1/2 text-neutral-900" />
       )}
+      {won ? (
+        <span data-result="win" className="absolute inset-x-0 bottom-0 flex h-[18px] items-center justify-center bg-yellow font-cond text-[10px] font-extrabold uppercase tracking-[.12em] text-black sm:h-5 sm:text-[11px]">
+          Victoria
+        </span>
+      ) : null}
     </div>
   );
 }
 
-/** Columna de la foto: la placa de ranking arriba, la foto y, si ganó, «Victoria» justo debajo. */
+/** Columna de la foto: la placa de ranking arriba y la foto. */
 export function CornerFigure({ fighter, side, won, rankLabel, gender }: { fighter: BoutFighterDTO; side: Side; won: boolean; rankLabel?: string; gender: "male" | "female" }) {
   return (
     <div className={`flex min-w-0 flex-col items-stretch gap-1.5 ${side === "red" ? "[grid-area:rp]" : "[grid-area:bp]"}`}>
       <RankBadge rankLabel={rankLabel} gender={gender} />
-      <div className="flex flex-col">
-        <CornerPhoto fighter={fighter} side={side} />
-        {won ? (
-          <span data-result="win" className="flex h-5 items-center justify-center bg-yellow font-cond text-[10px] font-extrabold uppercase tracking-[.1em] text-black sm:h-6 sm:text-[11px] sm:tracking-[.12em]">
-            Victoria
-          </span>
-        ) : null}
-      </div>
+      <CornerPhoto fighter={fighter} side={side} won={won} />
     </div>
   );
 }
