@@ -67,6 +67,8 @@ export type EventCardDTO = {
   name: string;
   number: number | null;
   startsAt: string;
+  /** Fin estimado (o `null`): hasta ahí el evento se ve «en vivo» solo (`effectiveEventStatus`). */
+  endsEstimatedAt: string | null;
   venueName: string;
   venueCity: string;
   eventStatus: EventStatus;
@@ -82,7 +84,6 @@ export type EventCardDTO = {
 
 export type EventPageDTO = Omit<EventCardDTO, "mainBout" | "venueName" | "venueCity"> & {
   doorsAt: string | null;
-  endsEstimatedAt: string | null;
   venue: EventVenueDTO;
   ticketProvider: string | null;
   streamUrl: string | null;

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui-gc/button";
 import { getCachedPublicEvents } from "@/features/events/cached-queries";
 import { EventCard } from "@/features/events/components/event-card";
+import { withEffectiveStatus } from "@/domain/event-night";
 import { sitePageMetadata } from "@/features/seo/site-metadata";
 import { parsePageParam } from "@/lib/pagination";
 import { PageHeader, PageShell } from "@/components/site/page-shell";
@@ -19,7 +20,10 @@ export async function generateMetadata({ searchParams }: PageProps<"/eventos">):
 
 export default async function EventosPage({ searchParams }: PageProps<"/eventos">) {
   const page = parsePageParam((await searchParams).pagina);
-  const [upcoming, past] = await Promise.all([getCachedPublicEvents("upcoming", 1), getCachedPublicEvents("past", page)]);
+  const [upcomingPage, past] = await Promise.all([getCachedPublicEvents("upcoming", 1), getCachedPublicEvents("past", page)]);
+  // A su hora de inicio cada evento se ve «en vivo» aunque nadie lo haya marcado en el panel.
+  const now = new Date();
+  const upcoming = { ...upcomingPage, items: upcomingPage.items.map((event) => withEffectiveStatus(event, now)) };
 
   return (
     <PageShell>

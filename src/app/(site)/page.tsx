@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { JsonLd } from "@/components/seo/json-ld";
+import { withEffectiveStatus } from "@/domain/event-night";
 import { HOME_TITLE, organizationJsonLd, websiteJsonLd } from "@/domain/seo";
 import { formatShortDate } from "@/lib/format-date";
 import { siteOrigin } from "@/lib/site-urls";
@@ -43,7 +44,8 @@ function marqueeItems(hero: HomeHeroDTO): string[] {
 
 export default async function HomePage() {
   const [home, socials, contact] = await Promise.all([getHomeData(), getCachedSetting("socials"), getCachedSetting("contact")]);
-  const { hero } = home;
+  // A su hora de inicio el evento de la portada se ve «en vivo» solo (la home se regenera cada 5 min como máximo).
+  const hero = home.hero.kind === "brand" ? home.hero : { ...home.hero, event: withEffectiveStatus(home.hero.event, new Date()) };
   const siteUrl = siteOrigin();
 
   return (

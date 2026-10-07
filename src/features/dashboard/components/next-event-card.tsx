@@ -38,7 +38,7 @@ export function NextEventCard({ event }: { event: Dashboard["nextEvent"] }) {
           {formatDateTime(event.startsAt)} · {event.boutsCount === 1 ? "1 pelea" : `${event.boutsCount} peleas`}
         </p>
       </div>
-      <Countdown target={event.startsAt.toISOString()} live className="justify-start" />
+      <Countdown target={event.startsAt.toISOString()} className="justify-start" />
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <Button asChild size="lg" className="sm:min-w-56">
           <Link href={adminPath(`/eventos/${event.id}/en-vivo`)}>

@@ -117,7 +117,7 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
           {formatShortDate(start)} · <b className="font-bold text-yellow">{formatTime(start)} hrs</b> · {event.venue.name}
           {event.venue.city ? `, ${event.venue.city}` : ""}
         </p>
-        {showCountdown ? <Countdown target={event.startsAt} live={event.eventStatus === "live"} className="my-6" /> : <div className="h-6" />}
+        {showCountdown ? <Countdown target={event.startsAt} className="my-6" /> : <div className="h-6" />}
         <div className="flex flex-wrap justify-center gap-3">
           {ticketHref ? (
             <Button variant="primary" asChild>

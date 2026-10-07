@@ -25,6 +25,7 @@ function eventCardBase(event: Event, mediaById: Map<string, MediaDTO>) {
     name: event.name,
     number: event.number,
     startsAt: event.startsAt.toISOString(),
+    endsEstimatedAt: event.endsEstimatedAt?.toISOString() ?? null,
     eventStatus: event.eventStatus,
     ticketUrl: event.ticketUrl,
     ticketTiers: event.ticketTiers,
@@ -108,7 +109,6 @@ export async function getPublicEventBySlug(db: Db, slug: string, { preview = fal
   return {
     ...eventCardBase(event, mediaById),
     doorsAt: event.doorsAt?.toISOString() ?? null,
-    endsEstimatedAt: event.endsEstimatedAt?.toISOString() ?? null,
     venue: { name: event.venueName, address: event.venueAddress, city: event.venueCity, lat: event.lat, lng: event.lng },
     ticketProvider: event.ticketProvider,
     streamUrl: event.streamUrl,
