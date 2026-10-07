@@ -102,7 +102,7 @@ export async function finalizeUpload(
   }
 
   if (row.mime === "image/svg+xml") {
-    original = Buffer.from(sanitizeSvg(original.toString("utf8")), "utf8");
+    original = Buffer.from(await sanitizeSvg(original.toString("utf8")), "utf8");
   }
 
   let metadata: Metadata;

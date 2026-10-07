@@ -142,8 +142,8 @@ describe("renderVariants", () => {
 });
 
 describe("sanitizeSvg", () => {
-  it("removes scripts and inline event handlers", () => {
-    const clean = sanitizeSvg(fixture("logo-with-script.svg").toString("utf8"));
+  it("removes scripts and inline event handlers", async () => {
+    const clean = await sanitizeSvg(fixture("logo-with-script.svg").toString("utf8"));
 
     expect(clean).not.toMatch(/<script/i);
     expect(clean).not.toMatch(/\son\w+=/i);
@@ -151,8 +151,8 @@ describe("sanitizeSvg", () => {
     expect(clean).toContain("viewBox");
   });
 
-  it("removes javascript: links", () => {
-    const clean = sanitizeSvg(
+  it("removes javascript: links", async () => {
+    const clean = await sanitizeSvg(
       '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="javascript:alert(1)"><rect width="5" height="5"/></a></svg>',
     );
 

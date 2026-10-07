@@ -1,4 +1,3 @@
-import DOMPurify from "isomorphic-dompurify";
 import sharp, { type Metadata, type Sharp } from "sharp";
 import { MAX_INPUT_PIXELS, MEDIA_SPECS, clampCrop, variantWidthsFor, type Crop, type MediaKind, type Size } from "@/domain/media-specs";
 import type { MediaEdit } from "./schema";
@@ -65,6 +64,11 @@ export async function renderVariants(
   );
 }
 
-export function sanitizeSvg(svg: string): string {
+/**
+ * DOMPurify en el servidor usa jsdom, que en Vercel no carga (`ERR_REQUIRE_ESM` en una de sus dependencias). Se importa
+ * solo al limpiar un SVG para que el resto de las imágenes, la limpieza diaria y el panel no dependan de él.
+ */
+export async function sanitizeSvg(svg: string): Promise<string> {
+  const { default: DOMPurify } = await import("isomorphic-dompurify");
   return DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } });
 }
