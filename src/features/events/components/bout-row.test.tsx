@@ -50,10 +50,21 @@ const renderRow = (props: { rankLabels?: Record<string, string> } = {}) =>
 const labelOf = (container: HTMLElement, side: "red" | "blue") => container.querySelector(`[data-corner="${side}"] [data-slot="bout-rank"]`);
 
 describe("BoutRow rank labels", () => {
-  it("shows C for the champion and #n for a ranked fighter in the rank slot of each corner", () => {
+  it("spells out «Campeón» for the champion and shows #n for a ranked fighter in the rank slot of each corner", () => {
     const container = renderRow({ rankLabels: { "red-1": "C", "blue-1": "#1" } });
-    expect(labelOf(container, "red")?.textContent).toBe("C");
+    expect(labelOf(container, "red")?.textContent).toBe("Campeón");
     expect(labelOf(container, "blue")?.textContent).toBe("#1");
+  });
+
+  it("says «Campeona» in a women's division", () => {
+    const container = render(
+      <BoutAccordion>
+        <ul>
+          <BoutRow bout={{ ...bout, division: { name: "Paja", slug: "peso-paja-femenino", gender: "female" } }} rankLabels={{ "red-1": "C" }} />
+        </ul>
+      </BoutAccordion>,
+    ).container;
+    expect(labelOf(container, "red")?.textContent).toBe("Campeona");
   });
 
   it("leaves the slot empty for a fighter without label", () => {

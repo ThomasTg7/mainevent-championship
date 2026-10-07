@@ -2,6 +2,7 @@ import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
+import { championWord } from "@/domain/rankings";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import type { BoutDTO, BoutFighterDTO } from "../dto";
 import { boutMeasure, fighterComparison, roundsLabel } from "../public-format";
@@ -36,7 +37,23 @@ function Face({ fighter, side }: { fighter: BoutFighterDTO; side: Side }) {
  * Una esquina. Con resultado, la línea de arriba está siempre reservada (con «Victoria» solo en el ganador): así los dos
  * nombres quedan a la misma altura aunque uno lleve la etiqueta.
  */
-function Corner({ fighter, side, won, hasResult, rankLabel }: { fighter: BoutFighterDTO; side: Side; won: boolean; hasResult: boolean; rankLabel?: string }) {
+function Corner({
+  fighter,
+  side,
+  won,
+  hasResult,
+  rankLabel,
+  gender,
+}: {
+  fighter: BoutFighterDTO;
+  side: Side;
+  won: boolean;
+  hasResult: boolean;
+  /** `C` (campeón) o `#n`. */
+  rankLabel?: string;
+  /** Género de la división de la pelea («Campeón» o «Campeona»); las peleas sin división no llevan etiqueta. */
+  gender: "male" | "female";
+}) {
   const name = `${fighter.firstName} ${fighter.lastName}`;
   const reverse = side === "blue";
 
@@ -53,9 +70,11 @@ function Corner({ fighter, side, won, hasResult, rankLabel }: { fighter: BoutFig
             ) : null}
           </span>
         ) : null}
-        {/* Ranking de hoy en la división de la pelea: «C» (campeón) o «#1». */}
-        <span data-slot="bout-rank" className="empty:hidden font-cond text-[13px] font-bold text-neutral-500 sm:text-sm">
-          {rankLabel}
+        {/* Ranking de hoy en la división de la pelea: «Campeón»/«Campeona» o «#1». */}
+        <span data-slot="bout-rank" className={`empty:hidden font-cond font-bold ${
+            rankLabel === "C" ? `w-fit bg-black px-2 py-0.5 text-[11px] uppercase tracking-[.1em] text-yellow sm:text-xs ${reverse ? "self-end" : ""}` : "text-[13px] text-neutral-500 sm:text-sm"
+          }`}>
+          {rankLabel === "C" ? championWord(gender) : rankLabel}
         </span>
         <h3 className="font-display text-[clamp(18px,5.4vw,34px)] uppercase leading-[1.02] break-words text-black">
           {fighter.isPublic ? (
@@ -118,7 +137,7 @@ function Comparison({ bout }: { bout: BoutDTO }) {
 }
 
 /** Una pelea de la cartelera: las dos esquinas, categoría, rounds y, si ya se peleó, quién ganó y cómo. Al tocarla se despliegan los datos de los dos. */
-export function BoutRow({ bout, rankLabels }: { bout: BoutDTO; /** `C` o `#n` por id de peleador (ranking de hoy). */ rankLabels?: Record<string, string> }) {
+export function BoutRow({ bout, rankLabels }: { bout: BoutDTO; /** `C` (campeón) o `#n` por id de peleador (ranking de hoy). */ rankLabels?: Record<string, string> }) {
   const measure = boutMeasure(bout);
   const { result } = bout;
   const winner = result && (result.outcome === "red_win" || result.outcome === "blue_win") ? WINNER_OF[result.outcome] : null;
@@ -128,7 +147,7 @@ export function BoutRow({ bout, rankLabels }: { bout: BoutDTO; /** `C` o `#n` po
   const summary = (
     <div className="grid grid-cols-2 items-start gap-x-4 gap-y-4 md:grid-cols-[1fr_auto_1fr] md:gap-x-5">
       <div className="md:col-start-1 md:row-start-1">
-        <Corner fighter={bout.red} side="red" won={winner === "red"} hasResult={hasResult} rankLabel={rankLabels?.[bout.red.id]} />
+        <Corner fighter={bout.red} side="red" won={winner === "red"} hasResult={hasResult} rankLabel={rankLabels?.[bout.red.id]} gender={bout.division?.gender ?? "male"} />
       </div>
       <div className="order-last col-span-2 flex flex-col items-center gap-1 self-center text-center md:order-none md:col-span-1 md:col-start-2 md:row-start-1 md:min-w-[170px]">
         {measure ? <span className="font-cond text-xs font-extrabold uppercase tracking-[.12em] text-neutral-600">{measure}</span> : null}
@@ -148,7 +167,7 @@ export function BoutRow({ bout, rankLabels }: { bout: BoutDTO; /** `C` o `#n` po
         ) : null}
       </div>
       <div data-corner-wrap className="md:col-start-3 md:row-start-1">
-        <Corner fighter={bout.blue} side="blue" won={winner === "blue"} hasResult={hasResult} rankLabel={rankLabels?.[bout.blue.id]} />
+        <Corner fighter={bout.blue} side="blue" won={winner === "blue"} hasResult={hasResult} rankLabel={rankLabels?.[bout.blue.id]} gender={bout.division?.gender ?? "male"} />
       </div>
       {result ? (
         <p className="order-last col-span-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center font-cond text-[15px] font-bold uppercase tracking-[.05em] text-black md:order-none md:col-span-3" data-result-line>

@@ -67,12 +67,12 @@ test("un peleador sin ranking no lleva etiquetas de ranking", async ({ page }) =
   await expect(tags.getByText(/Campeón|^#\d/)).toHaveCount(0);
 });
 
-test("la cartelera de la pelea por el título muestra «C» y «#1» junto a cada peleador", async ({ page }) => {
+test("la cartelera de la pelea por el título muestra «Campeón» y «#1» junto a cada peleador", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-5");
   const ranks = page.locator('[data-slot="bout-rank"]');
-  // Pérez (campeón, esquina roja) lleva «C» y Soto (el #1 de la división) lleva «#1»; los otros campeones de la cartelera también llevan «C».
+  // Pérez (campeón, esquina roja) lleva «Campeón» y Soto (el #1 de la división) lleva «#1»; los otros campeones de la cartelera también.
   const withLabel = (name: string, label: RegExp) => page.locator("[data-corner]").filter({ hasText: name }).filter({ has: ranks.filter({ hasText: label }) });
-  await expect(withLabel("Pérez", /^C$/)).toHaveCount(1);
+  await expect(withLabel("Pérez", /^Campeón$/)).toHaveCount(1);
   await expect(withLabel("Soto", /^#1$/)).toHaveCount(1);
 });
 
