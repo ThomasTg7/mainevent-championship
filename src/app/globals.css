@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Celular o tablet con poca altura visible (p. ej. un iPhone con las barras de Safari): la ficha compacta su texto. */
+@custom-variant short (@media (max-width: 1023.98px) and (max-height: 760px));
+
 @theme {
   --color-bg: #000000;
   --color-surface: #0f0f0f;

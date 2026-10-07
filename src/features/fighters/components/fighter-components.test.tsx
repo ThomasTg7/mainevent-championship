@@ -128,8 +128,10 @@ describe("FighterHero", () => {
   });
 
   it("shows the short bio inside the card, under the name", () => {
-    render(<FighterHero fighter={{ ...profile, bio: "Campeón peso ligero." }} figures={figures} />);
-    expect(screen.getByText("Campeón peso ligero.")).toBeInTheDocument();
+    const { container } = render(<FighterHero fighter={{ ...profile, bio: "Campeón peso ligero." }} figures={figures} />);
+    expect(container.querySelector('section [data-slot="fighter-bio"]')?.textContent).toBe("Campeón peso ligero.");
+    // En pantallas bajas se muestra la copia de debajo de la portada (la de adentro se oculta con CSS).
+    expect(container.querySelector('section + [data-slot="fighter-bio-below"]')?.textContent).toBe("Campeón peso ligero.");
   });
 
   it("puts the champion and ranking labels in the tags slot, next to the division and status", () => {

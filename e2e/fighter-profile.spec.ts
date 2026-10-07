@@ -27,7 +27,13 @@ test("sin foto muestra la silueta de la marca en el hero", async ({ page }) => {
 
 test("la bio breve va en la tarjeta y las pestañas son Datos y Redes", async ({ page }) => {
   await page.goto("/peleadores/matias-perez");
-  await expect(page.getByText("Campeón peso ligero.")).toBeVisible();
+  await expect(page.locator('[data-slot="fighter-bio"]')).toContainText("Campeón peso ligero.");
+  await expect(page.locator('[data-slot="fighter-bio"]')).toBeVisible();
+  // En un celular bajo la bio sale de la portada y va justo debajo.
+  await page.setViewportSize({ width: 390, height: 664 });
+  await expect(page.locator('[data-slot="fighter-bio"]')).toBeHidden();
+  await expect(page.locator('[data-slot="fighter-bio-below"]')).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 720 });
   await expect(page.getByRole("tab", { name: "Bio" })).toHaveCount(0);
 
   // Datos se ve de entrada, sin pulsar nada.

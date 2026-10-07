@@ -208,7 +208,8 @@ test("al editar un evento se pega un enlace de Google Maps y el mapa de la pági
 });
 
 test("la portada de la ficha ocupa justo la pantalla: ni corta ni larga", async ({ page }) => {
-  for (const [width, height] of [[375, 667], [393, 780], [1280, 720], [1440, 900]] as const) {
+  // 390×664: un iPhone 13 con las barras de Safari a la vista.
+  for (const [width, height] of [[390, 664], [375, 667], [393, 780], [1280, 720], [1440, 900]] as const) {
     await page.setViewportSize({ width, height });
     await page.goto("/peleadores/diego-soto");
     const hero = page.locator('section[aria-labelledby="fighter-name"]');
@@ -219,6 +220,11 @@ test("la portada de la ficha ocupa justo la pantalla: ni corta ni larga", async 
     // Nada queda cortado: las cifras (lo último de los datos) terminan dentro de la pantalla.
     const figures = (await hero.getByRole("term").last().boundingBox())!;
     expect(figures.y + figures.height).toBeLessThanOrEqual(height);
+    // En celulares bajos se compacta el texto para que la foto no quede chica.
+    if (width < 1024) {
+      const photo = (await hero.locator('[data-slot="fighter-hero-photo"]').boundingBox())!;
+      expect(photo.height, `alto de la foto a ${width}×${height}`).toBeGreaterThanOrEqual(height * 0.42);
+    }
   }
 });
 
