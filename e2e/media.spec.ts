@@ -23,10 +23,12 @@ test.beforeEach(async ({ page }) => {
 
 test("subir una foto de cuerpo completo, recortarla y guardarla", async ({ page }) => {
   const field = section(page, "Foto de cuerpo completo");
+  // Antes de elegir el archivo ya se ve qué subir: proporción y píxeles.
+  await expect(field.getByText("Proporción 2:3 (vertical) · Recomendado: 1200×1800 px · Mínimo: 800×1200 px")).toBeVisible();
   await field.locator('input[type="file"]').setInputFiles({ name: "peleador.png", mimeType: "image/png", buffer: await png(1200, 1800, "#c33") });
 
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Recomendado: 1200×1800 · Mínimo: 800×1200 · Proporción 2:3")).toBeVisible();
+  await expect(dialog.getByText("Proporción 2:3 (vertical) · Recomendado: 1200×1800 px · Mínimo: 800×1200 px")).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Quitar fondo" })).toBeVisible();
   await expect(dialog.getByText(/más chica que el mínimo/)).toHaveCount(0);
   for (const adjustment of ["Brillo", "Contraste", "Saturación", "Nitidez"]) {

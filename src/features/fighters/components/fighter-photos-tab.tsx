@@ -20,7 +20,7 @@ export function FighterPhotosTab({ bodyMedia, headshotMedia, gallery }: FighterP
         </section>
         <section className="flex flex-col gap-2">
           <h3 className="text-base font-semibold">{MEDIA_SPECS.fighter_headshot.label}</h3>
-          <p className="text-sm text-muted-foreground">Cuadrada. Se usa en cartelas y resultados.</p>
+          <p className="text-sm text-muted-foreground">Se usa en cartelas y resultados.</p>
           <MediaField kind="fighter_headshot" name="headshotMediaId" media={headshotMedia} />
         </section>
       </div>

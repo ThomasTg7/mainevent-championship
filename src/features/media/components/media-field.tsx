@@ -4,7 +4,7 @@ import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { MediaImage } from "@/components/media/media-image";
 import { Button } from "@/components/ui/button";
-import { MEDIA_SPECS, type MediaKind } from "@/domain/media-specs";
+import { MEDIA_SPECS, describeSpec, type MediaKind } from "@/domain/media-specs";
 import type { MediaDTO } from "../dto";
 import { EditorDialog, mediaTriggerAttribute } from "./editor-dialog";
 import { MediaDropzone } from "./media-dropzone";
@@ -43,6 +43,10 @@ export function MediaField({ kind, name, media: initialMedia = null, onChange }:
   return (
     <div ref={containerRef} className="flex flex-col gap-2">
       <input type="hidden" name={name} value={media?.id ?? ""} />
+      {/* Antes de elegir el archivo (y al reemplazarlo): qué proporción y cuántos píxeles conviene subir. */}
+      <p data-slot="media-recommendation" className="text-sm text-muted-foreground">
+        {describeSpec(kind)}
+      </p>
 
       {media ? (
         <div className="flex items-center gap-3 border border-border p-3">

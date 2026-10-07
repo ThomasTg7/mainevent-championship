@@ -78,7 +78,7 @@ function SponsorFormBody({ sponsor, onClose }: { sponsor: AdminSponsorRow | null
             id="sponsor-logo"
             label="Logo"
             error={errors.logoMediaId}
-            hint="PNG o SVG sin fondo, de 600×300 px (proporción 2:1). Se muestra entero, sin recortar."
+            hint="Mejor PNG o SVG sin fondo."
           >
             <MediaField kind="sponsor_logo" name="logoMediaId" media={sponsor?.logo ?? null} />
           </FormField>

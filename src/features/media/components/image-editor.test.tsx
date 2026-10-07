@@ -59,7 +59,7 @@ describe("ImageEditor", () => {
   it("shows the recommended size, minimum and ratio", () => {
     renderEditor();
 
-    expect(screen.getByText("Recomendado: 1200×1800 · Mínimo: 800×1200 · Proporción 2:3")).toBeInTheDocument();
+    expect(screen.getByText("Proporción 2:3 (vertical) · Recomendado: 1200×1800 px · Mínimo: 800×1200 px")).toBeInTheDocument();
   });
 
   it("warns when the image is smaller than the minimum", () => {

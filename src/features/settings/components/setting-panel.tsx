@@ -106,7 +106,7 @@ export function SettingPanel({ settingKey, settings, ogMedia, privacyUpdatedLabe
               id="setting-share-ogMediaId"
               label="Imagen al compartir el sitio"
               error={errors.ogMediaId}
-              hint="Es la imagen que aparece cuando alguien comparte el sitio por WhatsApp, Instagram o redes. Mejor 1200×630."
+              hint="Es la imagen que aparece cuando alguien comparte el sitio por WhatsApp, Instagram o redes."
             >
               <MediaField kind="og_image" name="ogMediaId" media={ogMedia} />
             </FormField>

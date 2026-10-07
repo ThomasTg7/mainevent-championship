@@ -74,17 +74,17 @@ export function EventImagesTab({ heroMedia, heroMobileMedia, posterMedia, galler
       <div className="grid gap-8 md:grid-cols-2">
         <section className="flex flex-col gap-2">
           <h3 className="text-base font-semibold">{MEDIA_SPECS.event_hero.label}</h3>
-          <p className="text-sm text-muted-foreground">Horizontal 16:9. Es la imagen grande de la página del evento en computador.</p>
+          <p className="text-sm text-muted-foreground">Es la imagen grande de la página del evento en computador.</p>
           <MediaField kind="event_hero" name="heroMediaId" media={heroMedia} />
         </section>
         <section className="flex flex-col gap-2">
           <h3 className="text-base font-semibold">{MEDIA_SPECS.event_hero_mobile.label}</h3>
-          <p className="text-sm text-muted-foreground">Vertical 4:5. Se usa en celular; si falta, se usa la portada horizontal.</p>
+          <p className="text-sm text-muted-foreground">Se usa en celular; si falta, se usa la portada horizontal.</p>
           <MediaField kind="event_hero_mobile" name="heroMobileMediaId" media={heroMobileMedia} />
         </section>
         <section className="flex flex-col gap-2">
           <h3 className="text-base font-semibold">{MEDIA_SPECS.event_poster.label}</h3>
-          <p className="text-sm text-muted-foreground">Vertical 4:5. Aparece en los listados de eventos.</p>
+          <p className="text-sm text-muted-foreground">Aparece en los listados de eventos.</p>
           <MediaField kind="event_poster" name="posterMediaId" media={posterMedia} />
         </section>
       </div>

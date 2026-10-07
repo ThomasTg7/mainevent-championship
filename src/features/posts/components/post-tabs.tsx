@@ -74,7 +74,7 @@ export function PostDataTab({ categories, cover, featured: initialFeatured, show
       </div>
       <section className="flex flex-col gap-2 md:col-span-2">
         <h3 className="text-base font-semibold">{MEDIA_SPECS.news_cover.label}</h3>
-        <p className="text-sm text-muted-foreground">Horizontal 16:9. Sin portada, la noticia usa un fondo de la marca.</p>
+        <p className="text-sm text-muted-foreground">Sin portada, la noticia usa un fondo de la marca.</p>
         <MediaField kind="news_cover" name="coverMediaId" media={cover} onChange={(_, media) => onCoverChange?.(media)} />
       </section>
     </div>

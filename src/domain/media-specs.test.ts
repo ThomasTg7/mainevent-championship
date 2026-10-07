@@ -78,18 +78,22 @@ describe("MEDIA_SPECS", () => {
 });
 
 describe("describeSpec", () => {
-  it("describes fixed-aspect kinds with recommended, minimum and ratio", () => {
-    expect(describeSpec("fighter_body")).toBe("Recomendado: 1200×1800 · Mínimo: 800×1200 · Proporción 2:3");
-    expect(describeSpec("og_image")).toBe("Recomendado: 1200×630 · Mínimo: 1200×630 · Proporción 1.91:1");
+  it("leads with the ratio and its orientation, then recommended and minimum pixels", () => {
+    expect(describeSpec("fighter_body")).toBe("Proporción 2:3 (vertical) · Recomendado: 1200×1800 px · Mínimo: 800×1200 px");
+    expect(describeSpec("fighter_headshot")).toBe("Proporción 1:1 (cuadrada) · Recomendado: 800×800 px · Mínimo: 400×400 px");
+    expect(describeSpec("event_hero")).toBe("Proporción 16:9 (horizontal) · Recomendado: 1920×1080 px · Mínimo: 1280×720 px");
+    expect(describeSpec("og_image")).toBe("Proporción 1.91:1 (horizontal) · Recomendado: 1200×630 px · Mínimo: 1200×630 px");
   });
 
   it("describes boxed kinds as shown whole inside their box", () => {
-    expect(describeSpec("sponsor_logo")).toBe("Recomendado: 600×300 · Mínimo: 300×150 · Se ve completo dentro de una caja 2:1");
+    expect(describeSpec("sponsor_logo")).toBe("Proporción 2:1 (horizontal, se ve completo sin recortar) · Recomendado: 600×300 px · Mínimo: 300×150 px");
   });
 
   it("describes free-form kinds by their longest side", () => {
-    expect(describeSpec("gallery")).toBe(
-      "Recomendado: lado largo 2400 px · Mínimo: lado largo 1200 px · Proporción libre",
-    );
+    expect(describeSpec("gallery")).toBe("Proporción libre · Recomendado: 2400 px por el lado más largo · Mínimo: 1200 px");
+  });
+
+  it("has a description for every kind", () => {
+    for (const kind of Object.keys(MEDIA_SPECS) as (keyof typeof MEDIA_SPECS)[]) expect(describeSpec(kind)).toMatch(/^Proporción .+ · Recomendado: .+ px.* · Mínimo: .+ px$/);
   });
 });

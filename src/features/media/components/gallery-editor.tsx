@@ -4,7 +4,7 @@ import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, us
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Loader2 } from "lucide-react";
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { MEDIA_SPECS } from "@/domain/media-specs";
+import { MEDIA_SPECS, describeSpec } from "@/domain/media-specs";
 import type { MediaDTO } from "../dto";
 import { EditorDialog } from "./editor-dialog";
 import { GalleryItem } from "./gallery-item";
@@ -112,6 +112,9 @@ export function GalleryEditor({ media: initialMedia = [], onChange, onMediaChang
         </DndContext>
       ) : null}
 
+      <p data-slot="media-recommendation" className="text-sm text-muted-foreground">
+        {describeSpec("gallery")}
+      </p>
       <MediaDropzone
         multiple
         accept={SPEC.accepts}

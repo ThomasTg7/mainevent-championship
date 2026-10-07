@@ -86,13 +86,20 @@ export function clampCrop(crop: Crop, img: Size): Crop {
   return { x, y, width, height };
 }
 
+/** «vertical», «horizontal» o «cuadrada», para que la proporción se entienda sin hacer cuentas. */
+function orientation(ratio: number): string {
+  if (ratio === 1) return "cuadrada";
+  return ratio < 1 ? "vertical" : "horizontal";
+}
+
+/** Lo que conviene subir en cada lugar: proporción (y su orientación), tamaño recomendado y mínimo en píxeles. */
 export function describeSpec(kind: MediaKind): string {
   const { aspect, box, aspectLabel, recommended, min } = MEDIA_SPECS[kind];
   if (box !== undefined) {
-    return `Recomendado: ${recommended.w}×${recommended.h} · Mínimo: ${min.w}×${min.h} · Se ve completo dentro de una caja ${aspectLabel}`;
+    return `Proporción ${aspectLabel} (${orientation(box)}, se ve completo sin recortar) · Recomendado: ${recommended.w}×${recommended.h} px · Mínimo: ${min.w}×${min.h} px`;
   }
   if (aspect === null) {
-    return `Recomendado: lado largo ${recommended.w} px · Mínimo: lado largo ${min.w} px · Proporción libre`;
+    return `Proporción libre · Recomendado: ${recommended.w} px por el lado más largo · Mínimo: ${min.w} px`;
   }
-  return `Recomendado: ${recommended.w}×${recommended.h} · Mínimo: ${min.w}×${min.h} · Proporción ${aspectLabel}`;
+  return `Proporción ${aspectLabel} (${orientation(aspect)}) · Recomendado: ${recommended.w}×${recommended.h} px · Mínimo: ${min.w}×${min.h} px`;
 }
