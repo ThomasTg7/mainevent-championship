@@ -3,11 +3,12 @@ import { MediaImage } from "@/components/media/media-image";
 import { championWord } from "@/domain/rankings";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import type { BoutFighterDTO } from "../dto";
+import { VictoryTag } from "./victory-tag";
 
 export type Side = "red" | "blue";
 
 /** Dorado de la placa de campeón (como el cinturón): texto siempre negro encima. */
-const CHAMPION_GOLD = "bg-[linear-gradient(135deg,#F4DE8C_0%,#D4AF37_45%,#A8832C_100%)]";
+export const CHAMPION_GOLD = "bg-[linear-gradient(135deg,#F4DE8C_0%,#D4AF37_45%,#A8832C_100%)]";
 
 /** La placa sobre la foto: «Campeón»/«Campeona» en dorado o el puesto («#1») en gris. Vacía si no tiene ranking. */
 function RankBadge({ rankLabel, gender }: { rankLabel?: string; gender: "male" | "female" }) {
@@ -43,11 +44,7 @@ function CornerPhoto({ fighter, side, won }: { fighter: BoutFighterDTO; side: Si
       ) : (
         <FighterSilhouette className="absolute bottom-0 left-1/2 h-[92%] -translate-x-1/2 text-neutral-900" />
       )}
-      {won ? (
-        <span data-result="win" className="absolute inset-x-0 bottom-0 flex h-[18px] items-center justify-center bg-yellow font-cond text-[10px] font-extrabold uppercase tracking-[.12em] text-black sm:h-5 sm:text-[11px]">
-          Victoria
-        </span>
-      ) : null}
+      {won ? <VictoryTag /> : null}
     </div>
   );
 }

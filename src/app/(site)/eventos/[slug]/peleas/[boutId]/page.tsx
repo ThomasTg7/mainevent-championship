@@ -79,8 +79,8 @@ export default async function BoutPage({ params }: PageProps<"/eventos/[slug]/pe
       <div className="bg-white py-[clamp(40px,7vw,96px)] text-black">
         <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-[clamp(40px,7vw,80px)] px-[clamp(16px,4vw,64px)]">
           <section aria-label="Los peleadores" className="grid grid-cols-2 items-start gap-4 sm:gap-10">
-            <BoutDetailCorner fighter={bout.red} side="red" won={winner === "red"} hasResult={Boolean(result)} rankLabel={rankLabels[bout.red.id]} gender={gender} />
-            <BoutDetailCorner fighter={bout.blue} side="blue" won={winner === "blue"} hasResult={Boolean(result)} rankLabel={rankLabels[bout.blue.id]} gender={gender} />
+            <BoutDetailCorner fighter={bout.red} side="red" won={winner === "red"} rankLabel={rankLabels[bout.red.id]} gender={gender} />
+            <BoutDetailCorner fighter={bout.blue} side="blue" won={winner === "blue"} rankLabel={rankLabels[bout.blue.id]} gender={gender} />
           </section>
 
           <BoutResultSummary bout={bout} />

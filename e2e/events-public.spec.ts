@@ -212,6 +212,15 @@ test("una pelea tiene su página con todo el detalle y, al final, las tarjetas d
   await expect(page).toHaveURL(/\/eventos\/guerra-campal-1\/peleas\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name: /Soto\s*vs\s*Araya/i, level: 1 })).toBeVisible();
   await expect(page.locator('[data-corner="red"] [data-result="win"]')).toHaveText("Victoria");
+  // Igual que en la cartelera: «Victoria» va sobre los pies de la foto y la silueta entra entera (sin cortar la cabeza).
+  const face = page.locator('[data-corner="red"] [data-slot="bout-face"]');
+  const faceBox = (await face.boundingBox())!;
+  const winBox = (await face.locator('[data-result="win"]').boundingBox())!;
+  expect(winBox.y + winBox.height).toBeLessThanOrEqual(faceBox.y + faceBox.height);
+  expect(winBox.y + winBox.height).toBeGreaterThanOrEqual(faceBox.y + faceBox.height - 8);
+  expect(winBox.height).toBeLessThan(faceBox.height / 5);
+  const blueFace = page.locator('[data-corner="blue"] [data-slot="bout-face"]');
+  expect((await blueFace.locator("svg").boundingBox())!.y).toBeGreaterThanOrEqual((await blueFace.boundingBox())!.y);
   await expect(page.locator('[data-slot="bout-result"]')).toContainText("Gana Diego Soto");
   await expect(page.locator('[data-slot="bout-result"]')).toContainText("Decisión unánime");
   await expect(page.locator('[data-slot="bout-result"]')).toContainText("Ricardo Salas");

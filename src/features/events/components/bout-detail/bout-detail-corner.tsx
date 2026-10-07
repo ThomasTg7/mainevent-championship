@@ -6,13 +6,13 @@ import { countryName } from "@/domain/units";
 import { FighterName } from "@/features/fighters/components/fighter-name";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import type { BoutFighterDTO } from "../../dto";
+import { CHAMPION_GOLD } from "../bout-corner";
+import { VictoryTag } from "../victory-tag";
 
 type BoutDetailCornerProps = {
   fighter: BoutFighterDTO;
   side: "red" | "blue";
   won: boolean;
-  /** Con resultado, las dos esquinas reservan el alto de «Victoria»: así los nombres quedan a la misma altura. */
-  hasResult: boolean;
   /** `C` (campeón) o `#n` según el ranking de hoy. */
   rankLabel?: string;
   gender: "male" | "female";
@@ -21,8 +21,8 @@ type BoutDetailCornerProps = {
 const CORNER_COLOR = { red: "border-[#D7263D]", blue: "border-[#1E6FD9]" } as const;
 const CORNER_NAME = { red: "Esquina roja", blue: "Esquina azul" } as const;
 
-/** Una esquina en la página de la pelea: foto grande (con «Victoria» debajo si ganó), ranking, nombre, país y récord. */
-export function BoutDetailCorner({ fighter, side, won, hasResult, rankLabel, gender }: BoutDetailCornerProps) {
+/** Una esquina en la página de la pelea: foto grande (con «Victoria» sobre sus pies si ganó), ranking, nombre, país y récord. */
+export function BoutDetailCorner({ fighter, side, won, rankLabel, gender }: BoutDetailCornerProps) {
   const photo = fighter.bodyMedia ?? fighter.headshotMedia;
   const record = fighter.record;
   return (
@@ -32,20 +32,14 @@ export function BoutDetailCorner({ fighter, side, won, hasResult, rankLabel, gen
           {photo ? (
             <MediaImage media={photo} sizes="(min-width: 640px) 260px, 44vw" className={`size-full ${fighter.bodyMedia ? "object-contain object-bottom" : "object-cover"}`} />
           ) : (
-            <FighterSilhouette className={`absolute -bottom-2 left-1/2 h-[104%] -translate-x-1/2 text-neutral-900 ${side === "blue" ? "-scale-x-100" : ""}`} />
+            <FighterSilhouette className={`absolute bottom-0 left-1/2 h-[92%] -translate-x-1/2 text-neutral-900 ${side === "blue" ? "-scale-x-100" : ""}`} />
           )}
+          {won ? <VictoryTag size="lg" /> : null}
         </div>
-        {won ? (
-          <span data-result="win" className="flex h-7 items-center justify-center bg-yellow font-cond text-xs font-extrabold uppercase tracking-[.14em] text-black sm:h-8 sm:text-sm">
-            Victoria
-          </span>
-        ) : hasResult ? (
-          <span aria-hidden className="block h-7 sm:h-8" />
-        ) : null}
       </div>
       <span className="font-cond text-[11px] font-extrabold uppercase tracking-[.14em] text-neutral-500">{CORNER_NAME[side]}</span>
       {rankLabel ? (
-        <span data-slot="bout-rank" className={rankLabel === "C" ? "w-fit bg-black px-2 py-0.5 font-cond text-xs font-bold uppercase tracking-[.1em] text-yellow" : "font-cond text-sm font-bold text-neutral-500"}>
+        <span data-slot="bout-rank" className={rankLabel === "C" ? `w-fit ${CHAMPION_GOLD} px-2.5 py-0.5 font-cond text-xs font-extrabold uppercase tracking-[.12em] text-black shadow-sm` : "font-cond text-sm font-bold text-neutral-500"}>
           {rankLabel === "C" ? championWord(gender) : rankLabel}
         </span>
       ) : null}
