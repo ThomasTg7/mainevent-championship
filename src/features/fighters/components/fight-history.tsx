@@ -64,7 +64,7 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
                 {row.opponent.headshotMedia ? (
                   <MediaImage media={row.opponent.headshotMedia} sizes="64px" className="size-full object-cover" />
                 ) : (
-                  <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-yellow" />
+                  <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]" />
                 )}
               </div>
               <span className={`w-fit justify-self-start px-2.5 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] sm:justify-self-auto ${RESULT_CLASS[row.fighterResult]}`}>

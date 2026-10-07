@@ -26,7 +26,7 @@ export function PostRelated({ fighters, events }: { fighters: PostFighterDTO[]; 
                   {fighter.headshotMedia ? (
                     <MediaImage media={fighter.headshotMedia} sizes="48px" className="size-full object-cover" />
                   ) : (
-                    <FighterSilhouette className="h-full w-auto" />
+                    <FighterSilhouette className="h-full w-auto text-black drop-shadow-[0_0_1px_rgba(255,180,0,.6)]" />
                   )}
                 </span>
                 <span className="flex min-w-0 flex-col">

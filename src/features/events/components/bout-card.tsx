@@ -36,7 +36,7 @@ function Corner({ fighter, corner }: { fighter: AdminBoutFighter; corner: "red" 
   return (
     <div className={`flex min-w-0 flex-1 items-center gap-2 border-l-4 pl-2 ${corner === "red" ? "border-l-[#D7263D]" : "border-l-[#1E6FD9]"}`}>
       <div className="size-10 shrink-0 overflow-hidden bg-muted">
-        {fighter.headshotMedia ? <MediaImage media={fighter.headshotMedia} sizes="40px" className="size-full object-cover" /> : <FighterSilhouette className="size-full text-yellow" />}
+        {fighter.headshotMedia ? <MediaImage media={fighter.headshotMedia} sizes="40px" className="size-full object-cover" /> : <FighterSilhouette className="size-full text-black drop-shadow-[0_0_1px_rgba(255,180,0,.6)]" />}
       </div>
       <div className="flex min-w-0 flex-col">
         <span className="flex items-center gap-1.5 font-medium">

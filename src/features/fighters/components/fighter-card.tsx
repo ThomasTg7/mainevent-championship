@@ -4,6 +4,7 @@ import { Flag } from "@/components/ui-gc/flag";
 import { formatWeight } from "@/domain/units";
 import type { FighterCardDTO } from "../dto";
 import { divisionTitle } from "../labels";
+import { FighterName } from "./fighter-name";
 import { FighterSilhouette } from "./fighter-silhouette";
 import { CountFigures } from "./count-figures";
 
@@ -35,7 +36,6 @@ function divisionLabel(division: FighterCardDTO["division"]): string {
 
 /** Tarjeta del listado (estilo `.fcard` de la maqueta). Toda la tarjeta es un solo enlace a la ficha. */
 export function FighterCard({ fighter, priority = false, badge, backdrop, heading: Heading = "h2" }: FighterCardProps) {
-  const name = `${fighter.firstName} ${fighter.lastName}`;
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden border border-border bg-[linear-gradient(170deg,#1c1c1c,#0a0a0a_70%)] transition-colors duration-300 focus-within:border-yellow focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-yellow hover:border-yellow">
@@ -48,7 +48,7 @@ export function FighterCard({ fighter, priority = false, badge, backdrop, headin
             className="absolute inset-0 size-full object-contain transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105"
           />
         ) : (
-          <FighterSilhouette className="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-yellow transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105" />
+          <FighterSilhouette className="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)] transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105" />
         )}
         {backdrop ? (
           <span
@@ -73,7 +73,7 @@ export function FighterCard({ fighter, priority = false, badge, backdrop, headin
         ) : null}
         <Heading className="my-1 font-display text-[clamp(24px,5vw,36px)] uppercase leading-[.95] text-white">
           <Link href={`/peleadores/${fighter.slug}`} className="outline-none after:absolute after:inset-0">
-            {name}
+            <FighterName firstName={fighter.firstName} lastName={fighter.lastName} />
           </Link>
         </Heading>
         <p className="flex items-start gap-2 font-cond text-[12px] font-semibold uppercase tracking-[.08em] text-muted-foreground sm:text-[13px]">

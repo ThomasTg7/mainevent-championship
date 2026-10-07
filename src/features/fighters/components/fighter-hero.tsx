@@ -5,6 +5,7 @@ import { countryName, formatWeight } from "@/domain/units";
 import type { FighterProfileDTO } from "../dto";
 import { CAREER_STATUS_LABELS, divisionTitle } from "../labels";
 import { CountFigures, type CountFigure } from "./count-figures";
+import { FighterName } from "./fighter-name";
 import { FighterSilhouette } from "./fighter-silhouette";
 import { HeroParallax } from "./hero-parallax";
 
@@ -20,7 +21,6 @@ type FighterHeroProps = {
 };
 
 export function FighterHero({ fighter, figures, rankingTags = [] }: FighterHeroProps) {
-  const name = `${fighter.firstName} ${fighter.lastName}`;
 
   return (
     <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-black pt-[76px]" aria-labelledby="fighter-name">
@@ -39,7 +39,7 @@ export function FighterHero({ fighter, figures, rankingTags = [] }: FighterHeroP
             <p className="font-cond text-[clamp(16px,2.4vw,24px)] font-bold tracking-[.12em] text-yellow">“{fighter.nickname}”</p>
           ) : null}
           <h1 id="fighter-name" className="my-2 font-display text-[clamp(38px,7.5vw,104px)] uppercase leading-[.95] text-white">
-            {name}
+            <FighterName firstName={fighter.firstName} lastName={fighter.lastName} />
           </h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-cond text-[15px] font-semibold uppercase tracking-[.08em] text-muted-foreground sm:text-base">
             <span className="flex items-center gap-2">
@@ -62,7 +62,7 @@ export function FighterHero({ fighter, figures, rankingTags = [] }: FighterHeroP
             {fighter.bodyMedia ? (
               <MediaImage media={fighter.bodyMedia} sizes={FIGHTER_HERO_SIZES} priority className="size-full object-contain object-bottom" />
             ) : (
-              <FighterSilhouette className="absolute bottom-0 left-1/2 h-[96%] -translate-x-1/2 text-yellow" />
+              <FighterSilhouette className="absolute bottom-0 left-1/2 h-[96%] -translate-x-1/2 text-black drop-shadow-[0_0_3px_rgba(255,180,0,.6)]" />
             )}
           </HeroParallax>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black to-transparent lg:hidden" />

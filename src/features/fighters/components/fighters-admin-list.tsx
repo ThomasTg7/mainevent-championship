@@ -19,7 +19,7 @@ function Thumbnail({ fighter }: { fighter: AdminFighterRow }) {
       {fighter.bodyMedia ? (
         <MediaImage media={fighter.bodyMedia} sizes="48px" className="size-full object-cover object-top" />
       ) : (
-        <FighterSilhouette className="size-full text-yellow" />
+        <FighterSilhouette className="size-full text-black drop-shadow-[0_0_1px_rgba(255,180,0,.6)]" />
       )}
     </div>
   );
