@@ -88,7 +88,7 @@ export function selectBoutRows(db: Db, where: SQL | undefined) {
 export type BoutRow = Awaited<ReturnType<typeof selectBoutRows>>[number];
 type FighterRow = BoutRow["red"];
 
-/** Ids de imagen que necesita una pelea: el rostro de cada peleador y, en la estelar, el cuerpo entero (careo). */
+/** Ids de imagen que necesita una pelea: el rostro de cada peleador y, con `withBody`, el cuerpo entero (careo y tarjeta de la cartelera). */
 export function boutMediaIds(row: BoutRow, withBody: boolean): (string | null)[] {
   const ids = [row.red.headshotMediaId, row.blue.headshotMediaId];
   return withBody ? [...ids, row.red.bodyMediaId, row.blue.bodyMediaId] : ids;

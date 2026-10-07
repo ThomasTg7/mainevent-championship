@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import type { MediaDTO } from "@/features/media/dto";
 import type { BoutDTO, BoutFighterDTO } from "../dto";
 import { BoutAccordion } from "./bout-accordion";
 import { BoutRow } from "./bout-row";
@@ -76,5 +77,48 @@ describe("BoutRow rank labels", () => {
   it("works without any labels", () => {
     const container = renderRow();
     expect(labelOf(container, "red")?.textContent).toBe("");
+  });
+});
+
+describe("BoutRow card", () => {
+  const summaryOf = (container: HTMLElement) => container.querySelector('[data-slot="bout-summary"]')!;
+  const detailsOf = (container: HTMLElement) => container.querySelector('[data-slot="bout-details"]')!;
+
+  it("announces the title fight and the weight class in the strip at the bottom", () => {
+    const container = renderRow();
+    expect(container.querySelector('[data-slot="bout-billing"]')?.textContent).toBe("Pelea por el título – Peso Ligero");
+  });
+
+  it("shows each corner's record next to its flag", () => {
+    const container = renderRow();
+    const records = [...container.querySelectorAll('[data-corner] [data-slot="bout-record"]')].map((node) => node.textContent);
+    expect(records).toEqual(["1-0-0", "1-0-0"]);
+  });
+
+  it("keeps the rounds and nicknames out of the card and shows them under «Ver datos»", () => {
+    const container = render(
+      <BoutAccordion>
+        <ul>
+          <BoutRow bout={{ ...bout, red: { ...bout.red, nickname: "El Toro" } }} eventSlug="guerra-campal-5" />
+        </ul>
+      </BoutAccordion>,
+    ).container;
+    expect(summaryOf(container).textContent).not.toContain("5 × 5 MIN");
+    expect(summaryOf(container).textContent).not.toContain("El Toro");
+    expect(detailsOf(container).textContent).toContain("5 × 5 MIN");
+    expect(detailsOf(container).textContent).toContain("El Toro");
+  });
+
+  it("uses the full-body photo when the fighter has one", () => {
+    const media: MediaDTO = { id: "m1", kind: "fighter_body", alt: "Pérez", width: 600, height: 900, focal: { x: 0.5, y: 0.5 }, variants: [{ width: 600, url: "/media/body.webp" }], originalUrl: "/media/body.png" };
+    const container = render(
+      <BoutAccordion>
+        <ul>
+          <BoutRow bout={{ ...bout, red: { ...bout.red, bodyMedia: media } }} eventSlug="guerra-campal-5" />
+        </ul>
+      </BoutAccordion>,
+    ).container;
+    expect(container.querySelector('[data-corner="red"] [data-slot="bout-face"]')?.getAttribute("data-photo")).toBe("body");
+    expect(container.querySelector('[data-corner="blue"] [data-slot="bout-face"]')?.getAttribute("data-photo")).toBe("silhouette");
   });
 });

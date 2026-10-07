@@ -22,7 +22,7 @@ export type BoutFighterDTO = {
   weightKg: number | null;
   reachCm: number | null;
   headshotMedia: MediaDTO | null;
-  /** Solo en la pelea estelar (careo del hero). */
+  /** Foto de cuerpo entero: el careo del hero y la tarjeta de cada pelea (en los listados, solo la estelar). */
   bodyMedia: MediaDTO | null;
 };
 

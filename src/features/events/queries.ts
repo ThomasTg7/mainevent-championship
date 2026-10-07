@@ -88,22 +88,17 @@ export async function getPublicEventBySlug(db: Db, slug: string, { preview = fal
 
   const boutsBySegment = new Map<string, BoutRow[]>();
   for (const row of boutRows) boutsBySegment.set(row.segmentId, [...(boutsBySegment.get(row.segmentId) ?? []), row]);
-  const mainBoutId = pickMainBout(
-    segmentRows.flatMap((segment) => boutsBySegment.get(segment.id) ?? []),
-    isCancelledRow,
-  )?.id;
-
   const mediaById = await loadMedia(db, [
     ...eventImageIds(event),
     ...galleryRows.map((row) => row.mediaId),
-    ...boutRows.flatMap((row) => boutMediaIds(row, row.id === mainBoutId)),
+    ...boutRows.flatMap((row) => boutMediaIds(row, true)),
   ]);
 
   const segments: SegmentDTO[] = segmentRows.map((segment) => ({
     id: segment.id,
     name: segment.name,
     startsAt: segment.startsAt?.toISOString() ?? null,
-    bouts: (boutsBySegment.get(segment.id) ?? []).map((row) => toBoutDTO(row, mediaById, row.id === mainBoutId)),
+    bouts: (boutsBySegment.get(segment.id) ?? []).map((row) => toBoutDTO(row, mediaById, true)),
   }));
 
   return {

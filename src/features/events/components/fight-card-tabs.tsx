@@ -21,7 +21,7 @@ export function FightCardTabs({ segments }: FightCardTabsProps) {
     return (
       <div>
         <h3 className="border-b-2 border-neutral-200 py-3.5 font-cond text-[15px] font-extrabold uppercase tracking-[.1em] text-black">{only!.name}</h3>
-        <ul>{only!.content}</ul>
+        <ul className="flex flex-col gap-4 md:gap-5">{only!.content}</ul>
       </div>
     );
   }
@@ -48,7 +48,7 @@ export function FightCardTabs({ segments }: FightCardTabsProps) {
           hidden={active !== segment.id}
           className="motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
         >
-          <ul>{segment.content}</ul>
+          <ul className="flex flex-col gap-4 md:gap-5">{segment.content}</ul>
         </TabsContent>
       ))}
     </Tabs>

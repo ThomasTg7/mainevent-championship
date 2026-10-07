@@ -50,7 +50,7 @@ test("tocar una pelea despliega los datos de los dos; abrir otra cierra la anter
   await expect(first).toHaveAttribute("data-open", "false");
 
   // Tocar la pelea (no un enlace) la abre.
-  await first.getByText("VS", { exact: true }).click();
+  await first.locator('[data-slot="bout-billing"]').click();
   await expect(first).toHaveAttribute("data-open", "true");
 
   // Al medio el dato y a los lados el valor de cada uno, en la misma fila. El alcance está en Pérez y Soto.
@@ -106,7 +106,7 @@ test("el panel de datos se anima: pasa por alturas intermedias al abrirse y al c
   await expect.poll(height).toBeLessThan(1);
 });
 
-test("en un evento con resultado, los dos nombres quedan a la misma altura y «Victoria» va bajo la foto del ganador", async ({ page }) => {
+test("en un evento con resultado, los nombres van al centro en celular y junto a su foto en PC, y «Victoria» va bajo la foto del ganador", async ({ page }) => {
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/eventos/guerra-campal-4");
@@ -114,7 +114,9 @@ test("en un evento con resultado, los dos nombres quedan a la misma altura y «V
     await expect(main.locator('[data-corner="red"] [data-result="win"]')).toHaveText("Victoria");
     const red = main.locator('[data-corner="red"] h3');
     const blue = main.locator('[data-corner="blue"] h3');
-    expect(await top(red)).toBe(await top(blue));
+    // Celular: uno sobre otro al centro de la tarjeta. PC: a la misma altura, cada uno junto a su foto.
+    if (width === 375) expect(await top(red)).toBeLessThan(await top(blue));
+    else expect(await top(red)).toBe(await top(blue));
     // La etiqueta va justo debajo de la foto del ganador (no ocupa una línea sobre el nombre).
     const winBox = (await main.locator('[data-result="win"]').boundingBox())!;
     const faceBox = (await main.locator('[data-corner="red"] [data-slot="bout-face"]').boundingBox())!;

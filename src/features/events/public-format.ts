@@ -12,6 +12,14 @@ export function boutMeasure(bout: { catchweightKg: number | null; division: { na
   return bout.division ? divisionTitle(bout.division) : "";
 }
 
+/** Lo que anuncia la franja de la pelea en la cartelera: «Peso Ligero», «Pelea por el título – Peso Ligero», «… · Amateur». */
+export function boutBillingLabel(bout: Parameters<typeof boutMeasure>[0] & { isTitleFight: boolean; level: "pro" | "amateur" }): string {
+  const parts = [bout.isTitleFight ? "Pelea por el título" : "", boutMeasure(bout)].filter(Boolean);
+  const label = parts.join(" – ");
+  if (bout.level !== "amateur") return label;
+  return label ? `${label} · Amateur` : "Amateur";
+}
+
 /** «5 × 5 MIN». Un round que no dura minutos exactos conserva los segundos: «3 × 1:30 MIN». */
 export function roundsLabel(bout: { scheduledRounds: number; roundSeconds: number }): string {
   const length = bout.roundSeconds % 60 === 0 ? String(bout.roundSeconds / 60) : formatClock(bout.roundSeconds);

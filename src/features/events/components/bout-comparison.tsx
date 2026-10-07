@@ -20,10 +20,12 @@ export function BoutComparison({ bout }: { bout: BoutDTO }) {
         <tr>
           <th scope="col" className="border-b-4 border-[#D7263D] px-2 pb-2 font-cond text-[13px] font-extrabold uppercase tracking-[.1em] text-black">
             {bout.red.lastName}
+            {bout.red.nickname ? <span className="block font-cond text-xs font-semibold normal-case tracking-[.04em] text-neutral-500">“{bout.red.nickname}”</span> : null}
           </th>
           <td className="border-b-4 border-neutral-200" />
           <th scope="col" className="border-b-4 border-[#1E6FD9] px-2 pb-2 font-cond text-[13px] font-extrabold uppercase tracking-[.1em] text-black">
             {bout.blue.lastName}
+            {bout.blue.nickname ? <span className="block font-cond text-xs font-semibold normal-case tracking-[.04em] text-neutral-500">“{bout.blue.nickname}”</span> : null}
           </th>
         </tr>
       </thead>

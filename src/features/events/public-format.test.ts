@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boutMeasure, countdownParts, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, scorecardsLine, sellsTickets, showsCountdown, youtubeEmbedUrl } from "./public-format";
+import { boutBillingLabel, boutMeasure, countdownParts, eventStatusTag, fighterComparison, mapEmbedUrl, mapLinkUrl, roundsLabel, scorecardsLine, sellsTickets, showsCountdown, youtubeEmbedUrl } from "./public-format";
 
 describe("boutMeasure", () => {
   it("writes the division like the rest of the site", () => {
@@ -14,6 +14,28 @@ describe("boutMeasure", () => {
 
   it("is empty without division or weight", () => {
     expect(boutMeasure({ catchweightKg: null, division: null })).toBe("");
+  });
+});
+
+describe("boutBillingLabel", () => {
+  const base = { catchweightKg: null, division: { name: "Ligero", gender: "male" as const }, isTitleFight: false, level: "pro" as const };
+
+  it("names the weight class", () => {
+    expect(boutBillingLabel(base)).toBe("Peso Ligero");
+  });
+
+  it("announces a title fight before the weight class", () => {
+    expect(boutBillingLabel({ ...base, isTitleFight: true })).toBe("Pelea por el título – Peso Ligero");
+  });
+
+  it("marks an amateur bout", () => {
+    expect(boutBillingLabel({ ...base, level: "amateur" })).toBe("Peso Ligero · Amateur");
+  });
+
+  it("still says it is a title fight without a weight class", () => {
+    expect(boutBillingLabel({ ...base, division: null, isTitleFight: true })).toBe("Pelea por el título");
+    expect(boutBillingLabel({ ...base, division: null })).toBe("");
+    expect(boutBillingLabel({ ...base, division: null, level: "amateur" })).toBe("Amateur");
   });
 });
 
