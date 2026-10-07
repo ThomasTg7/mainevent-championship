@@ -44,7 +44,7 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
           {leader?.bodyMedia ? (
             <MediaImage media={leader.bodyMedia} sizes="120px" className="absolute inset-y-0 right-0 size-full object-contain object-bottom" />
           ) : (
-            <FighterSilhouette className="absolute -bottom-2.5 -right-2.5 h-[170px] text-yellow" />
+            <FighterSilhouette className="absolute -bottom-2.5 -right-2.5 h-[170px] text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]" />
           )}
         </div>
       </div>

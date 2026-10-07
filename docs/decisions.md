@@ -906,3 +906,43 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Preview deployments de Vercel (Plan 00):** resuelto como decisión en el Plan 07 (el panel se prueba en local o en producción); cerrado.
 - **Búsqueda con `pg_trgm`:** sigue como mejora si el plantel pasa de ~500 peleadores.
 - **Estado:** pendiente (persona)
+
+---
+
+# Ajustes después del Plan 07 (rama `ajustes-post-07`) — 2026-10-06
+
+## [Ajustes] Mi cuenta
+- **Qué:** `/admin/cuenta` («Mi cuenta», en el pie de la barra lateral): cambiar el **nombre** (aparece en el historial) y la **contraseña** (pide la actual y cierra las demás sesiones; la de este dispositivo sigue abierta). Quien entra solo con Google ve «Crear contraseña» (sin pedir la actual). El correo se muestra pero no se cambia: es el acceso de la lista blanca; para otro correo, otro admin le da acceso. Lógica en `src/features/admin-users/my-account.ts` (con `internalAdapter` de Better Auth, como `createAdminWithPassword`: así se prueba sin cookies), actions con `requireAdmin` + Zod + auditoría. e2e con un admin propio (`ACCOUNT_ADMIN_EMAIL`) para no cambiarle la contraseña al de los demás specs.
+- **Estado:** aplicado
+
+## [Ajustes] Menú del sitio
+- **Qué:** el menú móvil se desvanece y sube al cerrarse (sigue en pantalla, `inert`, hasta `animationend`; con «reducir movimiento» se esconde al tiro). La sección actual va en amarillo (`#FFB400`, el «naranjo» de la marca) con `aria-current="page"`, en el menú móvil y en el de escritorio (`isActiveNavLink`: `/peleadores` también en `/peleadores/<slug>`).
+- **Estado:** aplicado
+
+## [Ajustes] «Campeón» en la cartelera
+- **Qué:** la etiqueta del ranking en cada esquina dice «Campeón» o «Campeona» (según el género de la división de la pelea), en una insignia negra con texto amarillo; los puestos siguen como «#1». `getBoutRankLabels` sigue devolviendo `"C"` (dato), el texto lo pone `BoutRow`.
+- **Estado:** aplicado
+
+## [Ajustes] «En vivo» automático
+- **Qué:** `effectiveEventStatus` (`src/domain/event-night.ts`): un evento **programado** se ve «en vivo» en el sitio desde su hora de inicio hasta el término estimado (o 12 h sin él), sin que nadie lo marque. Se aplica al mostrar (página del evento, `/eventos`, portada de la home), no en la base: el panel sigue igual y el cierre lo hace la última pelea con resultado. La cuenta regresiva dice «EN VIVO» al llegar a cero, y la página del evento se refresca sola una vez a la hora de inicio (`RefreshAt`); desde ahí, el refresco de 20 s de siempre. La home (estática, 5 min) puede tardar hasta 5 min en mostrarlo. `EventCardDTO` trae `endsEstimatedAt`.
+- **Por qué no se escribe en la base:** en Vercel *Hobby* el cron es diario, y un evento no debe depender de que alguien abra la página para cambiar de estado.
+- **Estado:** aplicado
+
+## [Ajustes] Separador de miles en montos
+- **Qué:** `MoneyInput` (`src/components/admin/money-input.tsx`, con `formatThousands`/`parseThousands` de `src/lib/format-money.ts`): «$» delante y el punto de miles mientras se escribe. Hoy el único monto del panel es el precio de los tramos de entradas («Precio (CLP)»); usarlo en todo campo de dinero nuevo.
+- **Estado:** aplicado
+
+## [Ajustes] Tarjetas de los jueces y decisiones sin round
+- **Qué:** (1) Las tarjetas se anotan de dos formas, a elección («Solo el total» o «Round por round»): por round, cada round de 0 a 10 y el total se suma solo; en decisión técnica se puntúan los rounds hasta el que se detuvo. Se guarda `Scorecard.rounds` (jsonb, sin migración: el campo es opcional). (2) Hasta **5** jueces (`MAX_SCORECARDS`); «Sugerir desde tarjetas» funciona con 3 a 5 (gana quien se lleva más de la mitad de las tarjetas). (3) En el sitio, al final de los datos de la pelea, «Ver tarjetas de los jueces» (`<details>`, sin JavaScript): cada juez con el total de cada esquina y, si se anotó por round, cada round. (4) Una **decisión** ya no muestra «R3 5:00» (llegó al final): ni en la línea del resultado, ni en el historial ni en «Última pelea»; una **decisión técnica** sí (se detuvo), también en empate. En la base se sigue guardando el último round y el tiempo completo (los usa el «Tiempo promedio» del récord). `roundAndTime` en `src/domain/bout-result.ts`.
+- **Impacto:** `FightHistoryRow` cambia `endRound`/`endTimeSeconds` por `roundTime` (texto o `null`); `BoutResultDTO` trae `scorecards`. `BoutComparison` salió de `bout-row.tsx` (pasaba de 190 líneas).
+- **Estado:** aplicado
+
+## [Ajustes] Página de cada pelea, «Victoria» bajo la foto, sombra de peleador y nombres en dos líneas — 2026-10-06
+- **Qué:** (1) Cada pelea tiene su página, `/eventos/<evento>/peleas/<id>`: las dos esquinas con foto grande, el resultado (quién ganó, método, dónde terminó, árbitro, bonos y video), el frente a frente y, al final, **las tarjetas de los jueces con todo el detalle** (cada round y el total por juez, con el ganador de cada fila destacado). Sale de la caché del evento (`findEventBout`, sin consultas nuevas) y de las mismas etiquetas de ranking. En la cartelera, el desplegable «Ver tarjetas de los jueces» se cambió por un botón al final de los datos de la pelea: «Ver la pelea y las tarjetas» (o «Ver la pelea completa» si no hay tarjetas). Un evento en borrador visto con vista previa no tiene páginas de pelea (dan «Pelea no encontrada»). (2) «Victoria» va debajo de la foto del ganador (cartelera y página de la pelea), no en una línea sobre el nombre. (3) La silueta de quien no tiene foto es la **sombra negra de un peleador real**: el contorno de una foto recortada que entregó el usuario (foto promocional de la UFC), trazado con `scripts/generate-fighter-silhouette.py`. Del archivo solo queda el contorno, en negro; la foto no se sube ni se publica. **Pendiente:** cambiarla por la sombra de una foto propia de la promotora apenas exista (mismo script), para no depender de una imagen de terceros. (4) `FighterName`: en celular el nombre arriba y el apellido abajo; desde `sm`, en una línea. Se usa en la cartelera, las tarjetas de `/peleadores`, la portada de la ficha y la página de la pelea.
+- **Estado:** aplicado (la sombra con foto propia, pendiente)
+
+## [Ajustes] Tarjetas de los jueces como las oficiales, descuentos de puntos y tarjetas en cualquier final — 2026-10-06
+- **Qué:** (1) En la página de la pelea cada tarjeta se dibuja como la oficial: las dos esquinas arriba (etiqueta roja/azul, nombre y apellido), columnas Puntos · Desc. · Round · Desc. · Puntos con **todos** los rounds de la pelea (los no puntuados en blanco), el total y abajo «Juez N» con su nombre, en un color distinto por juez. Debajo de las tarjetas, el resultado y los puntajes como se anuncian (`scorecardsLine`: el del ganador primero, «29-28 · 29-28 · 30-27»). (2) **Descuentos de puntos** por round y por esquina (opcionales, 0 a 5): el total es la suma de los puntajes menos los descuentos (`roundsTotal`); en la tarjeta salen en rojo como «−1». (3) Las tarjetas se pueden cargar **en cualquier final** (KO, sumisión, descalificación…), siempre opcionales: muestran cómo iba la pelea. Se puntúan los rounds ya terminados (`scoredRounds`: en un KO en el round 3, los rounds 1 y 2; en una decisión técnica, hasta el round en que se detuvo; en una decisión, todos). «Sugerir desde tarjetas» solo aparece en decisiones. El editor del panel se dividió (`scorecard-rounds-grid.tsx`).
+- **Impacto:** `RoundScore` suma `redDeduction`/`blueDeduction` opcionales (jsonb, sin migración; un descuento en 0 no se guarda). Los e2e usan `getByLabel("Round", { exact: true })` (ahora existe también la opción «Round por round»).
+- **Estado:** aplicado
+

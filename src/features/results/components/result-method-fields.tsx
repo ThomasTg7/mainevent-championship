@@ -15,7 +15,7 @@ import {
   SUBMISSION_TYPES,
 } from "@/domain/bout-enums";
 import { formatClock } from "@/domain/clock";
-import type { ResultDraft } from "../result-draft";
+import { scorecardRoundCount, type ResultDraft } from "../result-draft";
 import { ScorecardsEditor } from "./scorecards-editor";
 
 export type ResultBoutInfo = { redName: string; blueName: string; scheduledRounds: number; roundSeconds: number };
@@ -146,15 +146,20 @@ export function ResultMethodFields({ draft, errors, techniques, bout, onChange, 
         </>
       ) : null}
 
-      {isDecision ? (
+      {method !== "" ? (
         <div className="md:col-span-2">
           <ScorecardsEditor
             cards={draft.scorecards}
+            mode={draft.scorecardMode}
+            roundCount={scorecardRoundCount(draft, bout)}
             redName={bout.redName}
             blueName={bout.blueName}
             error={errors.scorecards}
             onChange={(scorecards) => onChange({ scorecards })}
-            onSuggest={onSuggest}
+            onModeChange={(scorecardMode) => onChange({ scorecardMode })}
+            // Sugerir el resultado desde las tarjetas solo tiene sentido en una decisión.
+            onSuggest={isDecision ? onSuggest : undefined}
+            hint={isDecision ? undefined : "Opcional: cómo iban las tarjetas hasta que terminó la pelea (los rounds ya terminados)."}
           />
         </div>
       ) : null}

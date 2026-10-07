@@ -86,10 +86,12 @@ test("crear un evento pide lo obligatorio junto a cada campo, guarda los tramos 
   await page.getByRole("tab", { name: "Entradas" }).click();
   await page.getByRole("button", { name: "Agregar tramo" }).click();
   await page.getByLabel("Nombre del tramo").fill("General");
-  await page.getByLabel("Precio ($ CLP)").fill("15.000");
+  await page.getByLabel("Precio (CLP)").fill("15.000");
   await page.getByRole("button", { name: "Agregar tramo" }).click();
   await page.getByLabel("Nombre del tramo").nth(1).fill("Ringside");
-  await page.getByLabel("Precio ($ CLP)").nth(1).fill("45000");
+  await page.getByLabel("Precio (CLP)").nth(1).fill("45000");
+  // El punto de miles aparece mientras se escribe.
+  await expect(page.getByLabel("Precio (CLP)").nth(1)).toHaveValue("45.000");
   await page.getByRole("switch", { name: /Agotado: Ringside/ }).click();
 
   await page.getByRole("tab", { name: "Publicación" }).click();
@@ -105,7 +107,7 @@ test("crear un evento pide lo obligatorio junto a cada campo, guarda los tramos 
   await expect(page.getByLabel("Término estimado (opcional)")).toHaveValue("00:30");
   await page.getByRole("tab", { name: "Entradas" }).click();
   await expect(page.getByLabel("Nombre del tramo")).toHaveCount(2);
-  await expect(page.getByLabel("Precio ($ CLP)").first()).toHaveValue("15000");
+  await expect(page.getByLabel("Precio (CLP)").first()).toHaveValue("15.000");
   await expect(page.getByRole("switch", { name: /Agotado: Ringside/ })).toBeChecked();
 });
 
@@ -184,7 +186,7 @@ test("registrar un resultado por sumisión (Mataleón, R2 3:42), corregirlo y an
   await dialog.getByLabel(/Gana Seis/).check();
   await dialog.getByLabel("Método").selectOption("submission");
   await dialog.getByLabel("Técnica").selectOption({ label: "Mataleón" });
-  await dialog.getByLabel("Round").selectOption("2");
+  await dialog.getByLabel("Round", { exact: true }).selectOption("2");
   await dialog.getByLabel("Tiempo (m:ss)").fill("6:00");
   await dialog.getByRole("button", { name: "Guardar resultado" }).click();
   await expect(dialog.getByRole("alert").filter({ hasText: "El tiempo no puede superar 5:00" }).first()).toBeVisible();
@@ -203,7 +205,7 @@ test("registrar un resultado por sumisión (Mataleón, R2 3:42), corregirlo y an
   await dialog.getByLabel("Tipo de decisión").selectOption("unanimous");
   await dialog.getByRole("button", { name: "Guardar resultado" }).click();
   await expect(dialog).toBeHidden();
-  await expect(page.getByText("Cinco vence a Seis · Decisión unánime · R3 5:00")).toBeVisible();
+  await expect(page.getByText("Cinco vence a Seis · Decisión unánime")).toBeVisible();
 
   // Anular: queda «sin resultado» por anulación.
   await page.getByRole("button", { name: /Corregir el resultado de/ }).click();

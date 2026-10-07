@@ -2,6 +2,7 @@ import type { TicketTier } from "@/db/schema/events";
 import type { BoutLevel, BoutStatus, Bonus, EventStatus, Method, Outcome } from "@/domain/bout-enums";
 import type { ManualRecord } from "@/features/fighters/dto";
 import type { MediaDTO } from "@/features/media/dto";
+import type { Scorecard } from "@/domain/bout-result";
 
 // Todo lo que pasa por `unstable_cache` se serializa en JSON: las fechas viajan como texto ISO, nunca como `Date`.
 
@@ -36,6 +37,8 @@ export type BoutResultDTO = {
   methodText: string;
   techniqueName: string | null;
   referee: string | null;
+  /** Tarjetas de los jueces (solo en decisiones, si se anotaron); con `rounds` si se anotaron round por round. */
+  scorecards: Scorecard[] | null;
   bonuses: Bonus[];
   videoUrl: string | null;
 };
@@ -67,6 +70,8 @@ export type EventCardDTO = {
   name: string;
   number: number | null;
   startsAt: string;
+  /** Fin estimado (o `null`): hasta ahí el evento se ve «en vivo» solo (`effectiveEventStatus`). */
+  endsEstimatedAt: string | null;
   venueName: string;
   venueCity: string;
   eventStatus: EventStatus;
@@ -82,7 +87,6 @@ export type EventCardDTO = {
 
 export type EventPageDTO = Omit<EventCardDTO, "mainBout" | "venueName" | "venueCity"> & {
   doorsAt: string | null;
-  endsEstimatedAt: string | null;
   venue: EventVenueDTO;
   ticketProvider: string | null;
   streamUrl: string | null;
@@ -114,8 +118,8 @@ export type FightHistoryRow = {
   level: BoutLevel;
   fighterResult: "win" | "loss" | "draw" | "no_contest";
   methodText: string;
-  endRound: number;
-  endTimeSeconds: number;
+  /** «R2 3:42», o `null` en una decisión (llegó al final). */
+  roundTime: string | null;
   date: string;
   eventId: string;
   eventSlug: string;

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MediaImage } from "@/components/media/media-image";
-import { formatClock } from "@/domain/clock";
 import type { FightHistoryRow, NextBoutDTO, OpponentDTO } from "@/features/events/dto";
 import { boutMeasure, roundsLabel } from "@/features/events/public-format";
 import { formatDate, formatLongDate, formatTime } from "@/lib/format-date";
@@ -17,7 +16,7 @@ function OpponentPhoto({ opponent }: { opponent: OpponentDTO }) {
       {opponent.headshotMedia ? (
         <MediaImage media={opponent.headshotMedia} sizes="(min-width: 640px) 106px, 84px" className="size-full object-cover" />
       ) : (
-        <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-yellow" />
+        <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]" />
       )}
     </div>
   );
@@ -109,9 +108,7 @@ export function NextBout({ nextBout, lastFight }: NextBoutProps) {
           <>
             <span className={`inline-flex items-center px-2.5 py-1 font-cond text-xs font-extrabold uppercase tracking-[.1em] ${RESULT_CLASS[lastFight.fighterResult]}`}>{RESULT_TEXT[lastFight.fighterResult]}</span>
             <span className={chipClass}>{lastFight.methodText}</span>
-            <span className={chipClass}>
-              R{lastFight.endRound} {formatClock(lastFight.endTimeSeconds)}
-            </span>
+            {lastFight.roundTime ? <span className={chipClass}>{lastFight.roundTime}</span> : null}
           </>
         }
         event={

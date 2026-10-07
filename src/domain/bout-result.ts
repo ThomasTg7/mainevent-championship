@@ -14,7 +14,37 @@ import {
 } from "./bout-enums";
 import { formatClock } from "./clock";
 
-export type Scorecard = { judge: string; red: number; blue: number };
+/** Un round en la tarjeta de un juez: el puntaje de cada esquina y, si hubo, los puntos descontados (por faltas). */
+export type RoundScore = { red: number; blue: number; redDeduction?: number; blueDeduction?: number };
+
+/**
+ * Tarjeta de un juez: el total de cada esquina y, si se anotó round por round, el puntaje de cada round (entonces el
+ * total es la suma).
+ */
+export type Scorecard = { judge: string; red: number; blue: number; rounds?: RoundScore[] | null };
+
+export const MAX_SCORECARDS = 5;
+const MAX_ROUND_SCORE = 10;
+const MAX_DEDUCTION = 5;
+
+/**
+ * Cuántos rounds se puntúan en las tarjetas: todos en una decisión; hasta el round en que se detuvo en una decisión
+ * técnica; en un final antes del límite (KO, sumisión…), los rounds ya terminados (las tarjetas muestran cómo iba). Sin
+ * round todavía, todos.
+ */
+export function scoredRounds(result: { method: Method | ""; endRound: number | null }, scheduledRounds: number): number {
+  if (result.method === "decision" || result.endRound === null) return scheduledRounds;
+  const stoppedAt = Math.min(result.endRound, scheduledRounds);
+  return result.method === "technical_decision" ? stoppedAt : Math.max(stoppedAt - 1, 0);
+}
+
+/** El total de una tarjeta anotada round por round: la suma de los puntajes menos los descuentos. */
+export function roundsTotal(rounds: RoundScore[]): { red: number; blue: number } {
+  return rounds.reduce(
+    (total, round) => ({ red: total.red + round.red - (round.redDeduction ?? 0), blue: total.blue + round.blue - (round.blueDeduction ?? 0) }),
+    { red: 0, blue: 0 },
+  );
+}
 
 export type BoutResultInput = {
   outcome: Outcome;
@@ -74,14 +104,36 @@ function coherenceError(outcome: Outcome, method: Method): string | null {
   return null;
 }
 
-function validateScorecards(scorecards: Scorecard[] | null | undefined): { value: Scorecard[] | null; error?: string } {
+const isScore = (score: number, max: number) => Number.isInteger(score) && score >= 0 && score <= max;
+
+function validateScorecards(scorecards: Scorecard[] | null | undefined, roundLimit: number): { value: Scorecard[] | null; error?: string } {
   if (!scorecards || scorecards.length === 0) return { value: null };
+  if (scorecards.length > MAX_SCORECARDS) return { value: null, error: `Máximo ${MAX_SCORECARDS} tarjetas` };
   const cleaned: Scorecard[] = [];
   for (const card of scorecards) {
     const judge = card.judge.trim();
     if (!judge) return { value: null, error: "Cada tarjeta necesita el nombre del juez" };
-    const validScore = (score: number) => Number.isInteger(score) && score >= 0 && score <= MAX_SCORE;
-    if (!validScore(card.red) || !validScore(card.blue)) {
+
+    if (card.rounds && card.rounds.length > 0) {
+      if (card.rounds.length > roundLimit) return { value: null, error: `La tarjeta tiene más rounds de los que se puntúan (${roundLimit})` };
+      if (card.rounds.some((round) => !isScore(round.red, MAX_ROUND_SCORE) || !isScore(round.blue, MAX_ROUND_SCORE))) {
+        return { value: null, error: `Cada round se puntúa con números enteros de 0 a ${MAX_ROUND_SCORE}` };
+      }
+      if (card.rounds.some((round) => !isScore(round.redDeduction ?? 0, MAX_DEDUCTION) || !isScore(round.blueDeduction ?? 0, MAX_DEDUCTION))) {
+        return { value: null, error: `Los descuentos son números enteros de 0 a ${MAX_DEDUCTION}` };
+      }
+      // Un descuento en 0 no se guarda: la tarjeta pública solo muestra los que hubo.
+      const rounds: RoundScore[] = card.rounds.map((round) => ({
+        red: round.red,
+        blue: round.blue,
+        ...(round.redDeduction ? { redDeduction: round.redDeduction } : {}),
+        ...(round.blueDeduction ? { blueDeduction: round.blueDeduction } : {}),
+      }));
+      cleaned.push({ judge, ...roundsTotal(rounds), rounds });
+      continue;
+    }
+
+    if (!isScore(card.red, MAX_SCORE) || !isScore(card.blue, MAX_SCORE)) {
       return { value: null, error: `Los puntajes deben ser números enteros entre 0 y ${MAX_SCORE}` };
     }
     cleaned.push({ judge, red: card.red, blue: card.blue });
@@ -140,7 +192,8 @@ export function validateBoutResult(input: BoutResultInput, ctx: BoutContext): Va
   else if (!Number.isInteger(endTimeSeconds) || endTimeSeconds <= 0) errors.endTimeSeconds = "El tiempo debe ser mayor a 0:00";
   else if (endTimeSeconds > ctx.roundSeconds) errors.endTimeSeconds = `El tiempo no puede superar ${formatClock(ctx.roundSeconds)}`;
 
-  const scorecards = validateScorecards(isDecision ? input.scorecards : null);
+  // Opcionales en cualquier final: en uno antes del límite muestran cómo iba la pelea.
+  const scorecards = validateScorecards(input.scorecards, scoredRounds({ method, endRound }, ctx.scheduledRounds));
   if (scorecards.error) errors.scorecards = scorecards.error;
 
   const videoUrl = trimmed(input.videoUrl);
@@ -174,23 +227,25 @@ export function validateBoutResult(input: BoutResultInput, ctx: BoutContext): Va
   };
 }
 
-/** Con tres tarjetas, qué resultado y qué tipo de decisión corresponden. Con otra cantidad no sugiere nada. */
+/**
+ * Con 3 a 5 tarjetas, qué resultado y qué tipo de decisión corresponden. Gana quien se lleva más de la mitad de las
+ * tarjetas (unánime si todas; dividida si el rival ganó alguna; mayoritaria si las demás son empate). Si nadie la tiene,
+ * es empate: unánime si todas empatan, mayoritario si empatan más de la mitad, dividido si no.
+ */
 export function suggestDecisionType(
   scorecards: { red: number; blue: number }[],
 ): { outcome: "red_win" | "blue_win" | "draw"; decisionType: DecisionType } | null {
-  if (scorecards.length !== 3) return null;
+  const total = scorecards.length;
+  if (total < 3 || total > MAX_SCORECARDS) return null;
 
   const red = scorecards.filter((card) => card.red > card.blue).length;
   const blue = scorecards.filter((card) => card.blue > card.red).length;
-  const draws = scorecards.length - red - blue;
+  const draws = total - red - blue;
 
-  if (red === 3) return { outcome: "red_win", decisionType: "unanimous" };
-  if (blue === 3) return { outcome: "blue_win", decisionType: "unanimous" };
-  if (draws === 3) return { outcome: "draw", decisionType: "unanimous" };
-  if (red >= 2) return { outcome: "red_win", decisionType: blue > 0 ? "split" : "majority" };
-  if (blue >= 2) return { outcome: "blue_win", decisionType: red > 0 ? "split" : "majority" };
-  // Quedan dos empates y una tarjeta con ganador, o una tarjeta de cada tipo.
-  return { outcome: "draw", decisionType: draws === 2 ? "majority" : "split" };
+  for (const [side, won, lost] of [["red_win", red, blue], ["blue_win", blue, red]] as const) {
+    if (won * 2 > total) return { outcome: side, decisionType: won === total ? "unanimous" : lost > 0 ? "split" : "majority" };
+  }
+  return { outcome: "draw", decisionType: draws === total ? "unanimous" : draws * 2 > total ? "majority" : "split" };
 }
 
 export type ResultLineInput = Pick<
@@ -222,7 +277,15 @@ export function formatMethod(result: MethodTextInput): string {
   }
 }
 
-/** "Pérez vence a Soto · Sumisión (Mataleón) · R2 3:42" · "Pérez y Soto empatan · Decisión dividida" · "Pérez vs Soto · Sin resultado (falta accidental)". */
+/**
+ * «R2 3:42»: dónde terminó la pelea. Una decisión llega al final, así que no lo lleva (`null`); una decisión técnica sí,
+ * porque la pelea se detuvo.
+ */
+export function roundAndTime(result: Pick<NormalizedResult, "method" | "endRound" | "endTimeSeconds">): string | null {
+  return result.method === "decision" ? null : `R${result.endRound} ${formatClock(result.endTimeSeconds)}`;
+}
+
+/** "Pérez vence a Soto · Sumisión (Mataleón) · R2 3:42" · "Pérez vence a Soto · Decisión unánime" · "Pérez y Soto empatan · Decisión dividida" · "Pérez vs Soto · Sin resultado (falta accidental)". */
 export function formatResultLine(result: ResultLineInput): string {
   const { redName, blueName } = result;
 
@@ -230,8 +293,7 @@ export function formatResultLine(result: ResultLineInput): string {
     const reason = result.ncReason === "other" ? (result.ncNote ?? "otro") : result.ncReason ? NC_REASON_LABELS[result.ncReason].toLowerCase() : null;
     return `${redName} vs ${blueName} · Sin resultado${reason ? ` (${reason})` : ""}`;
   }
-  if (result.outcome === "draw") return `${redName} y ${blueName} empatan · ${formatMethod(result)}`;
-
   const [winner, loser] = result.outcome === "red_win" ? [redName, blueName] : [blueName, redName];
-  return `${winner} vence a ${loser} · ${formatMethod(result)} · R${result.endRound} ${formatClock(result.endTimeSeconds)}`;
+  const who = result.outcome === "draw" ? `${redName} y ${blueName} empatan` : `${winner} vence a ${loser}`;
+  return [who, formatMethod(result), roundAndTime(result)].filter(Boolean).join(" · ");
 }

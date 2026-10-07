@@ -86,9 +86,9 @@ describe("getFighterFightHistory", () => {
 
   it("describes each fight from the fighter's point of view", async () => {
     const [knockout, loss, decision] = await getFighterFightHistory(db, sotoId);
-    expect(knockout).toMatchObject({ opponent: { lastName: "Araya", isPublic: true }, methodText: "KO", endRound: 2, endTimeSeconds: 123, level: "pro" });
+    expect(knockout).toMatchObject({ opponent: { lastName: "Araya", isPublic: true }, methodText: "KO", roundTime: "R2 2:03", level: "pro" });
     expect(loss).toMatchObject({ opponent: { lastName: "Araya" }, methodText: "Decisión dividida" });
-    expect(decision).toMatchObject({ methodText: "Decisión unánime", endRound: 3, endTimeSeconds: 300 });
+    expect(decision).toMatchObject({ methodText: "Decisión unánime", roundTime: null });
   });
 
   it("carries the date as ISO text and the event name", async () => {

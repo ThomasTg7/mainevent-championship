@@ -17,6 +17,7 @@ import {
   Trash2,
   Trophy,
   UserCog,
+  UserRound,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import {
@@ -93,6 +94,14 @@ export function AdminSidebar({ email, newInbox = 0 }: { email: string; /** Mensa
       <SidebarFooter className="px-3 py-3 gap-2">
         <span className="px-2 text-xs text-muted-foreground truncate">{email}</span>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive(pathname, adminPath("/cuenta"))}>
+              <Link href={adminPath("/cuenta")} onClick={() => setOpenMobile(false)}>
+                <UserRound />
+                <span>Mi cuenta</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={signOut}>
               <LogOut />

@@ -148,6 +148,55 @@ describe("ResultForm — validation and saving", () => {
     expect((screen.getByLabelText(/Gana Pérez/) as HTMLInputElement).checked).toBe(true);
   });
 
+  it("writes the cards round by round, adds up each total, and takes at most five judges", async () => {
+    const { onSubmit } = renderForm();
+    choose(/Gana Pérez/);
+    select("Método", "decision");
+    select("Tipo de decisión", "unanimous");
+    fireEvent.click(screen.getByRole("radio", { name: "Round por round" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agregar tarjeta" }));
+    fireEvent.change(screen.getByLabelText("Tarjeta 1: juez"), { target: { value: "Rojas" } });
+    [[10, 9], [9, 10], [10, 8]].forEach(([red, blue], round) => {
+      fireEvent.change(screen.getByLabelText(`Tarjeta 1, round ${round + 1}: puntos de Pérez`), { target: { value: String(red) } });
+      fireEvent.change(screen.getByLabelText(`Tarjeta 1, round ${round + 1}: puntos de Soto`), { target: { value: String(blue) } });
+    });
+    expect(screen.getByLabelText("Tarjeta 1: total de Pérez").textContent).toBe("29");
+    expect(screen.getByLabelText("Tarjeta 1: total de Soto").textContent).toBe("27");
+
+    for (let added = 1; added < 5; added += 1) fireEvent.click(screen.getByRole("button", { name: "Agregar tarjeta" }));
+    expect((screen.getByRole("button", { name: "Agregar tarjeta" }) as HTMLButtonElement).disabled).toBe(true);
+    for (let removed = 5; removed > 1; removed -= 1) fireEvent.click(screen.getByRole("button", { name: `Quitar tarjeta ${removed}` }));
+
+    save();
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    expect(onSubmit.mock.calls[0]![0]).toMatchObject({ scorecards: [{ judge: "Rojas", rounds: [{ red: 10, blue: 9 }, { red: 9, blue: 10 }, { red: 10, blue: 8 }] }] });
+  });
+
+  it("lets the cards of a TKO show how it was going, with a point deduction, without suggesting a decision", async () => {
+    const { onSubmit } = renderForm();
+    choose(/Gana Pérez/);
+    select("Método", "ko_tko");
+    select("Tipo de KO/TKO", "tko_strikes");
+    select("Round", "3");
+    fireEvent.change(screen.getByLabelText("Tiempo (m:ss)"), { target: { value: "1:10" } });
+    fireEvent.click(screen.getByRole("radio", { name: "Round por round" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agregar tarjeta" }));
+    fireEvent.change(screen.getByLabelText("Tarjeta 1: juez"), { target: { value: "Rojas" } });
+    // Terminó en el round 3: se puntúan los dos rounds terminados.
+    expect(screen.queryByLabelText("Tarjeta 1, round 3: puntos de Pérez")).toBeNull();
+    [[10, 9], [10, 9]].forEach(([red, blue], round) => {
+      fireEvent.change(screen.getByLabelText(`Tarjeta 1, round ${round + 1}: puntos de Pérez`), { target: { value: String(red) } });
+      fireEvent.change(screen.getByLabelText(`Tarjeta 1, round ${round + 1}: puntos de Soto`), { target: { value: String(blue) } });
+    });
+    fireEvent.change(screen.getByLabelText("Tarjeta 1, round 2: descuento a Pérez"), { target: { value: "1" } });
+    expect(screen.getByLabelText("Tarjeta 1: total de Pérez").textContent).toBe("19");
+    expect(screen.queryByRole("button", { name: "Sugerir desde tarjetas" })).toBeNull();
+
+    save();
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    expect(onSubmit.mock.calls[0]![0]).toMatchObject({ method: "ko_tko", scorecards: [{ judge: "Rojas", rounds: [{ red: 10, blue: 9 }, { red: 10, blue: 9, redDeduction: 1 }] }] });
+  });
+
   it("starts from a saved result when correcting it", () => {
     const initial = draftFromResult({
       outcome: "blue_win",

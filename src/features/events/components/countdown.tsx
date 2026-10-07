@@ -7,8 +7,6 @@ import { countdownParts } from "../public-format";
 type CountdownProps = {
   /** Hora del evento como texto ISO (`unstable_cache` no conserva `Date`). */
   target: string;
-  /** Si el evento ya está en vivo, al llegar a cero se muestra «EN VIVO»; si no, no se muestra nada. */
-  live?: boolean;
   className?: string;
 };
 
@@ -30,18 +28,21 @@ const CELLS = [
 
 const two = (value: number) => String(value).padStart(2, "0");
 
-/** Cuenta regresiva a la hora del evento. La fecha escrita ya está en la página: esto solo suma el reloj. */
-export function Countdown({ target, live = false, className }: CountdownProps) {
+/**
+ * Cuenta regresiva a la hora del evento. La fecha escrita ya está en la página: esto solo suma el reloj. Al llegar a cero
+ * dice «EN VIVO»: a su hora el evento pasa solo a en vivo (`effectiveEventStatus`), y solo se muestra en uno programado o en vivo.
+ */
+export function Countdown({ target, className }: CountdownProps) {
   const nowSeconds = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const parts = nowSeconds === null ? null : countdownParts(new Date(target).getTime() - nowSeconds * 1000);
 
   if (nowSeconds !== null && parts === null) {
-    return live ? (
+    return (
       <p className="inline-flex items-center gap-2 bg-red px-4 py-2 font-cond text-lg font-extrabold uppercase tracking-[.14em] text-white">
         <span aria-hidden className="size-2.5 rounded-full bg-white motion-safe:animate-pulse" />
         EN VIVO
       </p>
-    ) : null;
+    );
   }
 
   return (

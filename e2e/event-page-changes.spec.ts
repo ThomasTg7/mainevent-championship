@@ -106,7 +106,7 @@ test("el panel de datos se anima: pasa por alturas intermedias al abrirse y al c
   await expect.poll(height).toBeLessThan(1);
 });
 
-test("en un evento con resultado, los dos nombres quedan a la misma altura y «Victoria» va sobre el ganador", async ({ page }) => {
+test("en un evento con resultado, los dos nombres quedan a la misma altura y «Victoria» va bajo la foto del ganador", async ({ page }) => {
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/eventos/guerra-campal-4");
@@ -115,10 +115,11 @@ test("en un evento con resultado, los dos nombres quedan a la misma altura y «V
     const red = main.locator('[data-corner="red"] h3');
     const blue = main.locator('[data-corner="blue"] h3');
     expect(await top(red)).toBe(await top(blue));
-    // La etiqueta queda encima del nombre del ganador, no a su lado.
+    // La etiqueta va justo debajo de la foto del ganador (no ocupa una línea sobre el nombre).
     const winBox = (await main.locator('[data-result="win"]').boundingBox())!;
-    const nameBox = (await red.boundingBox())!;
-    expect(winBox.y + winBox.height).toBeLessThanOrEqual(nameBox.y + 1);
+    const faceBox = (await main.locator('[data-corner="red"] [data-slot="bout-face"]').boundingBox())!;
+    expect(winBox.y).toBeGreaterThanOrEqual(faceBox.y + faceBox.height - 1);
+    expect(Math.abs(winBox.x - faceBox.x)).toBeLessThanOrEqual(1);
     await expectNoHorizontalScroll(page);
   }
 });

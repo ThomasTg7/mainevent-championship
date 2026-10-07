@@ -15,7 +15,7 @@ import { daysAgo, insertPost } from "@/features/posts/test-helpers";
 import { divisions } from "@/db/schema/divisions";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } from "./fixtures/admin";
+import { ACCOUNT_ADMIN_EMAIL, ACCOUNT_ADMIN_PASSWORD, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD } from "./fixtures/admin";
 import { createE2eCard } from "./fixtures/events";
 
 async function waitForPostgres(): Promise<void> {
@@ -61,6 +61,7 @@ export default async function globalSetup(): Promise<void> {
   await seedSoldOutTicketsEvent();
   await seedDraftListEvent();
   await createAdminWithPassword(auth, db, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD);
+  await createAdminWithPassword(auth, db, ACCOUNT_ADMIN_EMAIL, ACCOUNT_ADMIN_PASSWORD);
 }
 
 /**

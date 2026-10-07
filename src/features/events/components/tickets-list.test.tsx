@@ -12,6 +12,7 @@ const event: EventCardDTO = {
   name: "Guerra Campal 5",
   number: 5,
   startsAt: "2026-10-25T00:00:00.000Z",
+  endsEstimatedAt: null,
   venueName: "Arena Santiago",
   venueCity: "Santiago",
   eventStatus: "scheduled",

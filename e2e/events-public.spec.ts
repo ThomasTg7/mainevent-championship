@@ -1,4 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { events } from "@/db/schema/events";
 import { createPreviewToken } from "@/features/publication/preview";
 import { adminUrl, signInAsAdmin } from "./fixtures/admin";
 import { createE2eCard } from "./fixtures/events";
@@ -193,7 +196,48 @@ test("mientras el evento está en vivo la página pública muestra cada resultad
   await saved;
 
   // La página se refresca sola cada 20 s mientras está en vivo (el margen del timeout cubre un servidor de desarrollo cargado).
-  await expect(page.locator("[data-result-line]")).toHaveText("Siete vence a Ocho · Decisión unánime · R3 5:00", { timeout: 60_000 });
+  await expect(page.locator("[data-result-line]")).toHaveText("Siete vence a Ocho · Decisión unánime", { timeout: 60_000 });
   await admin.close();
   await visitor.close();
+});
+
+test("una pelea tiene su página con todo el detalle y, al final, las tarjetas de los jueces", async ({ page }) => {
+  await page.goto("/eventos/guerra-campal-1");
+  const bout = page.locator("[data-bout]").filter({ hasText: "Soto vence a Araya" });
+  // Una decisión no lleva round ni tiempo: llegó al final.
+  await expect(bout.locator("[data-result-line]")).toHaveText("Soto vence a Araya · Decisión unánime");
+
+  await bout.getByRole("button", { name: /Ver datos/ }).click();
+  await bout.getByRole("link", { name: /Ver la pelea y las tarjetas/ }).click();
+  await expect(page).toHaveURL(/\/eventos\/guerra-campal-1\/peleas\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { name: /Soto\s*vs\s*Araya/i, level: 1 })).toBeVisible();
+  await expect(page.locator('[data-corner="red"] [data-result="win"]')).toHaveText("Victoria");
+  await expect(page.locator('[data-slot="bout-result"]')).toContainText("Gana Diego Soto");
+  await expect(page.locator('[data-slot="bout-result"]')).toContainText("Decisión unánime");
+  await expect(page.locator('[data-slot="bout-result"]')).toContainText("Ricardo Salas");
+
+  const judge = page.getByRole("table", { name: "Tarjeta de Juez 3" });
+  const total = judge.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "Total" }) });
+  await expect(total.getByRole("cell")).toHaveText(["30", "27"]);
+  // Anotada round por round: cada round con los dos puntajes.
+  const round2 = judge.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "2", exact: true }) });
+  await expect(round2.getByRole("cell")).toHaveText(["10", "", "", "8"]);
+  // Debajo de las tarjetas, el resultado con los puntajes del ganador primero.
+  await expect(page.locator('[data-slot="scorecards-verdict"]')).toContainText("29-28 · 29-28 · 30-27");
+  await expectNoHorizontalScroll(page);
+
+  await page.goto("/eventos/guerra-campal-1/peleas/00000000-0000-4000-8000-000000000000");
+  await expect(page.getByRole("heading", { name: "Pelea no encontrada" })).toBeVisible();
+});
+
+test("a su hora de inicio el evento sale «en vivo» solo, sin que nadie lo marque en el panel", async ({ page }) => {
+  // En borrador y visto con la vista previa: un evento publicado que empezó hace una hora sería el «próximo» de la home y de
+  // `/eventos`, y les cambiaría la portada a los otros specs que corren a la vez.
+  const card = await createE2eCard("Evento E2E En Vivo Automático", { "Cartelera estelar": [["cinco", "seis"]] }, { status: "draft" });
+  // Empezó hace una hora y sigue «Programado» en la base: nadie abrió la noche de pelea.
+  await db.update(events).set({ startsAt: new Date(Date.now() - 60 * 60 * 1000), eventStatus: "scheduled" }).where(eq(events.id, card.eventId));
+
+  await page.goto(`/eventos/${card.slug}?preview=${createPreviewToken("event", card.eventId)}`);
+  await expect(page.getByRole("region", { name: /Cinco\s*VS\s*Seis/ }).getByText("● En vivo")).toBeVisible();
+  await expect(page.getByText("EN VIVO").first()).toBeVisible();
 });

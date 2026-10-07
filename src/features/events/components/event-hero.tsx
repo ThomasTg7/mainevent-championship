@@ -62,7 +62,9 @@ function FighterFigure({ fighter, side, priority }: { fighter: BoutFighterDTO; s
             className={`size-full object-contain object-bottom ${mirrored ? "-scale-x-100" : ""}`}
           />
         ) : (
-          <FighterSilhouette className={`absolute bottom-0 left-1/2 h-full -translate-x-1/2 drop-shadow-[14px_0_30px_rgba(255,180,0,.22)] ${side === "red" ? "text-[#D7263D]" : "-scale-x-100 text-[#1E6FD9]"}`} />
+          <FighterSilhouette
+            className={`absolute bottom-0 left-1/2 h-full -translate-x-1/2 text-black ${side === "red" ? "drop-shadow-[0_0_3px_rgba(215,38,61,.85)]" : "-scale-x-100 drop-shadow-[0_0_3px_rgba(30,111,217,.85)]"}`}
+          />
         )}
       </HeroParallax>
     </div>
@@ -117,7 +119,7 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
           {formatShortDate(start)} · <b className="font-bold text-yellow">{formatTime(start)} hrs</b> · {event.venue.name}
           {event.venue.city ? `, ${event.venue.city}` : ""}
         </p>
-        {showCountdown ? <Countdown target={event.startsAt} live={event.eventStatus === "live"} className="my-6" /> : <div className="h-6" />}
+        {showCountdown ? <Countdown target={event.startsAt} className="my-6" /> : <div className="h-6" />}
         <div className="flex flex-wrap justify-center gap-3">
           {ticketHref ? (
             <Button variant="primary" asChild>

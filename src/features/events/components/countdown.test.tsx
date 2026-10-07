@@ -37,19 +37,14 @@ describe("Countdown", () => {
     expect(html.match(/>--</g)).toHaveLength(4);
   });
 
-  it("says EN VIVO when the time is up and the event is live", () => {
-    render(<Countdown target="2026-10-22T23:59:00Z" live />);
+  it("says EN VIVO when the time is up: at its start time the event is live by itself", () => {
+    render(<Countdown target="2026-10-22T23:59:00Z" />);
     expect(screen.getByText("EN VIVO")).toBeDefined();
     expect(document.querySelector("[data-countdown]")).toBeNull();
   });
 
-  it("shows nothing when the time is up and the event is not live", () => {
-    const { container } = render(<Countdown target="2026-10-22T23:59:00Z" />);
-    expect(container.textContent).toBe("");
-  });
-
   it("moves to EN VIVO by itself when the clock reaches zero", () => {
-    render(<Countdown target="2026-10-23T00:00:02Z" live />);
+    render(<Countdown target="2026-10-23T00:00:02Z" />);
     expect(screen.queryByText("EN VIVO")).toBeNull();
     act(() => {
       vi.advanceTimersByTime(2500);

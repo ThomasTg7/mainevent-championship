@@ -62,3 +62,28 @@ test("el nav muestra los 5 links en escritorio", async ({ page }) => {
 
   await expect(nav.getByRole("link")).toHaveCount(5);
 });
+
+test("en /peleadores el menú marca Peleadores en amarillo, y al cerrarse se anima antes de desaparecer", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/peleadores/matias-perez");
+  await page.getByRole("button", { name: "Menú" }).click();
+
+  const mobileMenu = page.getByRole("navigation", { name: "Menú móvil" });
+  const current = mobileMenu.getByRole("link", { name: "Peleadores" });
+  await expect(current).toHaveAttribute("aria-current", "page");
+  await expect(current).toHaveCSS("color", "rgb(255, 180, 0)");
+  await expect(mobileMenu.getByRole("link", { name: "Eventos" })).not.toHaveAttribute("aria-current", "page");
+
+  await page.getByRole("button", { name: "Cerrar menú" }).click();
+  await expect(page.locator("#mobile-menu")).toHaveAttribute("data-state", "closing");
+  await expect(mobileMenu).toBeHidden();
+  await expect(page.locator("#mobile-menu")).toHaveAttribute("data-state", "closed");
+});
+
+test("en escritorio el enlace de la sección actual va en amarillo", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/rankings");
+  const current = page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Rankings" });
+  await expect(current).toHaveAttribute("aria-current", "page");
+  await expect(current).toHaveCSS("color", "rgb(255, 180, 0)");
+});

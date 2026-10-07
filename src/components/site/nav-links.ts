@@ -6,3 +6,8 @@ export const NAV_LINKS = [
   { href: "/noticias", label: "Noticias" },
   { href: "/entradas", label: "Entradas" },
 ] as const;
+
+/** ¿El enlace corresponde a la página actual? `/peleadores` también en `/peleadores/matias-perez`. */
+export function isActiveNavLink(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}

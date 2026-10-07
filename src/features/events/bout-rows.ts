@@ -69,6 +69,7 @@ export function selectBoutRows(db: Db, where: SQL | undefined) {
       endRound: bouts.endRound,
       endTimeSeconds: bouts.endTimeSeconds,
       referee: bouts.referee,
+      scorecards: bouts.scorecards,
       bonuses: bouts.bonuses,
       videoUrl: bouts.videoUrl,
       techniqueName: submissionTechniques.name,
@@ -138,6 +139,7 @@ function toResultDTO(row: BoutRow): BoutResultDTO | null {
     methodText: formatMethod(detail),
     techniqueName: row.techniqueName,
     referee: row.referee,
+    scorecards: row.scorecards,
     bonuses: row.bonuses,
     videoUrl: row.videoUrl,
   };

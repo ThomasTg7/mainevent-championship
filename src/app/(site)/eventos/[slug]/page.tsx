@@ -4,6 +4,7 @@ import { cache } from "react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SectionHeading } from "@/components/ui-gc/section-heading";
 import { db } from "@/db";
+import { withEffectiveStatus } from "@/domain/event-night";
 import { eventJsonLd } from "@/domain/seo";
 import { getCachedPublicEvent } from "@/features/events/cached-queries";
 import { EVENT_HERO_ID, EventHero } from "@/features/events/components/event-hero";
@@ -15,6 +16,7 @@ import { BoutAccordion } from "@/features/events/components/bout-accordion";
 import { BoutRow } from "@/features/events/components/bout-row";
 import { FightCardTabs } from "@/features/events/components/fight-card-tabs";
 import { LiveRefresher } from "@/features/events/components/live-refresher";
+import { RefreshAt } from "@/features/events/components/refresh-at";
 import { VenueMap } from "@/features/events/components/venue-map";
 import { getPublicEventBySlug } from "@/features/events/queries";
 import { pickMainBout } from "@/features/events/main-bout";
@@ -67,11 +69,15 @@ export async function generateMetadata({ params, searchParams }: PageProps<"/eve
 
 export default async function EventPage({ params, searchParams }: PageProps<"/eventos/[slug]">) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
-  const { event, isPreview } = await loadEvent(slug, previewParam(query.preview));
-  if (!event) notFound();
+  const loaded = await loadEvent(slug, previewParam(query.preview));
+  if (!loaded.event) notFound();
+  const { isPreview } = loaded;
+  // A su hora de inicio el evento se ve «en vivo» aunque nadie lo haya marcado en el panel.
+  const now = new Date();
+  const event = withEffectiveStatus(loaded.event, now);
 
   const start = new Date(event.startsAt);
-  const canBuy = sellsTickets(event);
+  const canBuy = sellsTickets(event, now.getTime());
   // Sin ticketera, «Entradas» lleva a la página de entradas del sitio (tramos y puntos de venta).
   const ticketHref = canBuy ? (event.ticketUrl ?? "/entradas") : undefined;
   const ticketExternal = Boolean(canBuy && event.ticketUrl);
@@ -91,7 +97,8 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
       {/* Un borrador en vista previa no lleva datos estructurados. */}
       {isPreview ? null : <JsonLd data={eventJsonLd(event, siteOrigin(), brandImage.url)} />}
       {event.eventStatus === "live" ? <LiveRefresher intervalMs={20_000} /> : null}
-      <EventHero event={event} ticketHref={ticketHref} ticketExternal={ticketExternal} showCountdown={showsCountdown(event)} />
+      {event.eventStatus === "scheduled" ? <RefreshAt at={event.startsAt} /> : null}
+      <EventHero event={event} ticketHref={ticketHref} ticketExternal={ticketExternal} showCountdown={showsCountdown(event, now.getTime())} />
       <EventStickyBar
         heroId={EVENT_HERO_ID}
         name={event.name}
@@ -109,7 +116,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
                 segments={segments.map((segment) => ({
                   id: segment.id,
                   name: segment.name,
-                  content: segment.bouts.map((bout) => <BoutRow key={bout.id} bout={bout} rankLabels={rankLabels} />),
+                  content: segment.bouts.map((bout) => <BoutRow key={bout.id} bout={bout} eventSlug={event.slug} rankLabels={rankLabels} />),
                 }))}
               />
             </BoutAccordion>
