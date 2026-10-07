@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui-gc/button";
 import { cn } from "@/lib/cn";
 import { MobileMenu } from "./mobile-menu";
-import { NAV_LINKS } from "./nav-links";
+import { isActiveNavLink, NAV_LINKS } from "./nav-links";
 
 export function Header() {
   const [solid, setSolid] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -54,7 +56,11 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="font-cond font-bold uppercase tracking-[.1em] text-[15px] text-white/85 hover:text-white transition-colors"
+                aria-current={isActiveNavLink(pathname, link.href) ? "page" : undefined}
+                className={cn(
+                  "font-cond font-bold uppercase tracking-[.1em] text-[15px] transition-colors",
+                  isActiveNavLink(pathname, link.href) ? "text-yellow" : "text-white/85 hover:text-white",
+                )}
               >
                 {link.label}
               </Link>

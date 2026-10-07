@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useLenis } from "@/components/motion/smooth-scroll";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/cn";
-import { NAV_LINKS } from "./nav-links";
+import { isActiveNavLink, NAV_LINKS } from "./nav-links";
 
 type MobileMenuProps = {
   open: boolean;
@@ -15,6 +17,13 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
   const navRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const lenis = useLenis();
+  const pathname = usePathname();
+  const reducedMotion = useReducedMotion();
+  // Sigue en pantalla mientras corre la animación de cierre; `onAnimationEnd` lo esconde. Sin movimiento, se esconde al tiro.
+  const [present, setPresent] = useState(open);
+  if (open && !present) setPresent(true);
+  if (!open && present && reducedMotion) setPresent(false);
+  const closing = present && !open;
 
   useEffect(() => {
     if (!open) {
@@ -62,11 +71,18 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
       ref={navRef}
       id="mobile-menu"
       aria-label="Menú móvil"
-      hidden={!open}
+      hidden={!present}
+      inert={closing}
+      data-state={closing ? "closing" : open ? "open" : "closed"}
       onKeyDown={trapFocus}
+      onAnimationEnd={(event) => {
+        if (event.target === event.currentTarget && !open) setPresent(false);
+      }}
       className={cn(
         "fixed inset-0 z-[110] bg-black flex flex-col justify-center gap-2 px-[clamp(16px,4vw,64px)]",
-        "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-4 duration-300",
+        closing
+          ? "motion-safe:animate-out motion-safe:fade-out motion-safe:slide-out-to-top-4 duration-300 ease-gc fill-mode-forwards"
+          : "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-4 duration-300 ease-gc",
       )}
     >
       <button
@@ -78,16 +94,20 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
       >
         <span aria-hidden="true">✕</span>
       </button>
-      {NAV_LINKS.map((link) => (
+      {NAV_LINKS.map((link) => {
+        const active = isActiveNavLink(pathname, link.href);
+        return (
         <Link
           key={link.href}
           href={link.href}
           onClick={onClose}
-          className="font-display uppercase text-[13vw] leading-[1.05] text-white hover:text-yellow focus-visible:text-yellow"
+          aria-current={active ? "page" : undefined}
+          className={cn("font-display uppercase text-[13vw] leading-[1.05] hover:text-yellow focus-visible:text-yellow", active ? "text-yellow" : "text-white")}
         >
           {link.label}
         </Link>
-      ))}
+        );
+      })}
     </nav>
   );
 }
