@@ -906,3 +906,33 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Preview deployments de Vercel (Plan 00):** resuelto como decisión en el Plan 07 (el panel se prueba en local o en producción); cerrado.
 - **Búsqueda con `pg_trgm`:** sigue como mejora si el plantel pasa de ~500 peleadores.
 - **Estado:** pendiente (persona)
+
+---
+
+# Ajustes después del Plan 07 (rama `ajustes-post-07`) — 2026-10-06
+
+## [Ajustes] Mi cuenta
+- **Qué:** `/admin/cuenta` («Mi cuenta», en el pie de la barra lateral): cambiar el **nombre** (aparece en el historial) y la **contraseña** (pide la actual y cierra las demás sesiones; la de este dispositivo sigue abierta). Quien entra solo con Google ve «Crear contraseña» (sin pedir la actual). El correo se muestra pero no se cambia: es el acceso de la lista blanca; para otro correo, otro admin le da acceso. Lógica en `src/features/admin-users/my-account.ts` (con `internalAdapter` de Better Auth, como `createAdminWithPassword`: así se prueba sin cookies), actions con `requireAdmin` + Zod + auditoría. e2e con un admin propio (`ACCOUNT_ADMIN_EMAIL`) para no cambiarle la contraseña al de los demás specs.
+- **Estado:** aplicado
+
+## [Ajustes] Menú del sitio
+- **Qué:** el menú móvil se desvanece y sube al cerrarse (sigue en pantalla, `inert`, hasta `animationend`; con «reducir movimiento» se esconde al tiro). La sección actual va en amarillo (`#FFB400`, el «naranjo» de la marca) con `aria-current="page"`, en el menú móvil y en el de escritorio (`isActiveNavLink`: `/peleadores` también en `/peleadores/<slug>`).
+- **Estado:** aplicado
+
+## [Ajustes] «Campeón» en la cartelera
+- **Qué:** la etiqueta del ranking en cada esquina dice «Campeón» o «Campeona» (según el género de la división de la pelea), en una insignia negra con texto amarillo; los puestos siguen como «#1». `getBoutRankLabels` sigue devolviendo `"C"` (dato), el texto lo pone `BoutRow`.
+- **Estado:** aplicado
+
+## [Ajustes] «En vivo» automático
+- **Qué:** `effectiveEventStatus` (`src/domain/event-night.ts`): un evento **programado** se ve «en vivo» en el sitio desde su hora de inicio hasta el término estimado (o 12 h sin él), sin que nadie lo marque. Se aplica al mostrar (página del evento, `/eventos`, portada de la home), no en la base: el panel sigue igual y el cierre lo hace la última pelea con resultado. La cuenta regresiva dice «EN VIVO» al llegar a cero, y la página del evento se refresca sola una vez a la hora de inicio (`RefreshAt`); desde ahí, el refresco de 20 s de siempre. La home (estática, 5 min) puede tardar hasta 5 min en mostrarlo. `EventCardDTO` trae `endsEstimatedAt`.
+- **Por qué no se escribe en la base:** en Vercel *Hobby* el cron es diario, y un evento no debe depender de que alguien abra la página para cambiar de estado.
+- **Estado:** aplicado
+
+## [Ajustes] Separador de miles en montos
+- **Qué:** `MoneyInput` (`src/components/admin/money-input.tsx`, con `formatThousands`/`parseThousands` de `src/lib/format-money.ts`): «$» delante y el punto de miles mientras se escribe. Hoy el único monto del panel es el precio de los tramos de entradas («Precio (CLP)»); usarlo en todo campo de dinero nuevo.
+- **Estado:** aplicado
+
+## [Ajustes] Tarjetas de los jueces y decisiones sin round
+- **Qué:** (1) Las tarjetas se anotan de dos formas, a elección («Solo el total» o «Round por round»): por round, cada round de 0 a 10 y el total se suma solo; en decisión técnica se puntúan los rounds hasta el que se detuvo. Se guarda `Scorecard.rounds` (jsonb, sin migración: el campo es opcional). (2) Hasta **5** jueces (`MAX_SCORECARDS`); «Sugerir desde tarjetas» funciona con 3 a 5 (gana quien se lleva más de la mitad de las tarjetas). (3) En el sitio, al final de los datos de la pelea, «Ver tarjetas de los jueces» (`<details>`, sin JavaScript): cada juez con el total de cada esquina y, si se anotó por round, cada round. (4) Una **decisión** ya no muestra «R3 5:00» (llegó al final): ni en la línea del resultado, ni en el historial ni en «Última pelea»; una **decisión técnica** sí (se detuvo), también en empate. En la base se sigue guardando el último round y el tiempo completo (los usa el «Tiempo promedio» del récord). `roundAndTime` en `src/domain/bout-result.ts`.
+- **Impacto:** `FightHistoryRow` cambia `endRound`/`endTimeSeconds` por `roundTime` (texto o `null`); `BoutResultDTO` trae `scorecards`. `BoutComparison` salió de `bout-row.tsx` (pasaba de 190 líneas).
+- **Estado:** aplicado

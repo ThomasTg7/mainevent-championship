@@ -40,6 +40,7 @@ Patrones que ya existen en el código. Los planes 01–07 los heredan: **úsalos
 ## UI
 
 - Admin: componentes shadcn en `src/components/ui` (tema oscuro GC, `--radius: 0`). Ayuda «?» con `HelpTip` (`src/components/admin/help-tip.tsx`: se abre al tocar, área de 44 px, nombre «Ayuda: <tema>»; en e2e, `getByLabel` de un campo con ayuda necesita `exact: true`). Campos con `<FormField id label error hint help>` (`src/components/admin/form-field.tsx`): etiqueta visible, error con `role="alert"` junto al campo; el input lleva `aria-invalid` y `aria-describedby={formFieldErrorId(id)}`.
+- Montos en pesos en el panel: `<MoneyInput>` (`src/components/admin/money-input.tsx`, punto de miles al escribir); leerlos con `parseThousands`.
 - El componente `form` de shadcn **no existe** en esta versión: formularios con `<form action={...}>`/`useActionState` o `onSubmit` y validación Zod en el servidor.
 - Objetivos táctiles de 44 px: los da `globals.css` por `data-slot` en pantallas táctiles; no achicar con clases.
 - Colores de texto secundario: `text-muted-foreground` (no existe `text-muted`).
