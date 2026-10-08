@@ -169,6 +169,22 @@ describe("getPublicPostBySlug", () => {
     expect(JSON.parse(JSON.stringify(post))).toEqual(post);
   });
 
+  it("brings both photos of each related fighter, so one without a headshot shows the body photo", async () => {
+    await clearPosts();
+    const soto = await fighterIdBySlug(db, "diego-soto");
+    const bodyId = await insertMedia(db, "fighter_body");
+    const [before] = await db.select({ headshotMediaId: fighters.headshotMediaId, bodyMediaId: fighters.bodyMediaId }).from(fighters).where(eq(fighters.id, soto));
+    await db.update(fighters).set({ headshotMediaId: null, bodyMediaId: bodyId }).where(eq(fighters.id, soto));
+    try {
+      const { slug } = await insertPost(db, { title: "Con Soto", fighterIds: [soto] });
+      const [fighter] = (await getPublicPostBySlug(db, slug))!.fighters;
+      expect(fighter?.headshotMedia).toBeNull();
+      expect(fighter?.bodyMedia?.id).toBe(bodyId);
+    } finally {
+      await db.update(fighters).set(before!).where(eq(fighters.id, soto));
+    }
+  });
+
   it("gives the last change of the post as an ISO date (dateModified of the news)", async () => {
     await clearPosts();
     const { id, slug } = await insertPost(db, { title: "Con cambio" });

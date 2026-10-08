@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MediaImage } from "@/components/media/media-image";
 import { BOUT_LEVEL_LABELS, type BoutLevel } from "@/domain/bout-enums";
 import type { FightHistoryRow } from "@/features/events/dto";
 import { formatDate } from "@/lib/format-date";
-import { FighterSilhouette } from "./fighter-silhouette";
+import { FighterFace } from "./fighter-photo";
 import { SectionTitle } from "./section-title";
 
 const RESULT_LABEL = { win: "Victoria", loss: "Derrota", draw: "Empate", no_contest: "Sin resultado" } as const;
@@ -61,11 +60,11 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
           return (
             <li key={row.boutId} data-fight={row.boutId} data-level={row.level} data-result={row.fighterResult} className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 border-b border-border py-4 sm:grid-cols-[auto_120px_1fr_1fr_auto] sm:gap-x-6">
               <div className="relative h-16 w-14 shrink-0 overflow-hidden bg-surface sm:h-[72px] sm:w-16">
-                {row.opponent.headshotMedia ? (
-                  <MediaImage media={row.opponent.headshotMedia} sizes="64px" className="size-full object-cover" />
-                ) : (
-                  <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]" />
-                )}
+                <FighterFace
+                  fighter={row.opponent}
+                  sizes="64px"
+                  silhouetteClassName="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]"
+                />
               </div>
               <span className={`w-fit justify-self-start px-2.5 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] sm:justify-self-auto ${RESULT_CLASS[row.fighterResult]}`}>
                 {RESULT_LABEL[row.fighterResult]}

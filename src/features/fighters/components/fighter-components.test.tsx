@@ -29,6 +29,8 @@ const photo: MediaDTO = {
   originalUrl: "/media/original.png",
 };
 
+const headshot: MediaDTO = { ...photo, id: "media-2", kind: "fighter_headshot", width: 800, height: 800, alt: "Matías Pérez, rostro" };
+
 const card: FighterCardDTO = {
   id: "f1",
   slug: "matias-perez",
@@ -41,6 +43,7 @@ const card: FighterCardDTO = {
   division: { name: "Ligero", slug: "peso-ligero", limitKg: 70.3, gender: "male" },
   record: { wins: 12, losses: 2, draws: 0, noContests: 0 },
   bodyMedia: null,
+  headshotMedia: null,
 };
 
 const profile: FighterProfileDTO = {
@@ -91,6 +94,13 @@ describe("FighterCard", () => {
     expect(container.querySelector('[data-slot="fighter-card-backdrop"]')).toBeNull();
   });
 
+  it("falls back to the headshot when there is no body photo", () => {
+    const { container } = render(<FighterCard fighter={{ ...card, headshotMedia: headshot }} />);
+    expect(screen.getByRole("img", { name: "Matías Pérez, rostro" })).toBeInTheDocument();
+    expect(container.querySelector("[data-photo]")).toHaveAttribute("data-photo", "headshot");
+    expect(container.querySelector('[data-slot="fighter-silhouette"]')).toBeNull();
+  });
+
   it("requests only the first-row photo with priority", () => {
     render(<FighterCard fighter={{ ...card, bodyMedia: photo }} priority />);
     expect(screen.getByRole("img", { name: "Matías Pérez de frente" })).toHaveAttribute("fetchpriority", "high");
@@ -110,6 +120,12 @@ describe("FighterHero", () => {
     expect(image).toHaveAttribute("loading", "eager");
     expect(image).toHaveAttribute("fetchpriority", "high");
     expect(image).toHaveAttribute("sizes", FIGHTER_HERO_SIZES);
+  });
+
+  it("falls back to the headshot when there is no body photo", () => {
+    const { container } = render(<FighterHero fighter={{ ...profile, headshotMedia: headshot }} figures={figures} />);
+    expect(screen.getByRole("img", { name: "Matías Pérez, rostro" })).toHaveAttribute("fetchpriority", "high");
+    expect(container.querySelector('[data-slot="fighter-hero-photo"] [data-photo]')).toHaveAttribute("data-photo", "headshot");
   });
 
   it("shows the short bio inside the card, under the name", () => {

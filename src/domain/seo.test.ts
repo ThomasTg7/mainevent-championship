@@ -155,7 +155,7 @@ function post(overrides: Partial<PostDTO> = {}): PostDTO {
     body: { type: "doc", content: [] },
     gallery: [],
     bodyMedia: {},
-    fighters: [{ id: "f1", slug: "matias-perez", firstName: "Matías", lastName: "Pérez", nickname: null, nationality: "CL", headshotMedia: null }],
+    fighters: [{ id: "f1", slug: "matias-perez", firstName: "Matías", lastName: "Pérez", nickname: null, nationality: "CL", headshotMedia: null, bodyMedia: null }],
     events: [],
     ...overrides,
   };

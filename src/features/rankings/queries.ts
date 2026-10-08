@@ -7,8 +7,8 @@ import { rankingEntries, titles } from "@/db/schema/rankings";
 import type { BoutLevel } from "@/domain/bout-enums";
 import { P4P_SLOTS, championWord, computeMovement } from "@/domain/rankings";
 import { divisionTitle } from "@/features/fighters/labels";
+import { fighterPhotoIds, fighterPhotos, loadMedia } from "@/features/fighters/query-helpers";
 import type { MediaDTO } from "@/features/media/dto";
-import { getMediaByIds } from "@/features/media/queries";
 import type { RankedFighterDTO, RankingCardDTO, RankingsPageDTO } from "./dto";
 import { visibleRankedFighter } from "./eligibility";
 import { shownRankings } from "./shown-positions";
@@ -25,6 +25,7 @@ const fighterColumns = {
   lastName: fighters.lastName,
   nationality: fighters.nationality,
   bodyMediaId: fighters.bodyMediaId,
+  headshotMediaId: fighters.headshotMediaId,
   proWins: fighters.proWins,
   proLosses: fighters.proLosses,
   proDraws: fighters.proDraws,
@@ -42,6 +43,7 @@ type FighterRow = {
   lastName: string;
   nationality: string;
   bodyMediaId: string | null;
+  headshotMediaId: string | null;
   proWins: number;
   proLosses: number;
   proDraws: number;
@@ -62,7 +64,7 @@ function toRankedFighter(row: FighterRow, level: BoutLevel, withPhoto: boolean, 
       level === "pro"
         ? { wins: row.proWins, losses: row.proLosses, draws: row.proDraws, noContests: row.proNoContests }
         : { wins: row.amWins, losses: row.amLosses, draws: row.amDraws, noContests: row.amNoContests },
-    bodyMedia: withPhoto && row.bodyMediaId ? (mediaById.get(row.bodyMediaId) ?? null) : null,
+    ...(withPhoto ? fighterPhotos(mediaById, row) : { bodyMedia: null, headshotMedia: null }),
   };
 }
 
@@ -132,9 +134,9 @@ export async function getPublicRankings(db: Db, level: BoutLevel): Promise<Ranki
   // Solo el campeón y el líder del libra por libra muestran foto: se piden juntas, en una consulta.
   const photoIds = drafts.flatMap((draft) => {
     const leader = draft.scope.divisionId === null ? draft.currentRows[0] : undefined;
-    return [draft.championRow?.bodyMediaId, leader?.bodyMediaId].flatMap((id) => (id ? [id] : []));
+    return fighterPhotoIds([draft.championRow, leader].flatMap((row) => (row ? [row] : [])));
   });
-  const mediaById = await getMediaByIds(db, [...new Set(photoIds)]);
+  const mediaById = await loadMedia(db, photoIds);
 
   return {
     level,

@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
 import { championWord } from "@/domain/rankings";
 import { countryName } from "@/domain/units";
 import { FighterName } from "@/features/fighters/components/fighter-name";
-import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
+import { FighterFigure } from "@/features/fighters/components/fighter-photo";
 import type { BoutFighterDTO } from "../../dto";
 import { CHAMPION_GOLD } from "../bout-corner";
 import { VictoryTag } from "../victory-tag";
@@ -23,17 +22,16 @@ const CORNER_NAME = { red: "Esquina roja", blue: "Esquina azul" } as const;
 
 /** Una esquina en la página de la pelea: foto grande (con «Victoria» sobre sus pies si ganó), ranking, nombre, país y récord. */
 export function BoutDetailCorner({ fighter, side, won, rankLabel, gender }: BoutDetailCornerProps) {
-  const photo = fighter.bodyMedia ?? fighter.headshotMedia;
   const record = fighter.record;
   return (
     <div data-corner={side} className={`flex min-w-0 flex-col gap-3 ${side === "blue" ? "items-end text-right" : ""}`}>
       <div className="w-full max-w-[260px]">
         <div data-slot="bout-face" className={`relative aspect-[4/5] w-full overflow-hidden border-b-[6px] bg-gradient-to-b from-neutral-100 to-neutral-200 ${CORNER_COLOR[side]}`}>
-          {photo ? (
-            <MediaImage media={photo} sizes="(min-width: 640px) 260px, 44vw" className={`size-full ${fighter.bodyMedia ? "object-contain object-bottom" : "object-cover"}`} />
-          ) : (
-            <FighterSilhouette className={`absolute bottom-0 left-1/2 h-[92%] -translate-x-1/2 text-neutral-900 ${side === "blue" ? "-scale-x-100" : ""}`} />
-          )}
+          <FighterFigure
+            fighter={fighter}
+            sizes="(min-width: 640px) 260px, 44vw"
+            silhouetteClassName={`absolute bottom-0 left-1/2 h-[92%] -translate-x-1/2 text-neutral-900 ${side === "blue" ? "-scale-x-100" : ""}`}
+          />
           {won ? <VictoryTag size="lg" /> : null}
         </div>
       </div>

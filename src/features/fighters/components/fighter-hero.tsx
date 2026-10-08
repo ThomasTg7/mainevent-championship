@@ -1,4 +1,3 @@
-import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
 import { Tag } from "@/components/ui-gc/tag";
 import { countryName, formatWeight } from "@/domain/units";
@@ -6,7 +5,7 @@ import type { FighterProfileDTO } from "../dto";
 import { CAREER_STATUS_LABELS, divisionTitle } from "../labels";
 import { CountFigures, type CountFigure } from "./count-figures";
 import { FighterName } from "./fighter-name";
-import { FighterSilhouette } from "./fighter-silhouette";
+import { FighterFigure } from "./fighter-photo";
 import { HeroParallax } from "./hero-parallax";
 
 /** La foto del hero es la imagen LCP: ocupa todo el ancho en celular y ~40 % en escritorio. */
@@ -59,11 +58,12 @@ export function FighterHero({ fighter, figures, rankingTags = [] }: FighterHeroP
           {/* La portada ocupa justo la pantalla (100svh): la foto toma el alto que dejan los datos, en celular arriba y en escritorio a la derecha. */}
           <div data-slot="fighter-hero-photo" className="relative order-1 min-h-[180px] w-full flex-1 overflow-hidden lg:order-2 lg:min-h-0 lg:self-stretch">
             <HeroParallax className="absolute inset-0 will-change-transform">
-              {fighter.bodyMedia ? (
-                <MediaImage media={fighter.bodyMedia} sizes={FIGHTER_HERO_SIZES} priority className="size-full object-contain object-bottom" />
-              ) : (
-                <FighterSilhouette className="absolute bottom-0 left-1/2 h-[96%] -translate-x-1/2 text-black drop-shadow-[0_0_3px_rgba(255,180,0,.6)]" />
-              )}
+              <FighterFigure
+                fighter={fighter}
+                sizes={FIGHTER_HERO_SIZES}
+                priority
+                silhouetteClassName="absolute bottom-0 left-1/2 h-[96%] -translate-x-1/2 text-black drop-shadow-[0_0_3px_rgba(255,180,0,.6)]"
+              />
             </HeroParallax>
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black to-transparent lg:hidden" />
           </div>

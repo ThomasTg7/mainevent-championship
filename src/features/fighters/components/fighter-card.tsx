@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
 import { formatWeight } from "@/domain/units";
 import type { FighterCardDTO } from "../dto";
 import { divisionTitle } from "../labels";
 import { FighterName } from "./fighter-name";
-import { FighterSilhouette } from "./fighter-silhouette";
+import { FighterFigure } from "./fighter-photo";
 import { CountFigures } from "./count-figures";
 
 export const FIGHTER_CARD_SIZES = "(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw";
@@ -40,16 +39,14 @@ export function FighterCard({ fighter, priority = false, badge, backdrop, headin
   return (
     <article className="group relative flex h-full flex-col overflow-hidden border border-border bg-[linear-gradient(170deg,#1c1c1c,#0a0a0a_70%)] transition-colors duration-300 focus-within:border-yellow focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-yellow hover:border-yellow">
       <div className="relative h-[clamp(210px,36vw,340px)] overflow-hidden sm:h-[clamp(240px,26vw,340px)]">
-        {fighter.bodyMedia ? (
-          <MediaImage
-            media={fighter.bodyMedia}
-            sizes={FIGHTER_CARD_SIZES}
-            priority={priority}
-            className="absolute inset-0 size-full object-contain transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105"
-          />
-        ) : (
-          <FighterSilhouette className="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)] transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105" />
-        )}
+        <FighterFigure
+          fighter={fighter}
+          sizes={FIGHTER_CARD_SIZES}
+          priority={priority}
+          bodyFit="object-contain"
+          imageClassName="absolute inset-0 transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105"
+          silhouetteClassName="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)] transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105"
+        />
         {backdrop ? (
           <span
             data-slot="fighter-card-backdrop"

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { RankedFighterDTO, RankingCardDTO, RankingEntryDTO } from "@/features/rankings/dto";
 import { MAX_HIGHLIGHTS, pickHighlights, pickHomeRankingCards } from "./highlights";
 
-const fighter = (id: string): RankedFighterDTO => ({ id, slug: id, name: id, nationality: "CL", record: { wins: 1, losses: 0, draws: 0, noContests: 0 }, bodyMedia: null });
+const fighter = (id: string): RankedFighterDTO => ({ id, slug: id, name: id, nationality: "CL", record: { wins: 1, losses: 0, draws: 0, noContests: 0 }, bodyMedia: null, headshotMedia: null });
 const entry = (position: number, id: string): RankingEntryDTO => ({ position, fighter: fighter(id), movement: { kind: "same" } as RankingEntryDTO["movement"] });
 const division = (slug: string, gender: "male" | "female" = "male") => ({ id: `d-${slug}`, name: slug, slug, gender });
 

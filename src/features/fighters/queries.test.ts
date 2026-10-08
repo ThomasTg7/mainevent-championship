@@ -106,6 +106,12 @@ describe("listPublicFighters", () => {
     expect(list.find((fighter) => fighter.firstName === "Diego")?.bodyMedia?.id).toBe(bodyMediaId);
     expect(list.find((fighter) => fighter.firstName === "Camila")?.bodyMedia).toBeNull();
   });
+
+  it("brings the headshot too, so a card without a body photo can fall back to it", async () => {
+    const list = await listItems({});
+    expect(list.find((fighter) => fighter.firstName === "Matías")?.headshotMedia?.kind).toBe("fighter_headshot");
+    expect(list.find((fighter) => fighter.firstName === "Diego")?.headshotMedia).toBeNull();
+  });
 });
 
 describe("listPublicFighterCardsByIds", () => {
@@ -132,6 +138,7 @@ describe("listPublicFighterCardsByIds", () => {
     const cards = await listPublicFighterCardsByIds(db, [ids.matias, ids.diego, ids.camila]);
     expect(mediaQueries.getMediaByIds).toHaveBeenCalledTimes(1);
     expect(cards[0]?.bodyMedia?.id).toBe(bodyMediaId);
+    expect(cards[0]?.headshotMedia?.kind).toBe("fighter_headshot");
   });
 });
 

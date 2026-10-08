@@ -5,6 +5,7 @@ import { events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import { postCategories, postEvents, postFighters, postGallery, posts } from "@/db/schema/posts";
 import { collectBodyMediaIds } from "@/domain/post-body";
+import { fighterPhotoIds, fighterPhotos } from "@/features/fighters/query-helpers";
 import type { MediaDTO } from "@/features/media/dto";
 import { getMediaByIds } from "@/features/media/queries";
 import { selectCardRows, toCardDTO, toCardDTOs } from "./card-rows";
@@ -117,6 +118,7 @@ export async function getPublicPostBySlug(db: Db, slug: string, { preview = fals
         nickname: fighters.nickname,
         nationality: fighters.nationality,
         headshotMediaId: fighters.headshotMediaId,
+        bodyMediaId: fighters.bodyMediaId,
       })
       .from(postFighters)
       .innerJoin(fighters, eq(fighters.id, postFighters.fighterId))
@@ -135,7 +137,7 @@ export async function getPublicPostBySlug(db: Db, slug: string, { preview = fals
     post.coverMediaId,
     ...galleryRows.map((item) => item.mediaId),
     ...bodyMediaIds,
-    ...fighterRows.map((fighter) => fighter.headshotMediaId),
+    ...fighterPhotoIds(fighterRows),
   ].filter((id): id is string => id !== null);
   const mediaById = await getMediaByIds(db, [...new Set(mediaIds)]);
 
@@ -151,7 +153,7 @@ export async function getPublicPostBySlug(db: Db, slug: string, { preview = fals
     body: post.body,
     gallery: galleryRows.flatMap((item) => mediaById.get(item.mediaId) ?? []),
     bodyMedia,
-    fighters: fighterRows.map(({ headshotMediaId, ...fighter }) => ({ ...fighter, headshotMedia: headshotMediaId ? (mediaById.get(headshotMediaId) ?? null) : null })),
+    fighters: fighterRows.map(({ headshotMediaId, bodyMediaId, ...fighter }) => ({ ...fighter, ...fighterPhotos(mediaById, { headshotMediaId, bodyMediaId }) })),
     events: eventRows.map((event) => ({ ...event, startsAt: event.startsAt.toISOString() })),
   };
 }

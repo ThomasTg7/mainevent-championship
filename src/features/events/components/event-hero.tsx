@@ -1,8 +1,7 @@
 import { SmoothAnchor } from "@/components/motion/smooth-anchor";
-import { MediaImage } from "@/components/media/media-image";
 import { Button } from "@/components/ui-gc/button";
 import { Tag } from "@/components/ui-gc/tag";
-import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
+import { FighterFigure } from "@/features/fighters/components/fighter-photo";
 import { HeroParallax } from "@/features/fighters/components/hero-parallax";
 import type { MediaDTO } from "@/features/media/dto";
 import { formatShortDate, formatTime } from "@/lib/format-date";
@@ -48,24 +47,19 @@ function HeroPicture({ desktop, mobile }: { desktop: MediaDTO; mobile: MediaDTO 
   );
 }
 
-/** Un peleador del careo: su foto de cuerpo entero o, sin foto, la silueta con el color de su esquina. El azul va espejado. */
-function FighterFigure({ fighter, side, priority }: { fighter: BoutFighterDTO; side: "red" | "blue"; priority: boolean }) {
+/** Un peleador del careo: su foto de cuerpo entero (o la de rostro si no subió esa) o, sin foto, la silueta con el color de su esquina. El azul va espejado. */
+function FaceOffFighter({ fighter, side, priority }: { fighter: BoutFighterDTO; side: "red" | "blue"; priority: boolean }) {
   const mirrored = side === "blue";
   return (
     <div className={`pointer-events-none absolute bottom-0 z-[2] h-[64%] w-[52%] sm:h-[80%] sm:w-[44%] lg:h-[88%] lg:w-[36%] ${side === "red" ? "left-[-6%] lg:left-[6%]" : "right-[-6%] lg:right-[6%]"}`}>
       <HeroParallax className="absolute inset-0 will-change-transform">
-        {fighter.bodyMedia ? (
-          <MediaImage
-            media={fighter.bodyMedia}
-            sizes="(min-width: 1024px) 36vw, 52vw"
-            priority={priority}
-            className={`size-full object-contain object-bottom ${mirrored ? "-scale-x-100" : ""}`}
-          />
-        ) : (
-          <FighterSilhouette
-            className={`absolute bottom-0 left-1/2 h-full -translate-x-1/2 text-black ${side === "red" ? "drop-shadow-[0_0_3px_rgba(215,38,61,.85)]" : "-scale-x-100 drop-shadow-[0_0_3px_rgba(30,111,217,.85)]"}`}
-          />
-        )}
+        <FighterFigure
+          fighter={fighter}
+          sizes="(min-width: 1024px) 36vw, 52vw"
+          priority={priority}
+          imageClassName={mirrored ? "-scale-x-100" : undefined}
+          silhouetteClassName={`absolute bottom-0 left-1/2 h-full -translate-x-1/2 text-black ${side === "red" ? "drop-shadow-[0_0_3px_rgba(215,38,61,.85)]" : "-scale-x-100 drop-shadow-[0_0_3px_rgba(30,111,217,.85)]"}`}
+        />
       </HeroParallax>
     </div>
   );
@@ -102,8 +96,8 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
       )}
       {main && !event.heroMedia ? (
         <>
-          <FighterFigure fighter={main.red} side="red" priority />
-          <FighterFigure fighter={main.blue} side="blue" priority={false} />
+          <FaceOffFighter fighter={main.red} side="red" priority />
+          <FaceOffFighter fighter={main.blue} side="blue" priority={false} />
         </>
       ) : null}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[62%] bg-gradient-to-t from-black from-10% via-black/70 to-transparent" />

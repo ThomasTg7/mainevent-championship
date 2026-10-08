@@ -63,7 +63,8 @@ test("en celular la foto no se mueve con el scroll y no invade el texto de abajo
   const context = await browser.newContext({ viewport: { width: 375, height: 700 }, hasTouch: true, isMobile: true });
   const page = await context.newPage();
   await page.goto("/peleadores/matias-perez");
-  const photo = page.locator('section [data-slot="fighter-silhouette"]').first().locator("xpath=..");
+  // La capa que se mueve con el parallax (dentro va la foto o la silueta).
+  const photo = page.locator('[data-slot="fighter-hero-photo"] > div').first();
   await expect(photo).toBeVisible();
   // La foto no ocupa toda la pantalla: el nombre se lee sin desplazarse.
   await expect(page.getByRole("heading", { name: "Matías Pérez", level: 1 })).toBeInViewport();
@@ -81,7 +82,8 @@ test("en celular la foto no se mueve con el scroll y no invade el texto de abajo
 test("en escritorio el parallax es suave, con tope, y la foto queda recortada", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/peleadores/matias-perez");
-  const photo = page.locator('section [data-slot="fighter-silhouette"]').first().locator("xpath=..");
+  // La capa que se mueve con el parallax (dentro va la foto o la silueta).
+  const photo = page.locator('[data-slot="fighter-hero-photo"] > div').first();
   // El parallax solo corre mientras el hero se ve: se hace scroll dentro de él, poco a poco, hasta que responda.
   await expect
     .poll(async () => {

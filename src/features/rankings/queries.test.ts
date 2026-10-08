@@ -3,9 +3,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
 import { bouts } from "@/db/schema/events";
+import { fighters } from "@/db/schema/fighters";
 import { rankingEntries, rankingVersions } from "@/db/schema/rankings";
 import { eventIdBySlug, fighterIdBySlug, insertBout, insertEvent, insertSegment } from "@/features/events/test-helpers";
 import { updateFighter } from "@/features/fighters/service";
+import { insertMedia } from "@/features/fighters/test-helpers";
 import { createTestDb } from "@/test/db";
 import { getChampionBadges } from "./champion-badges";
 import { getBoutRankLabels, getFighterRankingTags, getPublicRankings } from "./queries";
@@ -33,6 +35,16 @@ describe("rankings of the seed", () => {
       [2, "Felipe Araya"],
     ]);
     expect(ligero?.updatedAt).toEqual(expect.any(String));
+  });
+
+  it("gives the champion both photos (a headshot-only champion still has a picture); numbered rows carry none", async () => {
+    const perez = await fighterIdBySlug(db, "matias-perez");
+    const headshotId = await insertMedia(db, "fighter_headshot");
+    await db.update(fighters).set({ headshotMediaId: headshotId, bodyMediaId: null }).where(eq(fighters.id, perez));
+    const ligero = (await getPublicRankings(db, "pro")).cards.find((card) => card.division?.slug === "peso-ligero");
+    expect(ligero?.champion?.bodyMedia).toBeNull();
+    expect(ligero?.champion?.headshotMedia?.id).toBe(headshotId);
+    expect(ligero?.entries.every((entry) => entry.fighter.headshotMedia === null && entry.fighter.bodyMedia === null)).toBe(true);
   });
 
   it("keeps the first version of every scope as all NEW", async () => {

@@ -1,8 +1,10 @@
+import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
+import { fighters } from "@/db/schema/fighters";
 import { computeRecord } from "@/domain/record";
 import { createFighter, setFighterPublication } from "@/features/fighters/service";
-import { divisionIdBySlug, validFighterInput } from "@/features/fighters/test-helpers";
+import { divisionIdBySlug, insertMedia, validFighterInput } from "@/features/fighters/test-helpers";
 import { createTestDb } from "@/test/db";
 import { getFighterFightHistory, getFighterNextBout, listBoutsForRecord } from "./fighter-queries";
 import { seedEvents } from "./seed";
@@ -114,6 +116,16 @@ describe("getFighterNextBout", () => {
     expect(next).toMatchObject({ isTitleFight: true, scheduledRounds: 5, opponent: { lastName: "Soto" }, event: { slug: "guerra-campal-5", name: "Guerra Campal 5" } });
     expect(new Date(next!.event.startsAt).toISOString()).toBe(next!.event.startsAt);
     expect(await getFighterNextBout(db, sotoId)).toMatchObject({ opponent: { lastName: "Pérez" }, isTitleFight: true });
+  });
+
+  it("brings both photos of the opponent, so a missing headshot falls back to the body photo", async () => {
+    const bodyId = await insertMedia(db, "fighter_body");
+    await db.update(fighters).set({ headshotMediaId: null, bodyMediaId: bodyId }).where(eq(fighters.id, sotoId));
+    const next = await getFighterNextBout(db, perezId);
+    expect(next?.opponent.headshotMedia).toBeNull();
+    expect(next?.opponent.bodyMedia?.id).toBe(bodyId);
+    const [knockout] = await getFighterFightHistory(db, await fighterIdBySlug(db, "felipe-araya"));
+    expect(knockout?.opponent).toHaveProperty("bodyMedia");
   });
 
   it("names the division, or the catch weight when there is one", async () => {

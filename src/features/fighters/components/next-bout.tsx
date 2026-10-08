@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { MediaImage } from "@/components/media/media-image";
 import type { FightHistoryRow, NextBoutDTO, OpponentDTO } from "@/features/events/dto";
 import { boutMeasure, roundsLabel } from "@/features/events/public-format";
 import { formatDate, formatLongDate, formatTime } from "@/lib/format-date";
-import { FighterSilhouette } from "./fighter-silhouette";
+import { FighterFace } from "./fighter-photo";
 
 type NextBoutProps = { nextBout: NextBoutDTO | null; lastFight: FightHistoryRow | null };
 
@@ -13,11 +12,11 @@ const RESULT_CLASS = { win: "bg-yellow text-black", loss: "bg-neutral-700 text-w
 function OpponentPhoto({ opponent }: { opponent: OpponentDTO }) {
   const photo = (
     <div className="relative h-[104px] w-[84px] overflow-hidden border-b-4 border-yellow bg-surface sm:h-[132px] sm:w-[106px]">
-      {opponent.headshotMedia ? (
-        <MediaImage media={opponent.headshotMedia} sizes="(min-width: 640px) 106px, 84px" className="size-full object-cover" />
-      ) : (
-        <FighterSilhouette className="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]" />
-      )}
+      <FighterFace
+        fighter={opponent}
+        sizes="(min-width: 640px) 106px, 84px"
+        silhouetteClassName="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]"
+      />
     </div>
   );
   return (

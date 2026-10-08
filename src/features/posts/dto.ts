@@ -26,7 +26,9 @@ export type PostFighterDTO = {
   lastName: string;
   nickname: string | null;
   nationality: string;
+  /** Las dos fotos: la miniatura prefiere el rostro y, sin él, usa la de cuerpo. */
   headshotMedia: MediaDTO | null;
+  bodyMedia: MediaDTO | null;
 };
 
 export type PostEventDTO = { id: string; slug: string; name: string; startsAt: string };

@@ -111,7 +111,17 @@ export type AdminEventRow = {
 
 // Lado del peleador (ficha): historial y próxima pelea.
 
-export type OpponentDTO = { id: string; slug: string; firstName: string; lastName: string; nationality: string; isPublic: boolean; headshotMedia: MediaDTO | null };
+export type OpponentDTO = {
+  id: string;
+  slug: string;
+  firstName: string;
+  lastName: string;
+  nationality: string;
+  isPublic: boolean;
+  /** Las dos fotos: la miniatura prefiere el rostro y, sin él, usa la de cuerpo. */
+  headshotMedia: MediaDTO | null;
+  bodyMedia: MediaDTO | null;
+};
 
 export type FightHistoryRow = {
   boutId: string;

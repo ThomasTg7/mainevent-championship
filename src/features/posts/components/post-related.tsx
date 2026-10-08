@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
-import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
+import { FighterFace } from "@/features/fighters/components/fighter-photo";
 import { formatShortDate } from "@/lib/format-date";
 import type { PostEventDTO, PostFighterDTO } from "../dto";
 
@@ -23,11 +22,7 @@ export function PostRelated({ fighters, events }: { fighters: PostFighterDTO[]; 
             <li key={fighter.id}>
               <Link href={`/peleadores/${fighter.slug}`} className={LINK_CLASS}>
                 <span className="grid size-12 shrink-0 place-items-center overflow-hidden bg-surface-2 text-white">
-                  {fighter.headshotMedia ? (
-                    <MediaImage media={fighter.headshotMedia} sizes="48px" className="size-full object-cover" />
-                  ) : (
-                    <FighterSilhouette className="h-full w-auto text-black drop-shadow-[0_0_1px_rgba(255,180,0,.6)]" />
-                  )}
+                  <FighterFace fighter={fighter} sizes="48px" silhouetteClassName="h-full w-auto text-black drop-shadow-[0_0_1px_rgba(255,180,0,.6)]" />
                 </span>
                 <span className="flex min-w-0 flex-col">
                   <span className="font-cond text-lg font-bold uppercase leading-tight tracking-[.04em] text-white group-hover:text-yellow">

@@ -1,28 +1,15 @@
-import { MediaImage } from "@/components/media/media-image";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Flag } from "@/components/ui-gc/flag";
 import { countryName } from "@/domain/units";
+import { AdminFighterThumb } from "@/features/events/components/admin-fighter-thumb";
 import { PublicationBadge } from "@/features/publication/components/publication-badge";
 import { formatDate } from "@/lib/format-date";
 import type { AdminFighterRow } from "../dto";
 import { CAREER_STATUS_LABELS } from "../labels";
 import { FighterRowActions } from "./fighter-row-actions";
-import { FighterSilhouette } from "./fighter-silhouette";
 
 function displayName(fighter: AdminFighterRow): string {
   return `${fighter.firstName} ${fighter.lastName}`;
-}
-
-function Thumbnail({ fighter }: { fighter: AdminFighterRow }) {
-  return (
-    <div className="size-12 shrink-0 overflow-hidden bg-muted">
-      {fighter.bodyMedia ? (
-        <MediaImage media={fighter.bodyMedia} sizes="48px" className="size-full object-cover object-top" />
-      ) : (
-        <FighterSilhouette className="size-full text-black drop-shadow-[0_0_1px_rgba(255,180,0,.6)]" />
-      )}
-    </div>
-  );
 }
 
 function Details({ fighter }: { fighter: AdminFighterRow }) {
@@ -63,7 +50,7 @@ export function FightersAdminList({ fighters, hasFilters }: { fighters: AdminFig
             <TableRow key={fighter.id}>
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <Thumbnail fighter={fighter} />
+                  <AdminFighterThumb fighter={fighter} className="size-12" />
                   <Details fighter={fighter} />
                 </div>
               </TableCell>
@@ -94,7 +81,7 @@ export function FightersAdminList({ fighters, hasFilters }: { fighters: AdminFig
         {fighters.map((fighter) => (
           <li key={fighter.id} className="flex flex-col gap-3 border border-border bg-card p-4">
             <div className="flex items-start gap-3">
-              <Thumbnail fighter={fighter} />
+              <AdminFighterThumb fighter={fighter} className="size-12" />
               <Details fighter={fighter} />
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">

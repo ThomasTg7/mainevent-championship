@@ -7,8 +7,8 @@ import { bouts, events, submissionTechniques } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import { formatMethod, roundAndTime } from "@/domain/bout-result";
 import { resultFor, type BoutOutcomeForRecord } from "@/domain/record";
+import { fighterPhotoIds, fighterPhotos, loadMedia } from "@/features/fighters/query-helpers";
 import type { MediaDTO } from "@/features/media/dto";
-import { getMediaByIds } from "@/features/media/queries";
 import type { FightHistoryRow, NextBoutDTO, OpponentDTO } from "./dto";
 import { eventsWithPendingBouts } from "./event-scope";
 
@@ -35,17 +35,26 @@ const opponentColumns = {
   nationality: opponent.nationality,
   isPublic: sql<boolean>`coalesce(${publicScope(opponent)}, false)`,
   headshotMediaId: opponent.headshotMediaId,
+  bodyMediaId: opponent.bodyMediaId,
 };
 
-type OpponentRow = { id: string; slug: string; firstName: string; lastName: string; nationality: string; isPublic: boolean; headshotMediaId: string | null };
+type OpponentRow = {
+  id: string;
+  slug: string;
+  firstName: string;
+  lastName: string;
+  nationality: string;
+  isPublic: boolean;
+  headshotMediaId: string | null;
+  bodyMediaId: string | null;
+};
 
-function toOpponent({ headshotMediaId, ...rest }: OpponentRow, mediaById: Map<string, MediaDTO>): OpponentDTO {
-  return { ...rest, headshotMedia: headshotMediaId ? (mediaById.get(headshotMediaId) ?? null) : null };
+function toOpponent({ headshotMediaId, bodyMediaId, ...rest }: OpponentRow, mediaById: Map<string, MediaDTO>): OpponentDTO {
+  return { ...rest, ...fighterPhotos(mediaById, { headshotMediaId, bodyMediaId }) };
 }
 
 async function loadOpponentMedia(db: Db, rows: { opponent: OpponentRow }[]): Promise<Map<string, MediaDTO>> {
-  const ids = [...new Set(rows.flatMap((row) => (row.opponent.headshotMediaId ? [row.opponent.headshotMediaId] : [])))];
-  return getMediaByIds(db, ids);
+  return loadMedia(db, fighterPhotoIds(rows.map((row) => row.opponent)));
 }
 
 /** Peleas con resultado de eventos públicos, listas para `computeRecord`. */

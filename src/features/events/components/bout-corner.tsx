@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MediaImage } from "@/components/media/media-image";
+import { pickFighterPhoto } from "@/domain/fighter-photo";
 import { championWord } from "@/domain/rankings";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import type { BoutFighterDTO } from "../dto";
@@ -29,8 +30,7 @@ function RankBadge({ rankLabel, gender }: { rankLabel?: string; gender: "male" |
 
 /** Foto de la esquina: la de cuerpo si existe (recortada a medio cuerpo), si no la de rostro y si no la silueta. Si ganó, «Victoria» va sobre sus pies. */
 function CornerPhoto({ fighter, side, won }: { fighter: BoutFighterDTO; side: Side; won: boolean }) {
-  const photo = fighter.bodyMedia ? "body" : fighter.headshotMedia ? "headshot" : "silhouette";
-  const media = fighter.bodyMedia ?? fighter.headshotMedia;
+  const { kind: photo, media } = pickFighterPhoto(fighter, "body");
   return (
     <div
       data-slot="bout-face"

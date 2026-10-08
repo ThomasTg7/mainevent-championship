@@ -19,8 +19,9 @@ export type RankedFighterDTO = {
   nationality: string;
   /** Récord cargado a mano del nivel del ranking. */
   record: ManualRecord;
-  /** Solo el campeón y el primero de un libra por libra traen foto (las demás filas no la muestran). */
+  /** Solo el campeón y el primero de un libra por libra traen fotos (las demás filas no las muestran): las dos, por si falta una. */
   bodyMedia: MediaDTO | null;
+  headshotMedia: MediaDTO | null;
 };
 
 export type RankingEntryDTO = { position: number; fighter: RankedFighterDTO; movement: Movement };

@@ -2,6 +2,7 @@ import { asc, eq, like, type SQL } from "drizzle-orm";
 import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
 import { fighterGallery, fighters } from "@/db/schema/fighters";
+import type { FighterPhotos } from "@/domain/fighter-photo";
 import { normalizeSearchText } from "@/domain/search";
 import type { MediaDTO } from "@/features/media/dto";
 import { getMediaByIds } from "@/features/media/queries";
@@ -35,6 +36,22 @@ export function pageWindow({ page = 1, pageSize }: PageOptions, fallbackSize: nu
 
 export async function loadMedia(db: Db, ids: (string | null)[]): Promise<Map<string, MediaDTO>> {
   return getMediaByIds(db, [...new Set(ids.filter((id): id is string => id !== null))]);
+}
+
+type FighterPhotoIds = { headshotMediaId: string | null; bodyMediaId: string | null };
+
+/** Ids de las dos fotos de cada peleador, para pedirlas todas en una sola lectura de imágenes. */
+export function fighterPhotoIds(rows: FighterPhotoIds[]): (string | null)[] {
+  return rows.flatMap((row) => [row.headshotMediaId, row.bodyMediaId]);
+}
+
+/**
+ * Las dos fotos del peleador (rostro y cuerpo; `null` la que no se subió) desde el mapa de esa lectura. Siempre van las
+ * dos: cada pantalla elige con `pickFighterPhoto` y, si falta la que prefiere, usa la otra.
+ */
+export function fighterPhotos(mediaById: Map<string, MediaDTO>, { headshotMediaId, bodyMediaId }: FighterPhotoIds): FighterPhotos<MediaDTO> {
+  const find = (id: string | null) => (id ? (mediaById.get(id) ?? null) : null);
+  return { headshotMedia: find(headshotMediaId), bodyMedia: find(bodyMediaId) };
 }
 
 /** Ids de la galería del peleador, en orden (una consulta indexada por `fighter_id`). */

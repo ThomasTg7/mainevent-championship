@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { MediaImage } from "@/components/media/media-image";
 import { Flag } from "@/components/ui-gc/flag";
 import { championWord } from "@/domain/rankings";
+import { FighterFigure } from "@/features/fighters/components/fighter-photo";
 import { divisionTitle } from "@/features/fighters/labels";
-import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import { formatDate } from "@/lib/format-date";
 import type { RankingCardDTO } from "../dto";
 import { MovementBadge } from "./movement-badge";
+
+/** Título vacante: la caja de la foto muestra la silueta. */
+const NO_PHOTOS = { headshotMedia: null, bodyMedia: null };
 
 /**
  * Una tarjeta de ranking (estilo `.rank-card` de la maqueta): arriba, el campeón de la división (o el #1 del libra por
@@ -41,11 +43,12 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
           {champion?.since ? <p className="mt-1 font-cond text-xs font-semibold uppercase tracking-[.08em] text-muted-foreground">{championLabel} desde {formatDate(new Date(`${champion.since}T12:00:00Z`))}</p> : null}
         </div>
         <div className="relative" aria-hidden>
-          {leader?.bodyMedia ? (
-            <MediaImage media={leader.bodyMedia} sizes="120px" className="absolute inset-y-0 right-0 size-full object-contain object-bottom" />
-          ) : (
-            <FighterSilhouette className="absolute -bottom-2.5 -right-2.5 h-[170px] text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]" />
-          )}
+          <FighterFigure
+            fighter={leader ?? NO_PHOTOS}
+            sizes="120px"
+            imageClassName="absolute inset-y-0 right-0"
+            silhouetteClassName="absolute -bottom-2.5 -right-2.5 h-[170px] text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]"
+          />
         </div>
       </div>
 

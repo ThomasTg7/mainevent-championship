@@ -21,6 +21,7 @@ const fighter: FighterCardDTO = {
   division: { name: "Ligero", slug: "peso-ligero", limitKg: 70.3, gender: "male" },
   record: { wins: 12, losses: 2, draws: 0, noContests: 0 },
   bodyMedia: null,
+  headshotMedia: null,
 };
 
 /** Lo que hace ScrollTrigger con `pin: true`: mete la sección en un `.pin-spacer` nuevo, en su mismo lugar. */

@@ -3,7 +3,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { MediaDTO } from "@/features/media/dto";
 import { stubBrowserApis } from "@/test/browser-stubs";
-import type { EventPageDTO } from "../dto";
+import type { BoutDTO, BoutFighterDTO, EventPageDTO } from "../dto";
 import { EventHero } from "./event-hero";
 
 beforeAll(stubBrowserApis);
@@ -34,5 +34,21 @@ describe("EventHero background lettering", () => {
   it("leaves an uploaded cover image clean", () => {
     const { container } = render(<EventHero event={event(cover)} showCountdown={false} />);
     expect(watermark(container)).toBeNull();
+  });
+});
+
+describe("EventHero face-off", () => {
+  const headshot: MediaDTO = { ...cover, id: "face", kind: "fighter_headshot", width: 800, height: 800, alt: "Pérez, rostro" };
+  const corner = (lastName: string, photos: Pick<BoutFighterDTO, "headshotMedia" | "bodyMedia">) => ({ firstName: "X", lastName, ...photos }) as BoutFighterDTO;
+  const withMainBout = (red: BoutFighterDTO, blue: BoutFighterDTO) =>
+    ({ ...event(null), segments: [{ id: "s", name: "Estelar", startsAt: null, bouts: [{ id: "b", status: "scheduled", red, blue } as unknown as BoutDTO] }] }) as EventPageDTO;
+
+  it("uses the headshot of a fighter without a body photo, and the silhouette only for one without photos", () => {
+    const { container } = render(
+      <EventHero event={withMainBout(corner("Pérez", { headshotMedia: headshot, bodyMedia: null }), corner("Soto", { headshotMedia: null, bodyMedia: null }))} showCountdown={false} />,
+    );
+    const kinds = [...container.querySelectorAll("[data-photo]")].map((slot) => slot.getAttribute("data-photo"));
+    expect(kinds).toEqual(["headshot", "silhouette"]);
+    expect(container.querySelector('img[alt="Pérez, rostro"]')).not.toBeNull();
   });
 });

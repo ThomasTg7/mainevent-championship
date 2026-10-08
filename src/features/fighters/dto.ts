@@ -15,7 +15,9 @@ export type FighterCardDTO = {
   division: { name: string; slug: string; limitKg: number; gender: "male" | "female" };
   /** Récord profesional cargado a mano. */
   record: ManualRecord;
+  /** Las dos fotos; cada pantalla elige con `pickFighterPhoto` (si falta la que prefiere, usa la otra). */
   bodyMedia: MediaDTO | null;
+  headshotMedia: MediaDTO | null;
 };
 
 export type FighterProfileDTO = FighterCardDTO & {
@@ -33,7 +35,6 @@ export type FighterProfileDTO = FighterCardDTO & {
   socials: FighterSocials;
   proRecord: ManualRecord;
   amateurRecord: ManualRecord;
-  headshotMedia: MediaDTO | null;
   /** Galería de fotos, en orden. */
   gallery: MediaDTO[];
 };
@@ -51,4 +52,5 @@ export type AdminFighterRow = {
   updatedAt: Date;
   divisionName: string;
   bodyMedia: MediaDTO | null;
+  headshotMedia: MediaDTO | null;
 };

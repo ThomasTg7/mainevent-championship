@@ -64,6 +64,14 @@ describe("listAdminFighters", () => {
     expect(drafts.items.every((fighter) => fighter.status === "draft")).toBe(true);
     expect((await listAdminFighters(db, { q: "BORRADOR" })).items.map((fighter) => fighter.id)).toEqual([ids.draft]);
   });
+
+  it("brings both photos of each row (the list falls back to the headshot without a body photo)", async () => {
+    const { items } = await listAdminFighters(db, {});
+    const matias = items.find((fighter) => fighter.id === ids.matias);
+    expect(matias?.bodyMedia?.id).toBe(bodyMediaId);
+    expect(matias?.headshotMedia?.kind).toBe("fighter_headshot");
+    expect(items.find((fighter) => fighter.id === ids.diego)?.headshotMedia).toBeNull();
+  });
 });
 
 describe("getFighterForEdit", () => {

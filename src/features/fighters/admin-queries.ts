@@ -4,7 +4,7 @@ import { divisions } from "@/db/schema/divisions";
 import { fighters, type Fighter } from "@/db/schema/fighters";
 import type { MediaDTO } from "@/features/media/dto";
 import type { AdminFighterRow } from "./dto";
-import { filterConditions, galleryIds, loadMedia, pageWindow, type PageOptions } from "./query-helpers";
+import { fighterPhotoIds, fighterPhotos, filterConditions, galleryIds, loadMedia, pageWindow, type PageOptions } from "./query-helpers";
 import type { FighterFilters } from "./schema";
 
 const ADMIN_PAGE_SIZE = 50;
@@ -34,6 +34,7 @@ export async function listAdminFighters(
       publishAt: fighters.publishAt,
       updatedAt: fighters.updatedAt,
       bodyMediaId: fighters.bodyMediaId,
+      headshotMediaId: fighters.headshotMediaId,
       divisionName: divisions.name,
     })
     .from(fighters)
@@ -44,9 +45,9 @@ export async function listAdminFighters(
     .offset(offset);
 
   const page = rows.slice(0, size);
-  const mediaById = await loadMedia(db, page.map((row) => row.bodyMediaId));
+  const mediaById = await loadMedia(db, fighterPhotoIds(page));
   return {
-    items: page.map(({ bodyMediaId, ...row }) => ({ ...row, bodyMedia: bodyMediaId ? (mediaById.get(bodyMediaId) ?? null) : null })),
+    items: page.map(({ bodyMediaId, headshotMediaId, ...row }) => ({ ...row, ...fighterPhotos(mediaById, { bodyMediaId, headshotMediaId }) })),
     hasMore: rows.length > size,
   };
 }
@@ -67,8 +68,7 @@ export async function getFighterForEdit(
   const mediaById = await loadMedia(db, [fighter.bodyMediaId, fighter.headshotMediaId, ...gallery]);
   return {
     fighter,
-    bodyMedia: fighter.bodyMediaId ? (mediaById.get(fighter.bodyMediaId) ?? null) : null,
-    headshotMedia: fighter.headshotMediaId ? (mediaById.get(fighter.headshotMediaId) ?? null) : null,
+    ...fighterPhotos(mediaById, fighter),
     gallery: gallery.flatMap((mediaId) => mediaById.get(mediaId) ?? []),
   };
 }

@@ -18,7 +18,7 @@ const face: MediaDTO = {
   originalUrl: "/media/soto.png",
 };
 
-const opponent: OpponentDTO = { id: "o1", slug: "diego-soto", firstName: "Diego", lastName: "Soto", nationality: "AR", isPublic: true, headshotMedia: face };
+const opponent: OpponentDTO = { id: "o1", slug: "diego-soto", firstName: "Diego", lastName: "Soto", nationality: "AR", isPublic: true, headshotMedia: face, bodyMedia: null };
 
 const next: NextBoutDTO = {
   boutId: "b1",
@@ -38,6 +38,13 @@ describe("NextBout", () => {
     expect(screen.getByRole("img", { name: "Diego Soto, rostro" })).toBeDefined();
     expect(container.querySelector('[data-slot="opponent-photo"] a')?.getAttribute("href")).toBe("/peleadores/diego-soto");
     expect(screen.getByText("Próxima pelea")).toBeDefined();
+  });
+
+  it("falls back to the opponent's body photo, framed from the top, when there is no headshot", () => {
+    const body = { ...face, id: "m-body", kind: "fighter_body" as const, alt: "Diego Soto, cuerpo" };
+    const { container } = render(<NextBout nextBout={{ ...next, opponent: { ...opponent, headshotMedia: null, bodyMedia: body } }} lastFight={null} />);
+    expect(screen.getByRole("img", { name: "Diego Soto, cuerpo" })).toBeDefined();
+    expect(container.querySelector('[data-slot="opponent-photo"] [data-photo]')?.getAttribute("data-photo")).toBe("body");
   });
 
   it("names the photo link after the opponent, so a silhouette-only link is never an empty link for a screen reader", () => {

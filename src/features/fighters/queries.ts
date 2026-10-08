@@ -5,7 +5,7 @@ import { divisions } from "@/db/schema/divisions";
 import { fighters, type Fighter } from "@/db/schema/fighters";
 import type { MediaDTO } from "@/features/media/dto";
 import type { FighterCardDTO, FighterProfileDTO, ManualRecord } from "./dto";
-import { filterConditions, galleryIds, loadMedia, pageWindow, type PageOptions } from "./query-helpers";
+import { fighterPhotoIds, fighterPhotos, filterConditions, galleryIds, loadMedia, pageWindow, type PageOptions } from "./query-helpers";
 import type { FighterFilters } from "./schema";
 
 const PUBLIC_PAGE_SIZE = 24;
@@ -26,6 +26,7 @@ const cardColumns = {
   proDraws: fighters.proDraws,
   proNoContests: fighters.proNoContests,
   bodyMediaId: fighters.bodyMediaId,
+  headshotMediaId: fighters.headshotMediaId,
   divisionName: divisions.name,
   divisionSlug: divisions.slug,
   divisionLimitKg: divisions.limitKg,
@@ -36,7 +37,7 @@ function manualRecord(wins: number, losses: number, draws: number, noContests: n
   return { wins, losses, draws, noContests };
 }
 
-type CardRow = Pick<Fighter, "id" | "slug" | "firstName" | "lastName" | "nickname" | "gender" | "nationality" | "careerStatus" | "proWins" | "proLosses" | "proDraws" | "proNoContests" | "bodyMediaId"> & {
+type CardRow = Pick<Fighter, "id" | "slug" | "firstName" | "lastName" | "nickname" | "gender" | "nationality" | "careerStatus" | "proWins" | "proLosses" | "proDraws" | "proNoContests" | "bodyMediaId" | "headshotMediaId"> & {
   divisionName: string;
   divisionSlug: string;
   divisionLimitKg: number;
@@ -55,7 +56,7 @@ function toCard(row: CardRow, mediaById: Map<string, MediaDTO>): FighterCardDTO 
     careerStatus: row.careerStatus,
     division: { name: row.divisionName, slug: row.divisionSlug, limitKg: row.divisionLimitKg, gender: row.divisionGender },
     record: manualRecord(row.proWins, row.proLosses, row.proDraws, row.proNoContests),
-    bodyMedia: row.bodyMediaId ? (mediaById.get(row.bodyMediaId) ?? null) : null,
+    ...fighterPhotos(mediaById, row),
   };
 }
 
@@ -76,7 +77,7 @@ export async function listPublicFighters(
     .offset(offset);
 
   const page = rows.slice(0, size);
-  const mediaById = await loadMedia(db, page.map((row) => row.bodyMediaId));
+  const mediaById = await loadMedia(db, fighterPhotoIds(page));
   return { items: page.map((row) => toCard(row, mediaById)), hasMore: rows.length > size };
 }
 
@@ -92,7 +93,7 @@ export async function listPublicFighterCardsByIds(db: Db, ids: string[]): Promis
     .from(fighters)
     .innerJoin(divisions, eq(fighters.divisionId, divisions.id))
     .where(and(inArray(fighters.id, unique), publicScope(fighters)));
-  const mediaById = await loadMedia(db, rows.map((row) => row.bodyMediaId));
+  const mediaById = await loadMedia(db, fighterPhotoIds(rows));
   const byId = new Map(rows.map((row) => [row.id, toCard(row, mediaById)]));
   return unique.flatMap((id) => byId.get(id) ?? []);
 }
@@ -120,7 +121,6 @@ export async function getPublicFighterBySlug(
       amLosses: fighters.amLosses,
       amDraws: fighters.amDraws,
       amNoContests: fighters.amNoContests,
-      headshotMediaId: fighters.headshotMediaId,
     })
     .from(fighters)
     .innerJoin(divisions, eq(fighters.divisionId, divisions.id))
@@ -146,7 +146,6 @@ export async function getPublicFighterBySlug(
     socials: row.socials,
     proRecord: card.record,
     amateurRecord: manualRecord(row.amWins, row.amLosses, row.amDraws, row.amNoContests),
-    headshotMedia: row.headshotMediaId ? (mediaById.get(row.headshotMediaId) ?? null) : null,
     gallery: gallery.flatMap((id) => mediaById.get(id) ?? []),
   };
 }
