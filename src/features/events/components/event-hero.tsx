@@ -22,7 +22,7 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
       <EventHeroArt event={event} main={main} />
       <div className="relative z-[4] mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] pb-12 pt-56 lg:pb-12 lg:pt-40">
         <div className="mx-auto max-w-[960px]">
-          <p className="mb-5 hidden font-cond text-sm font-bold tracking-[.16em] ofl-gradient-text uppercase lg:block">{BRAND.name}</p>
+          <p className="mb-5 hidden font-cond text-sm font-bold tracking-[.16em] text-white uppercase lg:block">{BRAND.name}</p>
           <div className="mb-5 flex flex-wrap items-center justify-center gap-2">
             <Tag tone="brand">{event.name}</Tag><Tag tone={status.tone}>{status.label}</Tag>
           </div>

@@ -21,3 +21,11 @@ Fecha: 2026-10-11. Rama: `codex/ofl-redesign`.
 ## Revisar
 
 `/eventos/guerra-campal-5`, primera pelea y botón «Dónde ver»; `/peleadores`; destacados del inicio. También `/eventos/guerra-campal-1` → datos de la primera pelea → detalle y tarjetas.
+
+## Corrección posterior del usuario
+
+- Restaurado el degradado dorado original `#F4DE8C → #D4AF37 → #A8832C`, conservando la franja superior de ancho completo, altura y letras blancas. Sustituye el dorado oscuro descrito arriba.
+- El nombre «Open Fight Latam» de la portada compartida aparece en blanco.
+- Estilos calculados comprobados en el servidor local: marca `rgb(255, 255, 255)` y los tres colores originales del dorado.
+- Lint y typecheck en verde; los dos e2e de presentación pasan a 375 y 1440 px.
+- Suite completa tras la corrección: 149 archivos y 1.198 pruebas en verde (`pnpm test --maxWorkers=2`).

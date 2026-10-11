@@ -1031,3 +1031,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** petición del usuario para evitar que las etiquetas tapen rostros y unificar las acciones de portada.
 - **Impacto:** ajuste del spec público OFL; sin consultas, datos, dependencias o permisos nuevos. Las etiquetas de ficha y rankings que ya están fuera de la foto conservan su ubicación.
 - **Estado:** aplicado; validación en `docs/reports/ofl-champion-presentation.md`.
+
+## [OFL] Restaurar dorado original y marca blanca del evento — 2026-10-11
+- **Qué:** restituir el degradado dorado original `#F4DE8C → #D4AF37 → #A8832C` de la franja de campeón, conservando ancho, altura, posición y letras blancas solicitadas. «Open Fight Latam» en la portada compartida pasa a blanco.
+- **Por qué:** corrección expresa del usuario: conservar el dorado anterior con la estructura nueva, y mostrar la marca en blanco.
+- **Impacto:** sustituye la elección de dorado oscuro de la decisión anterior; solo presentación, sin cambios funcionales, consultas, dependencias o permisos.
+- **Estado:** aplicado.
