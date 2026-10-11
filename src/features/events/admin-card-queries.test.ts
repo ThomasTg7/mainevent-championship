@@ -21,8 +21,8 @@ afterAll(() => close());
 
 describe("getAdminCard", () => {
   it("returns the blocks and the fights in card order, with both fighters and the division", async () => {
-    const card = (await getAdminCard(db, await eventIdBySlug(db, "guerra-campal-5")))!;
-    expect(card.event).toMatchObject({ name: "Guerra Campal 5", slug: "guerra-campal-5", eventStatus: "scheduled" });
+    const card = (await getAdminCard(db, await eventIdBySlug(db, "ofl-5")))!;
+    expect(card.event).toMatchObject({ name: "OFL 5", slug: "ofl-5", eventStatus: "scheduled" });
     expect(card.segments.map((segment) => [segment.name, segment.bouts.length])).toEqual([["Cartelera estelar", 3], ["Preliminares", 2]]);
     expect(card.segments.map((segment) => segment.startsTime)).toEqual(["21:30", "20:00"]);
 
@@ -33,7 +33,7 @@ describe("getAdminCard", () => {
   });
 
   it("brings each fighter's face and body photos (one query for all), so the panel can fall back to the body one", async () => {
-    const id = await eventIdBySlug(db, "guerra-campal-5");
+    const id = await eventIdBySlug(db, "ofl-5");
     const main = (await getAdminCard(db, id))!.segments[0]!.bouts[0]!;
     const bodyId = await insertMedia(db, "fighter_body");
     await db.update(fighters).set({ bodyMediaId: bodyId, headshotMediaId: null }).where(eq(fighters.id, main.red.id));
@@ -45,7 +45,7 @@ describe("getAdminCard", () => {
   });
 
   it("carries the saved result and its line, ready to be corrected", async () => {
-    const card = (await getAdminCard(db, await eventIdBySlug(db, "guerra-campal-4")))!;
+    const card = (await getAdminCard(db, await eventIdBySlug(db, "ofl-4")))!;
     const main = card.segments[0]!.bouts[0]!;
     expect(main.status).toBe("completed");
     expect(main.result).toMatchObject({ outcome: "red_win", method: "ko_tko", koTkoType: "ko", endRound: 2, endTimeSeconds: 123, bonuses: ["ko_of_night"] });
@@ -53,7 +53,7 @@ describe("getAdminCard", () => {
   });
 
   it("keeps cancelled fights in the card", async () => {
-    const id = await eventIdBySlug(db, "guerra-campal-5");
+    const id = await eventIdBySlug(db, "ofl-5");
     const first = (await getAdminCard(db, id))!.segments[1]!.bouts[0]!;
     await cancelBout(db, first.id, "Lesión", "admin-1");
     const after = (await getAdminCard(db, id))!.segments[1]!.bouts[0]!;
@@ -61,7 +61,7 @@ describe("getAdminCard", () => {
   });
 
   it("is null for an event in the trash or one that does not exist", async () => {
-    const id = await eventIdBySlug(db, "guerra-campal-1");
+    const id = await eventIdBySlug(db, "ofl-1");
     await deleteEvent(db, id, "admin-1");
     expect(await getAdminCard(db, id)).toBeNull();
     expect(await getAdminCard(db, "00000000-0000-4000-8000-000000000000")).toBeNull();

@@ -37,7 +37,7 @@ const names = (items: { name: string }[]) => items.map((event) => event.name);
 
 describe("getPublicEventBySlug", () => {
   it("returns the segments in order, with the main event first", async () => {
-    const event = await getPublicEventBySlug(db, "guerra-campal-5");
+    const event = await getPublicEventBySlug(db, "ofl-5");
     expect(event).not.toBeNull();
     expect(event!.segments.map((segment) => segment.name)).toEqual(["Cartelera estelar", "Preliminares"]);
 
@@ -51,16 +51,16 @@ describe("getPublicEventBySlug", () => {
   });
 
   it("gives each fighter the body measures the card compares, null when the fighter has none", async () => {
-    const main = (await getPublicEventBySlug(db, "guerra-campal-5"))!.segments[0]!.bouts[0]!;
+    const main = (await getPublicEventBySlug(db, "ofl-5"))!.segments[0]!.bouts[0]!;
     expect(main.red).toMatchObject({ heightCm: 180, reachCm: 184, weightKg: 70.3 });
     expect(main.blue).toMatchObject({ heightCm: 178, reachCm: 181 });
-    const prelim = (await getPublicEventBySlug(db, "guerra-campal-5"))!.segments[1]!.bouts.flatMap((bout) => [bout.red, bout.blue]);
+    const prelim = (await getPublicEventBySlug(db, "ofl-5"))!.segments[1]!.bouts.flatMap((bout) => [bout.red, bout.blue]);
     expect(prelim.some((fighter) => fighter.reachCm === null)).toBe(true);
   });
 
   it("carries the event data as plain values that survive JSON caching", async () => {
-    const event = (await getPublicEventBySlug(db, "guerra-campal-5"))!;
-    expect(event.name).toBe("Guerra Campal 5");
+    const event = (await getPublicEventBySlug(db, "ofl-5"))!;
+    expect(event.name).toBe("OFL 5");
     expect(event.number).toBe(5);
     expect(event.eventStatus).toBe("scheduled");
     expect(event.venue).toMatchObject({ name: "Arena Santiago", city: "Santiago" });
@@ -71,7 +71,7 @@ describe("getPublicEventBySlug", () => {
   });
 
   it("shows a catch weight instead of a division when the fight has one", async () => {
-    const event = (await getPublicEventBySlug(db, "guerra-campal-5"))!;
+    const event = (await getPublicEventBySlug(db, "ofl-5"))!;
     const catchweight = event.segments[1]!.bouts.find((bout) => bout.catchweightKg !== null);
     expect(catchweight).toMatchObject({ catchweightKg: 73.5, division: null });
   });
@@ -91,7 +91,7 @@ describe("getPublicEventBySlug", () => {
   });
 
   it("writes the result line of a finished fight with the surnames", async () => {
-    const event = (await getPublicEventBySlug(db, "guerra-campal-4"))!;
+    const event = (await getPublicEventBySlug(db, "ofl-4"))!;
     const main = event.segments[0]!.bouts[0]!;
     expect(main.status).toBe("completed");
     expect(main.result).toMatchObject({ outcome: "red_win", method: "ko_tko", endRound: 2, endTimeSeconds: 123 });
@@ -99,7 +99,7 @@ describe("getPublicEventBySlug", () => {
   });
 
   it("names the submission technique in the result line", async () => {
-    const event = (await getPublicEventBySlug(db, "guerra-campal-3"))!;
+    const event = (await getPublicEventBySlug(db, "ofl-3"))!;
     const submission = event.segments[0]!.bouts[0]!;
     expect(submission.result!.line).toBe("Araya vence a Lagos · Sumisión (Triángulo) · R2 3:42");
     expect(submission).toMatchObject({ catchweightKg: 68, division: null });
@@ -107,7 +107,7 @@ describe("getPublicEventBySlug", () => {
   });
 
   it("gives body photos only for the main event", async () => {
-    const event = (await getPublicEventBySlug(db, "guerra-campal-5"))!;
+    const event = (await getPublicEventBySlug(db, "ofl-5"))!;
     expect(event.segments[0]!.bouts[1]!.red.bodyMedia).toBeNull();
   });
 
@@ -123,7 +123,7 @@ describe("getPublicEventBySlug", () => {
 
 describe("getPublicEventRef", () => {
   it("answers only for events that are public right now", async () => {
-    expect(await getPublicEventRef(db, "guerra-campal-5")).toMatchObject({ id: expect.any(String), eventStatus: "scheduled" });
+    expect(await getPublicEventRef(db, "ofl-5")).toMatchObject({ id: expect.any(String), eventStatus: "scheduled" });
     expect(await getPublicEventRef(db, "evento-en-vivo")).toMatchObject({ eventStatus: "live" });
     expect(await getPublicEventRef(db, "evento-borrador")).toBeNull();
     expect(await getPublicEventRef(db, "evento-papelera")).toBeNull();
@@ -134,7 +134,7 @@ describe("getPublicEventRef", () => {
 describe("listPublicEvents", () => {
   it("lists upcoming events by date ascending, including one that is live now", async () => {
     const { items } = await listPublicEvents(db, { when: "upcoming" });
-    expect(names(items)).toEqual(["Evento en vivo", "Evento cercano", "Guerra Campal 5", "Evento lejano"]);
+    expect(names(items)).toEqual(["Evento en vivo", "Evento cercano", "OFL 5", "Evento lejano"]);
   });
 
   it("lists past events by date descending, with the forgotten and the finished ones", async () => {
@@ -142,10 +142,10 @@ describe("listPublicEvents", () => {
     expect(names(items)).toEqual([
       "Evento recién terminado",
       "Evento olvidado",
-      "Guerra Campal 4",
-      "Guerra Campal 3",
-      "Guerra Campal 2",
-      "Guerra Campal 1",
+      "OFL 4",
+      "OFL 3",
+      "OFL 2",
+      "OFL 1",
     ]);
   });
 
@@ -161,13 +161,13 @@ describe("listPublicEvents", () => {
     const second = await listPublicEvents(db, { when: "past" }, { page: 2, pageSize: 4 });
     expect(first.items).toHaveLength(4);
     expect(first.hasMore).toBe(true);
-    expect(names(second.items)).toEqual(["Guerra Campal 2", "Guerra Campal 1"]);
+    expect(names(second.items)).toEqual(["OFL 2", "OFL 1"]);
     expect(second.hasMore).toBe(false);
   });
 
   it("gives each card the main event, the tickets and the date as text", async () => {
     const { items } = await listPublicEvents(db, { when: "upcoming" });
-    const card = items.find((event) => event.slug === "guerra-campal-5")!;
+    const card = items.find((event) => event.slug === "ofl-5")!;
     expect(card.mainBout?.red.lastName).toBe("Pérez");
     expect(card.mainBout?.blue.lastName).toBe("Soto");
     expect(card.ticketTiers).toHaveLength(3);

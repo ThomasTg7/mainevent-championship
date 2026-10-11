@@ -1,4 +1,4 @@
-// El sitio público y el panel viven en dominios distintos: `guerracampal.cl` y `admin.guerracampal.cl`.
+// El sitio público y el panel viven en dominios distintos: `openfightlatam.cl` y `admin.openfightlatam.cl`.
 // En desarrollo, `localhost:3000` y `admin.localhost:3000` (Chrome y Firefox resuelven *.localhost solos).
 
 const DEV_DEFAULTS = { SITE_URL: "http://localhost:3000", ADMIN_URL: "http://admin.localhost:3000" } as const;
@@ -12,12 +12,12 @@ function originFromEnv(name: keyof typeof DEV_DEFAULTS): string {
   return DEV_DEFAULTS[name];
 }
 
-/** Origen del sitio público (`https://guerracampal.cl`). */
+/** Origen del sitio público (`https://openfightlatam.cl`). */
 export function siteOrigin(): string {
   return originFromEnv("SITE_URL");
 }
 
-/** Origen del panel (`https://admin.guerracampal.cl`). Better Auth vive aquí: sesión, Google y enlaces de correo. */
+/** Origen del panel (`https://admin.openfightlatam.cl`). Better Auth vive aquí: sesión, Google y enlaces de correo. */
 export function adminOrigin(): string {
   return originFromEnv("ADMIN_URL");
 }

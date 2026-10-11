@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import { requestHost, routeByHost } from "@/lib/admin-routing";
 import { adminOrigin } from "@/lib/site-urls";
+import { oflPublicPath } from "@/domain/legacy-brand-path";
 
 // El panel vive en su subdominio (ADMIN_URL) y el sitio en el suyo (SITE_URL); ver `routeByHost`.
 export function proxy(request: NextRequest) {
@@ -24,6 +25,12 @@ export function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = route.pathname;
     return NextResponse.rewrite(url);
+  }
+  const pathname = oflPublicPath(request.nextUrl.pathname);
+  if (pathname !== request.nextUrl.pathname && ["GET", "HEAD"].includes(request.method)) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname;
+    return NextResponse.redirect(url, 308);
   }
   return NextResponse.next();
 }

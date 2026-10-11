@@ -62,7 +62,7 @@ export async function eventIdBySlug(db: Db, slug: string): Promise<string> {
 /** Evento válido mínimo para los tests del servicio (fecha y hora escritas en Chile); `overrides` pisa cualquier campo. */
 export function validEventInput(overrides: Partial<EventFormInput> = {}): EventFormInput {
   return {
-    name: "Guerra Campal 9",
+    name: "OFL 9",
     startsDate: "2026-11-14",
     startsTime: "21:00",
     venueName: "Arena Santiago",

@@ -111,7 +111,7 @@ describe("sponsors queries", () => {
 
   describe("listAdminSponsors", () => {
     it("lists everything but the trash, by tier and order, with its validity and events", async () => {
-      const event = await insertEvent(db, { name: "Guerra Campal 5" });
+      const event = await insertEvent(db, { name: "OFL 5" });
       await insertSponsor(db, { name: "Vencido", tier: "oficial", sortOrder: 1, endsOn: "2026-01-01" });
       await insertSponsor(db, { name: "Vigente", tier: "oficial", sortOrder: 0, eventIds: [event.id] });
       await insertSponsor(db, { name: "Principal", tier: "principal" });
@@ -125,7 +125,7 @@ describe("sponsors queries", () => {
         ["Vigente", "current"],
         ["Vencido", "expired"],
       ]);
-      expect(items[1]?.events).toEqual([{ id: event.id, name: "Guerra Campal 5" }]);
+      expect(items[1]?.events).toEqual([{ id: event.id, name: "OFL 5" }]);
       expect(items[0]?.events).toEqual([]);
     });
 

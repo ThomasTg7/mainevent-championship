@@ -145,3 +145,5 @@ La portada compartida usa foto/careo a ancho completo e información centrada: e
 El nombre «Open Fight Latam» de la portada compartida se muestra en blanco, por corrección posterior del usuario.
 
 En celular, entradas y transmisión comparten una fila de dos columnas y la cartelera queda debajo. Por debajo de 400 px, las etiquetas visibles son «Entradas» y «Ver»; desde 400 px se conservan «Comprar entradas» y «Dónde ver». Los nombres accesibles completos se mantienen en todos los anchos.
+
+Los datos de demostración usan eventos «OFL 1–5» y noticias referidas a OFL. Los enlaces canónicos de eventos y noticias llevan `ofl` en lugar del nombre anterior; las URLs antiguas redirigen permanentemente. Se mantienen las fotos, carteleras y relaciones del contenido existente.

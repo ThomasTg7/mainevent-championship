@@ -43,7 +43,7 @@ const renderRow = (props: { rankLabels?: Record<string, string> } = {}) =>
   render(
     <BoutAccordion>
       <ul>
-        <BoutRow bout={bout} eventSlug="guerra-campal-5" {...props} />
+        <BoutRow bout={bout} eventSlug="ofl-5" {...props} />
       </ul>
     </BoutAccordion>,
   ).container;
@@ -61,7 +61,7 @@ describe("BoutRow rank labels", () => {
     const container = render(
       <BoutAccordion>
         <ul>
-          <BoutRow bout={{ ...bout, division: { name: "Paja", slug: "peso-paja-femenino", gender: "female" } }} eventSlug="guerra-campal-5" rankLabels={{ "red-1": "C" }} />
+          <BoutRow bout={{ ...bout, division: { name: "Paja", slug: "peso-paja-femenino", gender: "female" } }} eventSlug="ofl-5" rankLabels={{ "red-1": "C" }} />
         </ul>
       </BoutAccordion>,
     ).container;
@@ -99,7 +99,7 @@ describe("BoutRow card", () => {
     const container = render(
       <BoutAccordion>
         <ul>
-          <BoutRow bout={{ ...bout, red: { ...bout.red, nickname: "El Toro" } }} eventSlug="guerra-campal-5" />
+          <BoutRow bout={{ ...bout, red: { ...bout.red, nickname: "El Toro" } }} eventSlug="ofl-5" />
         </ul>
       </BoutAccordion>,
     ).container;
@@ -114,7 +114,7 @@ describe("BoutRow card", () => {
     const container = render(
       <BoutAccordion>
         <ul>
-          <BoutRow bout={{ ...bout, red: { ...bout.red, bodyMedia: media } }} eventSlug="guerra-campal-5" />
+          <BoutRow bout={{ ...bout, red: { ...bout.red, bodyMedia: media } }} eventSlug="ofl-5" />
         </ul>
       </BoutAccordion>,
     ).container;

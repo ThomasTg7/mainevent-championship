@@ -44,7 +44,7 @@ function previewParam(value: string | string[] | undefined): string | undefined 
 }
 
 /**
- * Las tres cifras del hero (spec §3): KO/TKO, sumisiones y victorias del récord profesional en Guerra Campal; un
+ * Las tres cifras del hero (spec §3): KO/TKO, sumisiones y victorias del récord profesional en OFL; un
  * peleador que aún no pelea en la promotora muestra Victorias, Derrotas y Empates del récord total (nunca 0-0-0).
  */
 function heroFigures(gc: ComputedRecord, manual: ManualRecord) {

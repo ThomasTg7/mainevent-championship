@@ -11,7 +11,7 @@ const SWIPE_DISTANCE_PX = 50;
 
 type PhotoGalleryProps = {
   media: MediaDTO[];
-  /** Nombre de la galería para lectores de pantalla («Galería de Guerra Campal 5»). */
+  /** Nombre de la galería para lectores de pantalla («Galería de OFL 5»). */
   title: string;
 };
 

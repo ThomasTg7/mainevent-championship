@@ -42,9 +42,9 @@ const SEED_POSTS: SeedPost[] = [
     daysAgo: 1,
     featured: true,
     fighters: ["matias-perez", "diego-soto"],
-    events: ["guerra-campal-5"],
+    events: ["ofl-5"],
     body: doc(
-      paragraph("Matías «El Toro» Pérez pone en juego el cinturón de peso ligero ante Diego «La Sombra» Soto en la estelar de Guerra Campal 5."),
+      paragraph("Matías «El Toro» Pérez pone en juego el cinturón de peso ligero ante Diego «La Sombra» Soto en la estelar de OFL 5."),
       heading("Dos estilos opuestos"),
       paragraph("Pérez llega con una racha de nocauts y una lucha que ha aplastado a todos sus rivales. Soto, zurdo y veloz, construyó su récord a punta de contragolpes."),
       quote("«Cada pelea es una final», dijo el campeón al cierre del último entrenamiento abierto."),
@@ -57,7 +57,7 @@ const SEED_POSTS: SeedPost[] = [
     category: "Resultados",
     daysAgo: 3,
     fighters: ["camila-rojas", "javiera-munoz"],
-    events: ["guerra-campal-1"],
+    events: ["ofl-1"],
     body: doc(
       paragraph("La campeona peso paja no necesitó más de tres minutos: derribó, tomó la espalda y encontró la guillotina."),
       youtube("dQw4w9WgXcQ"),
@@ -65,11 +65,11 @@ const SEED_POSTS: SeedPost[] = [
     ),
   },
   {
-    title: "Cartelera completa de Guerra Campal 5 confirmada",
+    title: "Cartelera completa de OFL 5 confirmada",
     excerpt: "Seis peleas, cuatro divisiones y la defensa del cinturón en la estelar.",
     category: "Anuncios",
     daysAgo: 5,
-    events: ["guerra-campal-5"],
+    events: ["ofl-5"],
     body: doc(paragraph("La promotora confirmó las peleas de la próxima velada."), heading("Las peleas"), paragraph("La cartelera estelar la encabeza la defensa de Pérez.")),
   },
   {
@@ -86,7 +86,7 @@ const SEED_POSTS: SeedPost[] = [
     category: "Resultados",
     daysAgo: 10,
     fighters: ["ignacio-fuentes"],
-    events: ["guerra-campal-3"],
+    events: ["ofl-3"],
     body: doc(paragraph("Con una actuación sólida, Fuentes se consolida entre los mejores de su división.")),
   },
   {
@@ -106,20 +106,20 @@ const SEED_POSTS: SeedPost[] = [
     body: doc(paragraph("Camila Rojas no baja el ritmo."), quote("«Quiero que el cinturón se quede en casa.»")),
   },
   {
-    title: "Resumen de Guerra Campal 4",
+    title: "Resumen de OFL 4",
     excerpt: "Una noche con tres finalizaciones y una pelea del año candidata.",
     category: "Resultados",
     daysAgo: 20,
     featured: true,
-    events: ["guerra-campal-4"],
+    events: ["ofl-4"],
     body: doc(paragraph("Repasa los resultados de la última velada, pelea por pelea.")),
   },
   {
-    title: "Entradas para Guerra Campal 5: tramos y puntos de venta",
+    title: "Entradas para OFL 5: tramos y puntos de venta",
     excerpt: "Cuánto cuestan, dónde comprarlas y qué incluye cada tramo.",
     category: "Anuncios",
     daysAgo: 24,
-    events: ["guerra-campal-5"],
+    events: ["ofl-5"],
     body: doc(paragraph("Las entradas están a la venta en la ticketera oficial y en la boletería del recinto.")),
   },
   {
@@ -127,7 +127,7 @@ const SEED_POSTS: SeedPost[] = [
     excerpt: "Balanza, careos y un par de sorpresas.",
     category: "Detrás de cámaras",
     daysAgo: 30,
-    events: ["guerra-campal-4"],
+    events: ["ofl-4"],
     body: doc(paragraph("Todos los peleadores dieron el peso en la primera pasada.")),
   },
 ];

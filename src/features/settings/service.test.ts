@@ -38,10 +38,10 @@ describe("saveSetting", () => {
   });
 
   it("saves, reads back what was saved and audits it", async () => {
-    const result = await saveSetting(db, "contact", { email: " hola@guerracampal.cl ", phone: "+56 9 1234 5678", notifyEmail: "avisos@guerracampal.cl" }, "admin-1");
+    const result = await saveSetting(db, "contact", { email: " hola@openfightlatam.cl ", phone: "+56 9 1234 5678", notifyEmail: "avisos@openfightlatam.cl" }, "admin-1");
 
     expect(result.ok).toBe(true);
-    expect(await getSetting(db, "contact")).toEqual({ email: "hola@guerracampal.cl", phone: "+56 9 1234 5678", whatsapp: "", address: "", notifyEmail: "avisos@guerracampal.cl" });
+    expect(await getSetting(db, "contact")).toEqual({ email: "hola@openfightlatam.cl", phone: "+56 9 1234 5678", whatsapp: "", address: "", notifyEmail: "avisos@openfightlatam.cl" });
     const [entry] = await db.select().from(auditLog).where(eq(auditLog.entityType, "settings"));
     expect(entry).toMatchObject({ actorId: "admin-1", action: "update", entityId: "contact" });
   });
@@ -55,7 +55,7 @@ describe("saveSetting", () => {
   });
 
   it("accepts a social profile as a handle or a link and rejects anything else", async () => {
-    expect((await saveSetting(db, "socials", { instagram: "@guerracampal", facebook: "https://facebook.com/guerracampal" }, "admin-1")).ok).toBe(true);
+    expect((await saveSetting(db, "socials", { instagram: "@openfightlatam", facebook: "https://facebook.com/openfightlatam" }, "admin-1")).ok).toBe(true);
 
     const bad = await saveSetting(db, "socials", { instagram: "javascript:alert(1)" }, "admin-1");
     expect(bad.ok).toBe(false);
@@ -85,9 +85,9 @@ describe("saveSetting", () => {
 
   describe("page texts", () => {
     it("saves a text without images or embeds", async () => {
-      expect((await saveSetting(db, "about", { body: paragraph("Somos Guerra Campal") }, "admin-1")).ok).toBe(true);
+      expect((await saveSetting(db, "about", { body: paragraph("Somos OFL") }, "admin-1")).ok).toBe(true);
 
-      expect(await getSetting(db, "about")).toEqual({ body: paragraph("Somos Guerra Campal") });
+      expect(await getSetting(db, "about")).toEqual({ body: paragraph("Somos OFL") });
     });
 
     it("rejects an image or an embed in the text", async () => {

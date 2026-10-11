@@ -30,12 +30,12 @@ test("un peleador sin noticias relacionadas no muestra la sección", async ({ pa
 });
 
 test("la página de un evento muestra sus noticias relacionadas, y sin ninguna no muestra la sección", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-5");
+  await page.goto("/eventos/ofl-5");
   const news = newsRegion(page);
-  await expect(news.getByRole("link", { name: /Cartelera completa de Guerra Campal 5 confirmada/ })).toBeVisible();
-  await expect(news.getByRole("link", { name: /Entradas para Guerra Campal 5/ })).toBeVisible();
+  await expect(news.getByRole("link", { name: /Cartelera completa de OFL 5 confirmada/ })).toBeVisible();
+  await expect(news.getByRole("link", { name: /Entradas para OFL 5/ })).toBeVisible();
 
-  await page.goto("/eventos/guerra-campal-2");
+  await page.goto("/eventos/ofl-2");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(newsRegion(page)).toHaveCount(0);
 });
@@ -43,7 +43,7 @@ test("la página de un evento muestra sus noticias relacionadas, y sin ninguna n
 test("el carrusel no desborda la página en celular ni en PC", async ({ page }) => {
   for (const size of [{ width: 320, height: 800 }, { width: 375, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);
-    for (const path of ["/peleadores/matias-perez", "/eventos/guerra-campal-5"]) {
+    for (const path of ["/peleadores/matias-perez", "/eventos/ofl-5"]) {
       await page.goto(path);
       await expect(newsRegion(page)).toBeVisible();
       await expectNoHorizontalScroll(page);

@@ -14,7 +14,7 @@ const tiers: TicketTier[] = [
 
 describe("TicketTiers", () => {
   it("lists every tier with its price in pesos", () => {
-    render(<TicketTiers tiers={tiers} ticketUrl="https://tickets.example.cl/gc5" eventName="Guerra Campal 5" />);
+    render(<TicketTiers tiers={tiers} ticketUrl="https://tickets.example.cl/gc5" eventName="OFL 5" />);
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
     expect(screen.getByText("$15.000")).toBeDefined();
     expect(screen.getByText("$25.000")).toBeDefined();
@@ -22,14 +22,14 @@ describe("TicketTiers", () => {
   });
 
   it("marks a sold-out tier AGOTADO and gives it no link", () => {
-    render(<TicketTiers tiers={tiers} ticketUrl="https://tickets.example.cl/gc5" eventName="Guerra Campal 5" />);
+    render(<TicketTiers tiers={tiers} ticketUrl="https://tickets.example.cl/gc5" eventName="OFL 5" />);
     const soldOut = screen.getByText("Ringside").closest("li")!;
     expect(soldOut.textContent).toContain("AGOTADO");
     expect(soldOut.querySelector("a")).toBeNull();
   });
 
   it("links the tiers on sale to the ticket office in a new tab, safely", () => {
-    render(<TicketTiers tiers={tiers} ticketUrl="https://tickets.example.cl/gc5" eventName="Guerra Campal 5" />);
+    render(<TicketTiers tiers={tiers} ticketUrl="https://tickets.example.cl/gc5" eventName="OFL 5" />);
     const link = screen.getByRole("link", { name: /General/ });
     expect(link.getAttribute("href")).toBe("https://tickets.example.cl/gc5");
     expect(link.getAttribute("target")).toBe("_blank");
@@ -37,13 +37,13 @@ describe("TicketTiers", () => {
   });
 
   it("shows the tiers without links when the event has no ticket office yet", () => {
-    render(<TicketTiers tiers={tiers} ticketUrl={null} eventName="Guerra Campal 5" />);
+    render(<TicketTiers tiers={tiers} ticketUrl={null} eventName="OFL 5" />);
     expect(screen.queryAllByRole("link")).toHaveLength(0);
     expect(screen.getByText("General")).toBeDefined();
   });
 
   it("renders nothing without tiers", () => {
-    const { container } = render(<TicketTiers tiers={[]} ticketUrl={null} eventName="Guerra Campal 5" />);
+    const { container } = render(<TicketTiers tiers={[]} ticketUrl={null} eventName="OFL 5" />);
     expect(container.textContent).toBe("");
   });
 });

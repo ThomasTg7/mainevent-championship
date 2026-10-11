@@ -40,8 +40,8 @@ const PAGES = [
   { name: "la home", path: "/" },
   { name: "/peleadores", path: "/peleadores" },
   { name: "la ficha de un peleador", path: "/peleadores/matias-perez" },
-  { name: "la página de un evento", path: "/eventos/guerra-campal-5" },
-  { name: "un evento ya jugado", path: "/eventos/guerra-campal-4" },
+  { name: "la página de un evento", path: "/eventos/ofl-5" },
+  { name: "un evento ya jugado", path: "/eventos/ofl-4" },
   { name: "/rankings", path: "/rankings" },
   { name: "/noticias", path: "/noticias" },
   { name: "una noticia con video de YouTube", path: "/noticias/asi-fue-rojas-somete-en-el-primer-round" },
@@ -63,7 +63,7 @@ test("una noticia con publicaciones de Instagram, TikTok y Facebook no tiene vio
   const { slug } = await insertPost(db, {
     slug: "noticia-e2e-a11y-redes",
     title: "Noticia E2E con redes",
-    body: { type: "doc", content: [embed("instagram", "C1a2B3c4D5e"), embed("tiktok", "7123456789012345678"), embed("facebook", "guerracampal/posts/1234567890")] },
+    body: { type: "doc", content: [embed("instagram", "C1a2B3c4D5e"), embed("tiktok", "7123456789012345678"), embed("facebook", "openfightlatam/posts/1234567890")] },
   });
   await open(page, `/noticias/${slug}`);
   await expect(page.getByRole("button", { name: "Ver en Instagram" })).toBeVisible();
@@ -79,7 +79,7 @@ test("el ingreso al panel no tiene violaciones graves", async ({ page }) => {
 test.describe("a 375 px", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
-  for (const { name, path } of PAGES.filter((item) => ["/", "/peleadores/matias-perez", "/eventos/guerra-campal-5", "/noticias"].includes(item.path))) {
+  for (const { name, path } of PAGES.filter((item) => ["/", "/peleadores/matias-perez", "/eventos/ofl-5", "/noticias"].includes(item.path))) {
     test(`${name} no tiene violaciones graves de accesibilidad`, async ({ page }) => {
       await open(page, path);
       await expectNoSeriousViolations(page);

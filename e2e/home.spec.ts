@@ -23,7 +23,7 @@ test.describe("home con movimiento", () => {
   test("tiene todas las secciones de la maqueta con sus textos", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.locator("#cartelera").getByRole("heading", { name: /Cartelera\s+Guerra Campal 5/ })).toBeVisible();
+    await expect(page.locator("#cartelera").getByRole("heading", { name: /Cartelera\s+OFL 5/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Noticias", level: 2, exact: true })).toBeVisible();
     const topNews = page.getByRole("complementary").filter({ has: page.getByRole("heading", { name: "Top Noticias" }) });
     await expect(topNews).toBeVisible();

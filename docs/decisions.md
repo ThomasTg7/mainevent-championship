@@ -1032,6 +1032,14 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Impacto:** ajuste del spec público OFL; sin consultas, datos, dependencias o permisos nuevos. Las etiquetas de ficha y rankings que ya están fuera de la foto conservan su ubicación.
 - **Estado:** aplicado; validación en `docs/reports/ofl-champion-presentation.md`.
 
+## [OFL] Nombres y contenido de la promotora — 2026-10-11
+
+- **Qué:** eventos de demostración «OFL 1–5», noticias y sus cuerpos con OFL, enlaces públicos `ofl-*` y ejemplos del panel con Open Fight Latam. Seeds y fixtures actualizados. Script de mantenimiento transaccional `scripts/rebrand-ofl.ts` actualiza eventos, noticias, textos de configuración, biografías y alt de imágenes ya guardados, con auditoría por entidad y valores anteriores/posteriores.
+- **Por qué:** el usuario pidió que todos los nombres y contenidos de la copia correspondan a OFL / Open Fight Latam.
+- **Compatibilidad:** los IDs y relaciones se conservan; los enlaces públicos antiguos redirigen con 308, incluyendo las páginas de pelea y sus query strings. La migración es idempotente y se revierte íntegramente ante colisiones. `--rollback` restaura desde auditoría y rechaza sobrescribir contenido editado posteriormente. Se conserva el almacenamiento de medios y los enlaces reales de ticketeras externas.
+- **Impacto:** contenido y seeds del spec OFL, sin nuevas dependencias ni consultas públicas. Los planes y decisiones de Guerra Campal anteriores se conservan como historial del proyecto.
+- **Estado:** aplicado en la base local; validación en `docs/reports/ofl-content.md`.
+
 ## [OFL] Botones de portada juntos en celular — 2026-10-11
 
 - **Qué:** entradas y transmisión comparten una fila de dos columnas en celular; la cartelera ocupa la fila siguiente. Por debajo de 400 px, las etiquetas visibles se acortan a «Entradas» y «Ver», conservando sus nombres completos accesibles. Desde 400 px se muestran los textos completos; escritorio conserva su distribución.

@@ -8,8 +8,8 @@ afterEach(cleanup);
 
 const event: EventCardDTO = {
   id: "e1",
-  slug: "guerra-campal-5",
-  name: "Guerra Campal 5",
+  slug: "ofl-5",
+  name: "OFL 5",
   number: 5,
   startsAt: "2026-10-25T00:00:00.000Z",
   endsEstimatedAt: null,
@@ -36,14 +36,14 @@ describe("TicketsList", () => {
 
   it("shows the tiers, the ticket office button and the points of sale of each event", () => {
     render(<TicketsList events={[event]} />);
-    expect(screen.getByRole("heading", { name: "Guerra Campal 5", level: 2 })).toBeDefined();
+    expect(screen.getByRole("heading", { name: "OFL 5", level: 2 })).toBeDefined();
     expect(screen.getByText("$15.000")).toBeDefined();
     expect(screen.getByText("AGOTADO")).toBeDefined();
     const button = screen.getByRole("link", { name: /Ir a la ticketera/ });
     expect(button.getAttribute("href")).toBe("https://tickets.example.cl/gc5");
     expect(button.getAttribute("rel")).toContain("noopener");
     expect(screen.getByText("Puntos de venta")).toBeDefined();
-    expect(screen.getByRole("link", { name: "Ver el evento" }).getAttribute("href")).toBe("/eventos/guerra-campal-5");
+    expect(screen.getByRole("link", { name: "Ver el evento" }).getAttribute("href")).toBe("/eventos/ofl-5");
   });
 
   it("does not sell tickets for a cancelled event", () => {

@@ -68,7 +68,7 @@ test("un peleador sin ranking no lleva etiquetas de ranking", async ({ page }) =
 });
 
 test("la cartelera de la pelea por el título muestra «Campeón» y «#1» junto a cada peleador", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-5");
+  await page.goto("/eventos/ofl-5");
   const ranks = page.locator('[data-slot="bout-rank"]');
   // Pérez (campeón, esquina roja) lleva «Campeón» y Soto (el #1 de la división) lleva «#1»; los otros campeones de la cartelera también.
   const withLabel = (name: string, label: RegExp) => page.locator("[data-corner]").filter({ hasText: name }).filter({ has: ranks.filter({ hasText: label }) });

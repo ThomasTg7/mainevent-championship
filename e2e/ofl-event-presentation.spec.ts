@@ -4,7 +4,7 @@ for (const width of [375, 1440]) {
   test(`portada centrada y navegación reversible a ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/eventos/guerra-campal-5");
+    await page.goto("/eventos/ofl-5");
     const hero = page.locator("#event-hero");
     await expect(hero.getByRole("link", { name: "Dónde ver" })).toBeVisible();
     await expect(page.locator(".ofl-header")).toHaveAttribute("inert", "");
@@ -33,7 +33,7 @@ for (const width of [375, 1440]) {
 }
 
 test("el enlace de la pelea y el detalle usan degradado vertical OFL", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-1");
+  await page.goto("/eventos/ofl-1");
   const bout = page.getByRole("tabpanel").locator("[data-bout]").first();
   await bout.getByRole("button", { name: /Ver datos/ }).click();
   const link = bout.getByRole("link", { name: /Ver la pelea y las tarjetas/ });

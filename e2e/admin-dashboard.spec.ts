@@ -14,7 +14,7 @@ async function expectNoHorizontalScroll(page: Page) {
 
 test("el inicio muestra el próximo evento y «Abrir noche de pelea» lleva a la consola de esa noche", async ({ page }) => {
   const card = page.locator('[data-slot="next-event"]');
-  await expect(card.getByRole("heading", { name: "Guerra Campal 5" })).toBeVisible();
+  await expect(card.getByRole("heading", { name: "OFL 5" })).toBeVisible();
   await expect(card.getByRole("timer", { name: "Cuenta regresiva" })).toBeVisible();
   await expect(card).toContainText(/\d+ peleas?/);
 

@@ -121,8 +121,8 @@ describe("parsePostMarkdown: blocks", () => {
   });
 
   it("keeps any other link alone on its line as a linked paragraph", () => {
-    const body = parsePostMarkdown("https://www.puntoticket.com/guerra-campal", []).body!;
-    expect(body.content).toEqual([paragraph(text("https://www.puntoticket.com/guerra-campal", [{ type: "link", attrs: { href: "https://www.puntoticket.com/guerra-campal" } }]))]);
+    const body = parsePostMarkdown("https://www.puntoticket.com/ofl", []).body!;
+    expect(body.content).toEqual([paragraph(text("https://www.puntoticket.com/ofl", [{ type: "link", attrs: { href: "https://www.puntoticket.com/ofl" } }]))]);
   });
 
   it("puts photo N where [FOTO N] is, and warns about a number that was not uploaded", () => {

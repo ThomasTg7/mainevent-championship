@@ -53,8 +53,8 @@ test.beforeEach(async ({ page }) => {
 test("el listado muestra los eventos y no desborda en móvil ni en PC", async ({ page }) => {
   await page.goto(adminUrl("/eventos"));
   await expect(page.getByRole("heading", { name: "Eventos", level: 1 })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Editar Guerra Campal 5" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Cartelera de Guerra Campal 5" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Editar OFL 5" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Cartelera de OFL 5" }).first()).toBeVisible();
   for (const size of [{ width: 375, height: 800 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);
     await expectNoHorizontalScroll(page);

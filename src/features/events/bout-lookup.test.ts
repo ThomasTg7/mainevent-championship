@@ -18,6 +18,6 @@ describe("findEventBout", () => {
 
 describe("boutHref", () => {
   it("links to the fight page under its event", () => {
-    expect(boutHref("guerra-campal-1", "abc")).toBe("/eventos/guerra-campal-1/peleas/abc");
+    expect(boutHref("ofl-1", "abc")).toBe("/eventos/ofl-1/peleas/abc");
   });
 });

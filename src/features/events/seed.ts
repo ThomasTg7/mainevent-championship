@@ -276,7 +276,7 @@ export async function seedEvents(db: Db, now: Date = new Date()): Promise<void> 
   ];
 
   for (const definition of definitions) {
-    const name = `Guerra Campal ${definition.number}`;
+    const name = `OFL ${definition.number}`;
     const [created] = await db
       .insert(events)
       .values({
@@ -290,10 +290,10 @@ export async function seedEvents(db: Db, now: Date = new Date()): Promise<void> 
           : {
               doorsAt: instant(definition.date, "19:30"),
               endsEstimatedAt: instant(addDaysToDate(definition.date, 1), "00:30"),
-              ticketUrl: "https://www.example.com/entradas/guerra-campal-5",
+              ticketUrl: "https://www.example.com/entradas/ofl-5",
               ticketProvider: "Ticketera de ejemplo",
               ticketTiers: UPCOMING_TIERS,
-              ticketPoints: "Boletería del recinto (lunes a sábado, 11:00 a 19:00) y tienda oficial de Guerra Campal.",
+              ticketPoints: "Boletería del recinto (lunes a sábado, 11:00 a 19:00) y tienda oficial de OFL.",
             }),
         status: "published" as const,
       })

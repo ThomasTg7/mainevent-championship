@@ -5,7 +5,7 @@ import { ShareButtons } from "./share-buttons";
 
 afterEach(cleanup);
 
-const URL_TO_SHARE = "https://guerracampal.cl/noticias/perez-defiende-el-cinturon";
+const URL_TO_SHARE = "https://openfightlatam.cl/noticias/perez-defiende-el-cinturon";
 
 describe("ShareButtons", () => {
   it("links to WhatsApp, X and Facebook carrying the title and the address, opening outside without leaking the opener", () => {

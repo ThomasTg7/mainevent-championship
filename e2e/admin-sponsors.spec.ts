@@ -87,12 +87,12 @@ test("un patrocinador de un evento solo sale en la página de ese evento", async
   const dialog = await openNewSponsor(page, "E2E Solo Evento");
   await dialog.getByLabel("Nivel").selectOption("principal");
   await dialog.getByRole("switch", { name: "Todos los eventos" }).click();
-  await dialog.getByLabel("Buscar eventos del patrocinador").fill("Guerra Campal 5");
-  await dialog.getByRole("button", { name: /Guerra Campal 5/ }).click();
+  await dialog.getByLabel("Buscar eventos del patrocinador").fill("OFL 5");
+  await dialog.getByRole("button", { name: /OFL 5/ }).click();
   await save(page, "Patrocinador creado");
-  await expect(page.locator('[data-sponsor="E2E Solo Evento"]')).toContainText("Guerra Campal 5");
+  await expect(page.locator('[data-sponsor="E2E Solo Evento"]')).toContainText("OFL 5");
 
-  await page.goto("/eventos/guerra-campal-5");
+  await page.goto("/eventos/ofl-5");
   const eventSponsors = page.locator('[data-slot="event-sponsors"]');
   await expect(eventSponsors.getByRole("img", { name: "E2E Solo Evento" })).toBeVisible();
   // Los patrocinadores de todos los eventos también salen en la página del evento.

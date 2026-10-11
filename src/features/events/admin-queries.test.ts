@@ -21,22 +21,22 @@ describe("listAdminEvents", () => {
     const { items } = await listAdminEvents(db, {});
     expect(items.map((event) => event.name)).toEqual([
       "Evento borrador",
-      "Guerra Campal 5",
-      "Guerra Campal 4",
-      "Guerra Campal 3",
-      "Guerra Campal 2",
-      "Guerra Campal 1",
+      "OFL 5",
+      "OFL 4",
+      "OFL 3",
+      "OFL 2",
+      "OFL 1",
     ]);
   });
 
   it("counts the fights of each event without one query per event", async () => {
     const { items } = await listAdminEvents(db, {});
     const counts = Object.fromEntries(items.map((event) => [event.name, event.boutCount]));
-    expect(counts).toMatchObject({ "Guerra Campal 5": 5, "Guerra Campal 1": 4, "Evento borrador": 0 });
+    expect(counts).toMatchObject({ "OFL 5": 5, "OFL 1": 4, "Evento borrador": 0 });
   });
 
   it("filters by name text without regard to case, and treats wildcards as plain text", async () => {
-    expect((await listAdminEvents(db, { q: "campal 4" })).items.map((event) => event.name)).toEqual(["Guerra Campal 4"]);
+    expect((await listAdminEvents(db, { q: "ofl 4" })).items.map((event) => event.name)).toEqual(["OFL 4"]);
     expect((await listAdminEvents(db, { q: "BORRADOR" })).items.map((event) => event.name)).toEqual(["Evento borrador"]);
     expect((await listAdminEvents(db, { q: "%" })).items).toEqual([]);
   });

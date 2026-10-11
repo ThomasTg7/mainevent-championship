@@ -15,7 +15,7 @@ import {
   websiteJsonLd,
 } from "./seo";
 
-const SITE = "https://guerracampal.cl";
+const SITE = "https://openfightlatam.cl";
 const FALLBACK = `${SITE}/og-default.jpg`;
 
 function media(overrides: Partial<MediaDTO> = {}): MediaDTO {
@@ -106,8 +106,8 @@ function bout(status: "scheduled" | "cancelled", red: ReturnType<typeof boutFigh
 function event(overrides: Partial<EventPageDTO> = {}): EventPageDTO {
   return {
     id: "e1",
-    slug: "guerra-campal-12",
-    name: "Guerra Campal 12",
+    slug: "ofl-12",
+    name: "OFL 12",
     number: 12,
     startsAt: "2031-05-11T00:00:00.000Z",
     eventStatus: "scheduled",
@@ -239,8 +239,8 @@ describe("ogImage", () => {
   });
 
   it("keeps an absolute storage URL (R2) untouched", () => {
-    const remote = media({ variants: [{ width: 1200, height: 630, url: "https://media.guerracampal.cl/x-1200.webp" }] });
-    expect(ogImage(remote, SITE, 1200).url).toBe("https://media.guerracampal.cl/x-1200.webp");
+    const remote = media({ variants: [{ width: 1200, height: 630, url: "https://media.openfightlatam.cl/x-1200.webp" }] });
+    expect(ogImage(remote, SITE, 1200).url).toBe("https://media.openfightlatam.cl/x-1200.webp");
   });
 
   it("falls back to the brand image when there is no media", () => {
@@ -258,8 +258,8 @@ describe("eventJsonLd", () => {
     expect(data).toMatchObject({
       "@context": "https://schema.org",
       "@type": "SportsEvent",
-      name: "Guerra Campal 12",
-      url: `${SITE}/eventos/guerra-campal-12`,
+      name: "OFL 12",
+      url: `${SITE}/eventos/ofl-12`,
       startDate: "2031-05-10T20:00:00-04:00",
       endDate: "2031-05-10T23:30:00-04:00",
       eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
@@ -380,11 +380,11 @@ describe("articleJsonLd", () => {
 });
 
 describe("organizationJsonLd and websiteJsonLd", () => {
-  const socials = { instagram: "@guerracampal", tiktok: "", youtube: "", facebook: "https://facebook.com/gc", x: "" };
+  const socials = { instagram: "@openfightlatam", tiktok: "", youtube: "", facebook: "https://facebook.com/gc", x: "" };
 
   it("lists the usable social profiles and the contact that has a value", () => {
     const data = organizationJsonLd(
-      { socials, contact: { email: "hola@guerracampal.cl", phone: "", whatsapp: "", address: "", notifyEmail: "" }, logoUrl: `${SITE}/logo.png` },
+      { socials, contact: { email: "hola@openfightlatam.cl", phone: "", whatsapp: "", address: "", notifyEmail: "" }, logoUrl: `${SITE}/logo.png` },
       SITE,
     );
     expect(data).toMatchObject({
@@ -393,8 +393,8 @@ describe("organizationJsonLd and websiteJsonLd", () => {
       name: "Open Fight Latam",
       url: SITE,
       logo: `${SITE}/logo.png`,
-      sameAs: ["https://www.instagram.com/guerracampal", "https://facebook.com/gc"],
-      email: "hola@guerracampal.cl",
+      sameAs: ["https://www.instagram.com/openfightlatam", "https://facebook.com/gc"],
+      email: "hola@openfightlatam.cl",
     });
     expect(data).not.toHaveProperty("telephone");
   });

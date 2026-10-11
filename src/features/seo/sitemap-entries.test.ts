@@ -19,7 +19,7 @@ import { saveSetting } from "@/features/settings/service";
 import { createTestDb } from "@/test/db";
 import { getSitemapEntries } from "./sitemap-entries";
 
-const SITE = "https://guerracampal.cl";
+const SITE = "https://openfightlatam.cl";
 const text = (value: string): PostBody => ({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: value }] }] });
 
 describe("getSitemapEntries", () => {
@@ -48,8 +48,8 @@ describe("getSitemapEntries", () => {
     const empty = await urls();
     for (const path of ["/nosotros", "/privacidad", "/contacto"]) expect(empty).not.toContain(`${SITE}${path}`);
 
-    await saveSetting(db, "about", { body: text("Somos Guerra Campal") }, "admin-1");
-    await saveSetting(db, "contact", { email: "hola@guerracampal.cl" }, "admin-1");
+    await saveSetting(db, "about", { body: text("Somos OFL") }, "admin-1");
+    await saveSetting(db, "contact", { email: "hola@openfightlatam.cl" }, "admin-1");
     const privacyAt = new Date("2026-10-04T15:00:00.000Z");
     await saveSetting(db, "privacy", { body: text("Cuidamos tus datos") }, "admin-1", privacyAt);
 
@@ -63,7 +63,7 @@ describe("getSitemapEntries", () => {
     const all = await entries();
     const [perez] = await db.select({ updatedAt: fighters.updatedAt }).from(fighters).where(eq(fighters.slug, "matias-perez"));
     expect(all.get(`${SITE}/peleadores/matias-perez`)?.lastModified).toEqual(perez!.updatedAt);
-    expect(all.has(`${SITE}/eventos/guerra-campal-5`)).toBe(true);
+    expect(all.has(`${SITE}/eventos/ofl-5`)).toBe(true);
     expect(all.has(`${SITE}/noticias/perez-defiende-el-cinturon-ante-soto`)).toBe(true);
   });
 

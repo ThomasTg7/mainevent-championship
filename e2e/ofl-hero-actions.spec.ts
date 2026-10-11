@@ -4,7 +4,7 @@ for (const width of [320, 375, 430, 1440]) {
   test(`entradas y transmisión comparten fila a ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    for (const path of ["/eventos/guerra-campal-5", "/"]) {
+    for (const path of ["/eventos/ofl-5", "/"]) {
       await page.goto(path);
       const hero = page.locator("#event-hero");
       const tickets = hero.getByRole("link", { name: "Comprar entradas", exact: true });

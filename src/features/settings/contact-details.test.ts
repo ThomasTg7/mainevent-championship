@@ -10,19 +10,19 @@ describe("contactDetails", () => {
   });
 
   it("counts an email, a phone, a WhatsApp, an address or a usable network as something to show", () => {
-    for (const contact of [{ email: "hola@guerracampal.cl" }, { phone: "+56 9 1234 5678" }, { whatsapp: "+56 9 1234 5678" }, { address: "Av. España 123" }]) {
+    for (const contact of [{ email: "hola@openfightlatam.cl" }, { phone: "+56 9 1234 5678" }, { whatsapp: "+56 9 1234 5678" }, { address: "Av. España 123" }]) {
       expect(contactDetails({ ...empty.contact, ...contact }, empty.socials).hasDetails).toBe(true);
     }
-    expect(contactDetails(empty.contact, { ...empty.socials, instagram: "@guerracampal" }).hasDetails).toBe(true);
+    expect(contactDetails(empty.contact, { ...empty.socials, instagram: "@openfightlatam" }).hasDetails).toBe(true);
   });
 
   it("ignores the notification email (it is for the inbox, not for the public) and a network that is not a link", () => {
-    expect(contactDetails({ ...empty.contact, notifyEmail: "avisos@guerracampal.cl" }, empty.socials).hasDetails).toBe(false);
+    expect(contactDetails({ ...empty.contact, notifyEmail: "avisos@openfightlatam.cl" }, empty.socials).hasDetails).toBe(false);
     expect(contactDetails(empty.contact, { ...empty.socials, tiktok: "javascript:alert(1)" }).hasDetails).toBe(false);
   });
 
   it("gives the links the page draws", () => {
-    const details = contactDetails({ ...empty.contact, phone: "+56 9 1234 5678", whatsapp: "+56 9 1234 5678" }, { ...empty.socials, instagram: "@guerracampal" });
+    const details = contactDetails({ ...empty.contact, phone: "+56 9 1234 5678", whatsapp: "+56 9 1234 5678" }, { ...empty.socials, instagram: "@openfightlatam" });
     expect(details.phone).toBe("tel:+56912345678");
     expect(details.whatsapp).toBe("https://wa.me/56912345678");
     expect(details.networks.map((network) => network.network)).toEqual(["instagram"]);

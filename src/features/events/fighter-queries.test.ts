@@ -81,7 +81,7 @@ describe("listBoutsForRecord", () => {
 describe("getFighterFightHistory", () => {
   it("lists the finished fights of public events, newest first", async () => {
     const history = await getFighterFightHistory(db, sotoId);
-    expect(history.map((row) => row.eventSlug)).toEqual(["guerra-campal-4", "guerra-campal-2", "guerra-campal-1"]);
+    expect(history.map((row) => row.eventSlug)).toEqual(["ofl-4", "ofl-2", "ofl-1"]);
     expect(history.map((row) => row.fighterResult)).toEqual(["win", "loss", "win"]);
     expect(await getFighterFightHistory(db, perezId)).toEqual([]);
   });
@@ -95,7 +95,7 @@ describe("getFighterFightHistory", () => {
 
   it("carries the date as ISO text and the event name", async () => {
     const [latest] = await getFighterFightHistory(db, sotoId);
-    expect(latest!.eventName).toBe("Guerra Campal 4");
+    expect(latest!.eventName).toBe("OFL 4");
     expect(new Date(latest!.date).toISOString()).toBe(latest!.date);
     expect(JSON.parse(JSON.stringify(latest))).toEqual(latest);
   });
@@ -113,7 +113,7 @@ describe("getFighterFightHistory", () => {
 describe("getFighterNextBout", () => {
   it("returns the next scheduled fight of a public event", async () => {
     const next = await getFighterNextBout(db, perezId);
-    expect(next).toMatchObject({ isTitleFight: true, scheduledRounds: 5, opponent: { lastName: "Soto" }, event: { slug: "guerra-campal-5", name: "Guerra Campal 5" } });
+    expect(next).toMatchObject({ isTitleFight: true, scheduledRounds: 5, opponent: { lastName: "Soto" }, event: { slug: "ofl-5", name: "OFL 5" } });
     expect(new Date(next!.event.startsAt).toISOString()).toBe(next!.event.startsAt);
     expect(await getFighterNextBout(db, sotoId)).toMatchObject({ opponent: { lastName: "Pérez" }, isTitleFight: true });
   });

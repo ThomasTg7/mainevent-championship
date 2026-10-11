@@ -12,18 +12,18 @@ async function expectNoHorizontalScroll(page: Page) {
   expect(overflow).toBeLessThanOrEqual(0);
 }
 
-// Seed: Diego Soto tiene tres peleas en Guerra Campal (GC 4 KO, GC 2 derrota dividida, GC 1 decisión) = 2-1-0;
+// Seed: Diego Soto tiene tres peleas en OFL (GC 4 KO, GC 2 derrota dividida, GC 1 decisión) = 2-1-0;
 // Matías Pérez solo tiene la pelea programada de GC 5; Nicolás Ibarra (retirado) dos derrotas y nada programado.
 
-test("Diego Soto: historial en orden, récord en Guerra Campal, cifras del hero y próxima pelea", async ({ page }) => {
+test("Diego Soto: historial en orden, récord en OFL, cifras del hero y próxima pelea", async ({ page }) => {
   await page.goto("/peleadores/diego-soto");
   await expect(page.getByRole("heading", { name: "Diego Soto", level: 1 })).toBeVisible();
 
   const rows = page.locator("[data-fight]");
   await expect(rows).toHaveCount(3);
-  await expect(rows.nth(0)).toContainText("Guerra Campal 4");
-  await expect(rows.nth(1)).toContainText("Guerra Campal 2");
-  await expect(rows.nth(2)).toContainText("Guerra Campal 1");
+  await expect(rows.nth(0)).toContainText("OFL 4");
+  await expect(rows.nth(1)).toContainText("OFL 2");
+  await expect(rows.nth(2)).toContainText("OFL 1");
   await expect(rows.nth(0)).toHaveAttribute("data-result", "win");
   await expect(rows.nth(1)).toHaveAttribute("data-result", "loss");
   await expect(rows.nth(0)).toContainText("Felipe Araya");
@@ -32,7 +32,7 @@ test("Diego Soto: historial en orden, récord en Guerra Campal, cifras del hero 
   await expect(rows.nth(1)).toContainText("Decisión dividida");
   await expect(rows.nth(2)).toContainText("Decisión unánime");
   await expect(rows.nth(0).getByRole("link", { name: "Felipe Araya" })).toHaveAttribute("href", "/peleadores/felipe-araya");
-  await expect(rows.nth(0).getByRole("link", { name: "Guerra Campal 4" })).toHaveAttribute("href", "/eventos/guerra-campal-4");
+  await expect(rows.nth(0).getByRole("link", { name: "OFL 4" })).toHaveAttribute("href", "/eventos/ofl-4");
 
   const gc = page.locator('[data-level="pro"] [data-record="gc"]');
   await expect(gc).toContainText("2-1-0");
@@ -51,7 +51,7 @@ test("Diego Soto: historial en orden, récord en Guerra Campal, cifras del hero 
   await expect(next).toContainText("Próxima pelea");
   await expect(next).toContainText("Matías Pérez");
   await expect(next).toContainText("★ Por el título");
-  await expect(next.getByRole("link", { name: "Guerra Campal 5" })).toHaveAttribute("href", "/eventos/guerra-campal-5");
+  await expect(next.getByRole("link", { name: "OFL 5" })).toHaveAttribute("href", "/eventos/ofl-5");
 
   await expectNoHorizontalScroll(page);
 });

@@ -4,7 +4,7 @@ for (const width of [375, 1440]) {
   test(`etiquetas de campeón y Dónde ver a ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/eventos/guerra-campal-5");
+    await page.goto("/eventos/ofl-5");
     const hero = page.locator("#event-hero");
     const watch = hero.getByRole("link", { name: "Dónde ver" });
     await expect(watch).toHaveCSS("background-color", "rgb(197, 27, 58)");

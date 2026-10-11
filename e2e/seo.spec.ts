@@ -151,13 +151,13 @@ test("la vista previa de un borrador lleva noindex y ningún dato estructurado",
 });
 
 test("un evento próximo lleva SportsEvent con su fecha en hora de Chile, lugar y entradas en CLP", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-5");
-  expect(await head.canonical(page)).toBe(`${SITE}/eventos/guerra-campal-5`);
-  expect(await head.title(page)).toMatch(/^Guerra Campal 5 \| Open Fight Latam$/);
+  await page.goto("/eventos/ofl-5");
+  expect(await head.canonical(page)).toBe(`${SITE}/eventos/ofl-5`);
+  expect(await head.title(page)).toMatch(/^OFL 5 \| Open Fight Latam$/);
 
   const event = (await jsonLd(page)).find((item) => item["@type"] === "SportsEvent");
   expect(event).toMatchObject({
-    name: "Guerra Campal 5",
+    name: "OFL 5",
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     organizer: { name: "Open Fight Latam" },
@@ -170,8 +170,8 @@ test("un evento próximo lleva SportsEvent con su fecha en hora de Chile, lugar 
 });
 
 test("un evento ya jugado sigue indexable; uno cancelado lo dice en su JSON-LD", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-4");
-  expect(await head.canonical(page)).toBe(`${SITE}/eventos/guerra-campal-4`);
+  await page.goto("/eventos/ofl-4");
+  expect(await head.canonical(page)).toBe(`${SITE}/eventos/ofl-4`);
   await expect(head.robots(page)).toHaveCount(0);
   expect((await jsonLd(page)).find((item) => item["@type"] === "SportsEvent")).toBeTruthy();
 
@@ -259,7 +259,7 @@ test("sitemap.xml lista lo público y deja fuera borradores y papelera", async (
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("xml");
   const xml = await response.text();
-  for (const path of ["", "/eventos", "/peleadores", "/noticias", "/entradas", "/quiero-pelear", "/patrocinar", "/rankings", "/peleadores/matias-perez", "/eventos/guerra-campal-5", "/noticias/perez-defiende-el-cinturon-ante-soto"]) {
+  for (const path of ["", "/eventos", "/peleadores", "/noticias", "/entradas", "/quiero-pelear", "/patrocinar", "/rankings", "/peleadores/matias-perez", "/eventos/ofl-5", "/noticias/perez-defiende-el-cinturon-ante-soto"]) {
     expect(xml).toContain(`<loc>${SITE}${path}</loc>`);
   }
   // Sembrados por global-setup: un peleador en borrador y otro en la papelera.
@@ -276,7 +276,7 @@ test("el panel no tiene sitemap", async ({ page }) => {
 });
 
 test("sin proveedor de analítica el sitio no carga ningún script de medición ni pone cookies", async ({ page, context }) => {
-  for (const path of ["/", "/peleadores", "/eventos/guerra-campal-5", "/noticias"]) {
+  for (const path of ["/", "/peleadores", "/eventos/ofl-5", "/noticias"]) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   }

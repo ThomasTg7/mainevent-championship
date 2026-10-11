@@ -28,7 +28,7 @@ const next: NextBoutDTO = {
   divisionName: "Ligero",
   divisionGender: "male",
   catchweightKg: null,
-  event: { id: "e1", slug: "guerra-campal-5", name: "Guerra Campal 5", startsAt: "2026-10-25T00:00:00.000Z", venueCity: "Santiago" },
+  event: { id: "e1", slug: "ofl-5", name: "OFL 5", startsAt: "2026-10-25T00:00:00.000Z", venueCity: "Santiago" },
   opponent,
 };
 
@@ -65,7 +65,7 @@ describe("NextBout", () => {
     expect(screen.getByText("★ Por el título")).toBeDefined();
     expect(screen.getByText("Peso Ligero")).toBeDefined();
     expect(screen.getByText("5 × 5 MIN")).toBeDefined();
-    expect(screen.getByRole("link", { name: "Guerra Campal 5" }).getAttribute("href")).toBe("/eventos/guerra-campal-5");
+    expect(screen.getByRole("link", { name: "OFL 5" }).getAttribute("href")).toBe("/eventos/ofl-5");
     expect(container).toHaveTextContent("Santiago");
   });
 
@@ -78,8 +78,8 @@ describe("NextBout", () => {
       roundTime: "R2 0:58",
       date: "2026-08-29T00:00:00.000Z",
       eventId: "e0",
-      eventSlug: "guerra-campal-4",
-      eventName: "Guerra Campal 4",
+      eventSlug: "ofl-4",
+      eventName: "OFL 4",
       opponent,
     };
     render(<NextBout nextBout={null} lastFight={last} />);

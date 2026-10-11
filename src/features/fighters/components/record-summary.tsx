@@ -51,7 +51,7 @@ function TotalRecord({ record, title }: { record: ManualRecord; title: string })
   );
 }
 
-function GuerraCampalRecord({ record, title }: { record: ComputedRecord; title: string }) {
+function PromotionRecord({ record, title }: { record: ComputedRecord; title: string }) {
   const extra = [noContestsLabel(record.noContests), record.streak ? `Racha: ${record.streak.count} ${STREAK_LABELS[record.streak.type]}` : null]
     .filter(Boolean)
     .join(" · ");
@@ -91,7 +91,7 @@ const labelClass = "mb-2 font-cond text-[13px] font-bold uppercase tracking-[.16
 
 /**
  * Récord profesional y amateur por separado, centrados y hacia abajo: el récord total (manual) y, debajo, el de
- * Guerra Campal (calculado) con sus métodos de victoria. Lo que no tiene datos no se muestra: sin récord amateur no hay
+ * OFL (calculado) con sus métodos de victoria. Lo que no tiene datos no se muestra: sin récord amateur no hay
  * bloque amateur, sin peleas en GC no hay récord de GC, y sin nada de eso no hay sección.
  */
 export function RecordSummary({ manual, computed }: RecordSummaryProps) {
@@ -125,7 +125,7 @@ export function RecordSummary({ manual, computed }: RecordSummaryProps) {
                 {showGc ? (
                   <div data-record="gc" className="w-full">
                     <p className={labelClass}>{BRAND.name}</p>
-                    <GuerraCampalRecord record={computed[key]} title={title} />
+                    <PromotionRecord record={computed[key]} title={title} />
                   </div>
                 ) : null}
               </div>

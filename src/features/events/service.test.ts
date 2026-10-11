@@ -24,7 +24,7 @@ const MISSING = "00000000-0000-4000-8000-000000000000";
 describe("createEvent", () => {
   it("creates a draft with a slug from the name, the date in Chile time and an audit row", async () => {
     const { id, slug } = await createEvent(db, validEventInput(), "admin-1");
-    expect(slug).toBe("guerra-campal-9");
+    expect(slug).toBe("ofl-9");
 
     const row = await findEvent(id);
     expect(row).toMatchObject({ status: "draft", eventStatus: "scheduled", venueCity: "Santiago", doorsAt: null, endsEstimatedAt: null });
@@ -33,7 +33,7 @@ describe("createEvent", () => {
   });
 
   it("adds a numeric suffix when the slug is taken", async () => {
-    expect((await createEvent(db, validEventInput(), "admin-1")).slug).toBe("guerra-campal-9-2");
+    expect((await createEvent(db, validEventInput(), "admin-1")).slug).toBe("ofl-9-2");
   });
 
   it("reads the doors and the estimated end as times of the event day, the end rolling past midnight", async () => {
@@ -120,7 +120,7 @@ describe("updateEvent", () => {
   it("changes the slug only when a different one is written, and refuses a taken one", async () => {
     const { id } = await createEvent(db, validEventInput({ name: "Enlace" }), "admin-1");
     expect((await updateEvent(db, id, validEventInput({ name: "Enlace", slug: "enlace-nuevo" }), "admin-1")).slug).toBe("enlace-nuevo");
-    await expect(updateEvent(db, id, validEventInput({ name: "Enlace", slug: "guerra-campal-9" }), "admin-1")).rejects.toThrow("Ese enlace ya lo usa otro evento");
+    await expect(updateEvent(db, id, validEventInput({ name: "Enlace", slug: "ofl-9" }), "admin-1")).rejects.toThrow("Ese enlace ya lo usa otro evento");
   });
 
   it("does not touch the publication unless a status comes with the data", async () => {

@@ -10,9 +10,9 @@ function form(entries: [string, string][]): FormData {
 
 describe("settingInputFromForm", () => {
   it("takes the plain text fields of a setting and treats missing ones as empty", () => {
-    const input = settingInputFromForm("contact", form([["email", "hola@guerracampal.cl"], ["phone", "+56 9 1234 5678"]]));
+    const input = settingInputFromForm("contact", form([["email", "hola@openfightlatam.cl"], ["phone", "+56 9 1234 5678"]]));
 
-    expect(input).toEqual({ email: "hola@guerracampal.cl", phone: "+56 9 1234 5678", whatsapp: "", address: "", notifyEmail: "" });
+    expect(input).toEqual({ email: "hola@openfightlatam.cl", phone: "+56 9 1234 5678", whatsapp: "", address: "", notifyEmail: "" });
   });
 
   it("pairs each question with its answer and drops the pairs left empty", () => {

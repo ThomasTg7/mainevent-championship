@@ -50,7 +50,7 @@ describe("buildHomeData", () => {
     const home = await buildHomeData(sourcesFor(db));
 
     expect(home.hero.kind).toBe("next-event");
-    if (home.hero.kind !== "brand") expect(home.hero.event.slug).toBe("guerra-campal-5");
+    if (home.hero.kind !== "brand") expect(home.hero.event.slug).toBe("ofl-5");
     expect(home.news.main).not.toBeNull();
     expect(home.news.top.length).toBeGreaterThan(0);
     expect(home.stats.events).toBeGreaterThan(0);

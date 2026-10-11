@@ -21,16 +21,16 @@ test("/eventos separa Próximos y Pasados y no desborda", async ({ page }) => {
 
   const upcoming = page.getByRole("region", { name: "Próximos" });
   const past = page.getByRole("region", { name: "Pasados" });
-  await expect(upcoming.locator('[data-event="guerra-campal-5"]')).toBeVisible();
-  await expect(upcoming.locator('[data-event="guerra-campal-4"]')).toHaveCount(0);
-  await expect(past.locator('[data-event="guerra-campal-4"]')).toBeVisible();
-  await expect(past.locator('[data-event="guerra-campal-1"]')).toBeVisible();
-  await expect(past.locator('[data-event="guerra-campal-5"]')).toHaveCount(0);
+  await expect(upcoming.locator('[data-event="ofl-5"]')).toBeVisible();
+  await expect(upcoming.locator('[data-event="ofl-4"]')).toHaveCount(0);
+  await expect(past.locator('[data-event="ofl-4"]')).toBeVisible();
+  await expect(past.locator('[data-event="ofl-1"]')).toBeVisible();
+  await expect(past.locator('[data-event="ofl-5"]')).toHaveCount(0);
 
   // La tarjeta muestra el combate estelar y lleva a la página del evento.
-  await expect(upcoming.locator('[data-event="guerra-campal-5"]')).toContainText("Pérez vs Soto");
-  await upcoming.getByRole("link", { name: "Guerra Campal 5" }).click();
-  await expect(page).toHaveURL(/\/eventos\/guerra-campal-5$/);
+  await expect(upcoming.locator('[data-event="ofl-5"]')).toContainText("Pérez vs Soto");
+  await upcoming.getByRole("link", { name: "OFL 5" }).click();
+  await expect(page).toHaveURL(/\/eventos\/ofl-5$/);
 
   for (const width of [320, 375, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -39,15 +39,15 @@ test("/eventos separa Próximos y Pasados y no desborda", async ({ page }) => {
   }
 });
 
-test("/eventos/guerra-campal-5: careo, cartelera por bloques, horarios y barra fija", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-5");
+test("/eventos/ofl-5: careo, cartelera por bloques, horarios y barra fija", async ({ page }) => {
+  await page.goto("/eventos/ofl-5");
   await expect(page.getByRole("heading", { name: /Pérez\s*VS\s*Soto/, level: 1 })).toBeVisible();
   await expect(page.getByText("21:00 hrs").first()).toBeVisible();
   await expect(page.getByText("Pelea por el título").first()).toBeVisible();
 
   // Arriba del título solo van el nombre del evento y su estado.
   const tags = page.locator("#event-hero [class*='tracking-[.1em]']");
-  await expect(tags).toHaveText(["Guerra Campal 5", "Próximo"]);
+  await expect(tags).toHaveText(["OFL 5", "Próximo"]);
 
   // La cuenta regresiva se arma al hidratar (el servidor no conoce la hora del navegador).
   const cells = page.locator("[data-countdown]");
@@ -89,14 +89,14 @@ test("/eventos/guerra-campal-5: careo, cartelera por bloques, horarios y barra f
   await page.evaluate(() => window.scrollTo(0, document.getElementById("cartelera")!.offsetTop + 200));
   await expect(bar).toHaveAttribute("data-visible", "true");
   await expect(bar).not.toHaveAttribute("inert", "");
-  await expect(bar).toContainText("Guerra Campal 5");
-  await expect(bar.getByRole("link", { name: "Entradas" })).toHaveAttribute("href", /example\.com\/entradas\/guerra-campal-5/);
+  await expect(bar).toContainText("OFL 5");
+  await expect(bar.getByRole("link", { name: "Entradas" })).toHaveAttribute("href", /example\.com\/entradas\/ofl-5/);
 });
 
 test("un evento pasado muestra los resultados de cada pelea, sin cuenta regresiva ni entradas", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-4");
+  await page.goto("/eventos/ofl-4");
   await expect(page.getByRole("heading", { name: /Soto\s*VS\s*Araya/, level: 1 })).toBeVisible();
-  await expect(page.locator("#event-hero [class*='tracking-[.1em]']")).toHaveText(["Guerra Campal 4", "Finalizado"]);
+  await expect(page.locator("#event-hero [class*='tracking-[.1em]']")).toHaveText(["OFL 4", "Finalizado"]);
   await expect(page.locator("[data-countdown]")).toHaveCount(0);
   await expect(page.getByRole("main").getByRole("link", { name: "Comprar entradas" })).toHaveCount(0);
 
@@ -111,16 +111,16 @@ test("un evento pasado muestra los resultados de cada pelea, sin cuenta regresiv
   await expect(results.filter({ hasText: "Lagos vence a Ibarra · Descalificación (Golpe bajo reiterado) · R2 0:58" })).toHaveCount(1);
 
   // Empate y sin resultado se distinguen de una victoria.
-  await page.goto("/eventos/guerra-campal-2");
+  await page.goto("/eventos/ofl-2");
   await page.getByRole("tab", { name: "Preliminares" }).click();
   await expect(page.locator("[data-bout]").filter({ hasText: "Empate" }).locator('[data-result="none"]')).toHaveText("Empate");
-  await page.goto("/eventos/guerra-campal-3");
+  await page.goto("/eventos/ofl-3");
   await page.getByRole("tab", { name: "Preliminares" }).click();
   await expect(page.getByText("Rojas vs Cortés · Sin resultado (falta accidental)")).toBeVisible();
 
   for (const width of [320, 375, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/eventos/guerra-campal-4");
+    await page.goto("/eventos/ofl-4");
     await expectNoHorizontalScroll(page);
   }
 });
@@ -202,14 +202,14 @@ test("mientras el evento está en vivo la página pública muestra cada resultad
 });
 
 test("una pelea tiene su página con todo el detalle y, al final, las tarjetas de los jueces", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-1");
+  await page.goto("/eventos/ofl-1");
   const bout = page.locator("[data-bout]").filter({ hasText: "Soto vence a Araya" });
   // Una decisión no lleva round ni tiempo: llegó al final.
   await expect(bout.locator("[data-result-line]")).toHaveText("Soto vence a Araya · Decisión unánime");
 
   await bout.getByRole("button", { name: /Ver datos/ }).click();
   await bout.getByRole("link", { name: /Ver la pelea y las tarjetas/ }).click();
-  await expect(page).toHaveURL(/\/eventos\/guerra-campal-1\/peleas\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/eventos\/ofl-1\/peleas\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name: /Soto\s*vs\s*Araya/i, level: 1 })).toBeVisible();
   await expect(page.locator('[data-corner="red"] [data-result="win"]')).toHaveText("Victoria");
   // Igual que en la cartelera: «Victoria» va sobre los pies de la foto y la silueta entra entera (sin cortar la cabeza).
@@ -243,7 +243,7 @@ test("una pelea tiene su página con todo el detalle y, al final, las tarjetas d
   await expect(page.locator('[data-slot="scorecards-verdict"]')).toContainText("29-28 · 29-28 · 30-27");
   await expectNoHorizontalScroll(page);
 
-  await page.goto("/eventos/guerra-campal-1/peleas/00000000-0000-4000-8000-000000000000");
+  await page.goto("/eventos/ofl-1/peleas/00000000-0000-4000-8000-000000000000");
   await expect(page.getByRole("heading", { name: "Pelea no encontrada" })).toBeVisible();
 });
 

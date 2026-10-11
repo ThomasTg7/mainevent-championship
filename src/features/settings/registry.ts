@@ -36,7 +36,7 @@ function socialProfile(network: SiteSocialNetwork) {
     .string()
     .trim()
     .max(200, "El enlace es demasiado largo")
-    .refine((value) => value === "" || socialUrl(network, value) !== null, "Escribe el usuario (p. ej. @guerracampal) o el enlace completo del perfil")
+    .refine((value) => value === "" || socialUrl(network, value) !== null, "Escribe el usuario (p. ej. @openfightlatam) o el enlace completo del perfil")
     .default("");
 }
 

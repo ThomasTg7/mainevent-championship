@@ -19,7 +19,7 @@ const RESULT_CLASS = {
 type Filter = "all" | BoutLevel;
 
 /**
- * Historial de peleas en Guerra Campal: la más reciente primero, una fila por pelea (tarjeta apilada en celular). El
+ * Historial de peleas en OFL: la más reciente primero, una fila por pelea (tarjeta apilada en celular). El
  * filtro Profesional / Amateur solo aparece si hay peleas de los dos niveles. Se cachea con el peleador: las fechas
  * llegan como texto ISO.
  */

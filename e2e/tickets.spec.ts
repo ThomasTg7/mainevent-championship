@@ -9,8 +9,8 @@ test("/entradas lista GC 5 con sus tres tramos, precios en pesos y la ticketera"
   await page.goto("/entradas");
   await expect(page.getByRole("heading", { name: "Entradas", level: 1 })).toBeVisible();
 
-  const section = page.locator('[data-event="guerra-campal-5"]');
-  await expect(section.getByRole("heading", { name: "Guerra Campal 5", level: 2 })).toBeVisible();
+  const section = page.locator('[data-event="ofl-5"]');
+  await expect(section.getByRole("heading", { name: "OFL 5", level: 2 })).toBeVisible();
   await expect(section.locator("[data-tier]")).toHaveCount(3);
   await expect(section.locator('[data-tier="General"]')).toContainText("$15.000");
   await expect(section.locator('[data-tier="Preferencial"]')).toContainText("$25.000");
@@ -19,11 +19,11 @@ test("/entradas lista GC 5 con sus tres tramos, precios en pesos y la ticketera"
 
   // «Ir a la ticketera» abre la ticketera en otra pestaña, sin darle acceso a esta.
   const ticketOffice = section.getByRole("link", { name: /Ir a la ticketera/ });
-  await expect(ticketOffice).toHaveAttribute("href", /example\.com\/entradas\/guerra-campal-5/);
+  await expect(ticketOffice).toHaveAttribute("href", /example\.com\/entradas\/ofl-5/);
   await expect(ticketOffice).toHaveAttribute("target", "_blank");
   await expect(ticketOffice).toHaveAttribute("rel", /noopener/);
   await expect(section.locator('[data-slot="ticket-points"]')).toContainText("Boletería del recinto");
-  await expect(section.getByRole("link", { name: "Ver el evento" })).toHaveAttribute("href", "/eventos/guerra-campal-5");
+  await expect(section.getByRole("link", { name: "Ver el evento" })).toHaveAttribute("href", "/eventos/ofl-5");
 });
 
 test("un tramo agotado muestra AGOTADO y no tiene enlace; los demás llevan a la ticketera", async ({ page }) => {

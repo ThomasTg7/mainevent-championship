@@ -52,7 +52,7 @@ test("la presentación OFL no intercepta clics y se muestra una vez por sesión"
 
 test("el botón de entradas del listado conserva contraste al pasar el cursor", async ({ page }) => {
   await page.goto("/eventos");
-  const button = page.locator('[data-event="guerra-campal-5"]').getByRole("link", { name: "Entradas", exact: true });
+  const button = page.locator('[data-event="ofl-5"]').getByRole("link", { name: "Entradas", exact: true });
   await button.hover();
   await expect(button).toHaveCSS("color", "rgb(255, 255, 255)");
   await expect(button).toHaveCSS("background-color", "rgb(167, 20, 49)");

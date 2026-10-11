@@ -15,6 +15,10 @@ beforeAll(async () => {
 afterAll(() => close());
 
 describe("seedEvents", () => {
+  it("uses OFL event names and public URLs", async () => {
+    const rows = await db.select({ name: events.name, slug: events.slug }).from(events).orderBy(events.number);
+    expect(rows).toEqual([1, 2, 3, 4, 5].map((number) => ({ name: `OFL ${number}`, slug: `ofl-${number}` })));
+  });
   it("creates four finished events and one upcoming, all published", async () => {
     const rows = await db.select({ number: events.number, eventStatus: events.eventStatus, status: events.status }).from(events).orderBy(events.number);
     expect(rows.map((row) => row.eventStatus)).toEqual(["completed", "completed", "completed", "completed", "scheduled"]);
@@ -38,7 +42,7 @@ describe("seedEvents", () => {
   });
 
   it("leaves the upcoming card without results", async () => {
-    const [upcoming] = await db.select({ id: events.id }).from(events).where(eq(events.slug, "guerra-campal-5"));
+    const [upcoming] = await db.select({ id: events.id }).from(events).where(eq(events.slug, "ofl-5"));
     const rows = await db.select({ boutStatus: bouts.boutStatus, outcome: bouts.outcome }).from(bouts).where(eq(bouts.eventId, upcoming!.id));
     expect(rows).toHaveLength(5);
     expect(rows.every((row) => row.boutStatus === "scheduled" && row.outcome === null)).toBe(true);

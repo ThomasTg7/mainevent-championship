@@ -83,7 +83,7 @@ describe("rankings of the seed", () => {
   });
 
   it("labels the fighters of a card as C or #n, and skips catchweight bouts", async () => {
-    const eventId = await eventIdBySlug(db, "guerra-campal-5");
+    const eventId = await eventIdBySlug(db, "ofl-5");
     const rows = await db.select({ id: bouts.id, red: bouts.redFighterId, blue: bouts.blueFighterId, catchweightKg: bouts.catchweightKg }).from(bouts).where(eq(bouts.eventId, eventId));
     const labels = await getBoutRankLabels(db, rows.map((row) => row.id));
     const perez = await fighterIdBySlug(db, "matias-perez");
@@ -106,7 +106,7 @@ describe("rankings of the seed", () => {
   it("hiding a level hides its ranked positions but keeps its champions in view everywhere", async () => {
     const perez = await fighterIdBySlug(db, "matias-perez");
     const soto = await fighterIdBySlug(db, "diego-soto");
-    const eventId = await eventIdBySlug(db, "guerra-campal-5");
+    const eventId = await eventIdBySlug(db, "ofl-5");
     const boutIds = (await db.select({ id: bouts.id }).from(bouts).where(eq(bouts.eventId, eventId))).map((row) => row.id);
 
     await setRankingVisibility(db, "pro", false, "admin-1");

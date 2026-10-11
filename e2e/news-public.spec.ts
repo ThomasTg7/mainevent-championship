@@ -57,7 +57,7 @@ test("una noticia muestra portada de marca, cuerpo, video con fachada, peleadore
 
   const related = page.locator('[data-slot="post-related"]');
   await expect(related.getByRole("link", { name: /Camila Rojas/ })).toHaveAttribute("href", "/peleadores/camila-rojas");
-  await expect(related.getByRole("link", { name: /Guerra Campal 1/ })).toHaveAttribute("href", "/eventos/guerra-campal-1");
+  await expect(related.getByRole("link", { name: /OFL 1/ })).toHaveAttribute("href", "/eventos/ofl-1");
 
   await page.getByRole("button", { name: "Copiar link" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Link copiado" })).toBeVisible();

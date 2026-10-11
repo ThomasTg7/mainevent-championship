@@ -18,7 +18,7 @@ async function waitForHydratedCard(page: Page) {
 const top = (locator: ReturnType<Page["locator"]>) => locator.evaluate((element) => Math.round(element.getBoundingClientRect().top));
 
 test("«Ver cartelera» se desliza hasta la cartelera en vez de saltar", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-5");
+  await page.goto("/eventos/ofl-5");
   const target = await page.evaluate(() => document.getElementById("cartelera")!.getBoundingClientRect().top + window.scrollY);
   await page.locator("#event-hero").getByRole("link", { name: "Ver cartelera" }).click();
 
@@ -30,7 +30,7 @@ test("«Ver cartelera» se desliza hasta la cartelera en vez de saltar", async (
 });
 
 test("las pestañas de bloque usan rojo OFL y la activa cambia de color", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-5");
+  await page.goto("/eventos/ofl-5");
   const estelar = page.getByRole("tab", { name: "Cartelera estelar" });
   const prelim = page.getByRole("tab", { name: "Preliminares" });
   const background = (tab: typeof estelar) => tab.evaluate((element) => getComputedStyle(element).backgroundColor);
@@ -43,7 +43,7 @@ test("las pestañas de bloque usan rojo OFL y la activa cambia de color", async 
 });
 
 test("tocar una pelea despliega los datos de los dos; abrir otra cierra la anterior; un enlace no la abre", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-5");
+  await page.goto("/eventos/ofl-5");
   await waitForHydratedCard(page);
   const bouts = page.getByRole("tabpanel").locator("[data-bout]");
   const first = bouts.first();
@@ -73,13 +73,13 @@ test("tocar una pelea despliega los datos de los dos; abrir otra cierra la anter
   await expect(bouts.nth(1).locator('[data-slot="bout-comparison"] tbody tr').filter({ hasText: "Alcance" })).toHaveCount(0);
 
   // Tocar el nombre de un peleador va a su ficha.
-  await page.goto("/eventos/guerra-campal-5");
+  await page.goto("/eventos/ofl-5");
   await page.getByRole("tabpanel").locator("[data-bout]").first().getByRole("link", { name: "Matías Pérez" }).click();
   await expect(page).toHaveURL(/\/peleadores\/matias-perez$/);
 });
 
 test("el panel de datos se anima: pasa por alturas intermedias al abrirse y al cerrarse", async ({ page }) => {
-  await page.goto("/eventos/guerra-campal-5");
+  await page.goto("/eventos/ofl-5");
   await waitForHydratedCard(page);
   const first = page.getByRole("tabpanel").locator("[data-bout]").first();
   const panel = first.locator('[id]:has([data-slot="bout-comparison"])');
@@ -109,7 +109,7 @@ test("el panel de datos se anima: pasa por alturas intermedias al abrirse y al c
 test("en un evento con resultado, los nombres van al centro en celular y junto a su foto en PC, y «Victoria» va sobre los pies de la foto del ganador", async ({ page }) => {
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/eventos/guerra-campal-4");
+    await page.goto("/eventos/ofl-4");
     const main = page.getByRole("tabpanel").locator("[data-bout]").first();
     await expect(main.locator('[data-corner="red"] [data-result="win"]')).toHaveText("Victoria");
     const red = main.locator('[data-corner="red"] h3');

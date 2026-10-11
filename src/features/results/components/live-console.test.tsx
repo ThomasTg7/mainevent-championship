@@ -18,7 +18,7 @@ function renderConsole(props: Partial<Parameters<typeof LiveConsole>[0]> = {}) {
   render(
     <LiveConsole
       eventId="event-1"
-      eventName="Guerra Campal 5"
+      eventName="OFL 5"
       eventStatus="scheduled"
       isNight
       startsLabel="sábado 24 de octubre, 21:00"
@@ -27,7 +27,7 @@ function renderConsole(props: Partial<Parameters<typeof LiveConsole>[0]> = {}) {
       cancelled={[]}
       techniques={[]}
       cardHref="/eventos/event-1/cartelera"
-      publicHref="/eventos/guerra-campal-5"
+      publicHref="/eventos/ofl-5"
       {...props}
     />,
   );
