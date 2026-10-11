@@ -194,22 +194,22 @@ describe("pageMetadata", () => {
     expect(meta.description).toBe("Todos los peleadores.");
     expect(meta.alternates?.canonical).toBe("/peleadores");
     expect(meta.openGraph).toMatchObject({
-      title: "Peleadores | Guerra Campal",
+      title: "Peleadores | Open Fight Latam",
       description: "Todos los peleadores.",
       url: "/peleadores",
-      siteName: "Guerra Campal",
+      siteName: "Open Fight Latam",
       locale: "es_CL",
       type: "website",
       images: [{ url: FALLBACK, width: 1200, height: 630 }],
     });
-    expect(meta.twitter).toMatchObject({ card: "summary_large_image", title: "Peleadores | Guerra Campal", images: [FALLBACK] });
+    expect(meta.twitter).toMatchObject({ card: "summary_large_image", title: "Peleadores | Open Fight Latam", images: [FALLBACK] });
     expect(meta.robots).toBeUndefined();
   });
 
   it("keeps an absolute title as it is (home)", () => {
-    const meta = pageMetadata({ ...base, title: { absolute: "Guerra Campal — MMA en Chile" }, path: "/" });
-    expect(meta.title).toEqual({ absolute: "Guerra Campal — MMA en Chile" });
-    expect(meta.openGraph).toMatchObject({ title: "Guerra Campal — MMA en Chile" });
+    const meta = pageMetadata({ ...base, title: { absolute: "Open Fight Latam — MMA" }, path: "/" });
+    expect(meta.title).toEqual({ absolute: "Open Fight Latam — MMA" });
+    expect(meta.openGraph).toMatchObject({ title: "Open Fight Latam — MMA" });
   });
 
   it("truncates a long description to 160 characters", () => {
@@ -263,7 +263,7 @@ describe("eventJsonLd", () => {
       startDate: "2031-05-10T20:00:00-04:00",
       endDate: "2031-05-10T23:30:00-04:00",
       eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-      organizer: { "@type": "Organization", name: "Guerra Campal" },
+      organizer: { "@type": "Organization", name: "Open Fight Latam" },
       location: {
         "@type": "Place",
         name: "Gimnasio Municipal",
@@ -364,8 +364,8 @@ describe("articleJsonLd", () => {
       dateModified: "2031-05-12T10:00:00.000Z",
       articleSection: "Resultados",
       image: [`${SITE}/media/c-1600.webp`],
-      author: { "@type": "Organization", name: "Guerra Campal" },
-      publisher: { "@type": "Organization", name: "Guerra Campal" },
+      author: { "@type": "Organization", name: "Open Fight Latam" },
+      publisher: { "@type": "Organization", name: "Open Fight Latam" },
       mainEntityOfPage: `${SITE}/noticias/p%C3%A9rez-gana`,
       about: [{ "@type": "Person", name: "Matías Pérez", url: `${SITE}/peleadores/matias-perez` }],
     });
@@ -390,7 +390,7 @@ describe("organizationJsonLd and websiteJsonLd", () => {
     expect(data).toMatchObject({
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "Guerra Campal",
+      name: "Open Fight Latam",
       url: SITE,
       logo: `${SITE}/logo.png`,
       sameAs: ["https://www.instagram.com/guerracampal", "https://facebook.com/gc"],
@@ -408,7 +408,7 @@ describe("organizationJsonLd and websiteJsonLd", () => {
   });
 
   it("describes the website in es-CL", () => {
-    expect(websiteJsonLd(SITE)).toEqual({ "@context": "https://schema.org", "@type": "WebSite", name: "Guerra Campal", url: SITE, inLanguage: "es-CL" });
+    expect(websiteJsonLd(SITE)).toEqual({ "@context": "https://schema.org", "@type": "WebSite", name: "Open Fight Latam", url: SITE, inLanguage: "es-CL" });
   });
 });
 

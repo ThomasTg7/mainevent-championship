@@ -30,11 +30,11 @@ export function ConsentField({ error, checked }: { error?: string; checked: bool
           defaultChecked={checked}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? siteFieldErrorId("consent") : undefined}
-          className="mt-1 size-5 shrink-0 accent-[#FFB400]"
+          className="mt-1 size-5 shrink-0 accent-[#C51B3A]"
         />
         <span>
           Acepto la{" "}
-          <Link href="/privacidad" target="_blank" className="text-yellow underline underline-offset-4 hover:text-yellow-hover">
+          <Link href="/privacidad" target="_blank" className="text-accent-bright underline underline-offset-4 hover:text-accent-bright-hover">
             política de privacidad
           </Link>
         </span>
@@ -71,7 +71,7 @@ export function FormError({ message }: { message?: string }) {
 /** Lo que se ve después de enviar: reemplaza al formulario. */
 export function SentNotice({ title, text }: { title: string; text: string }) {
   return (
-    <div role="status" className="flex flex-col items-start gap-4 border border-yellow bg-surface p-8">
+    <div role="status" className="flex flex-col items-start gap-4 border border-brand bg-surface p-8">
       <p className="font-display text-[clamp(32px,5vw,52px)] uppercase leading-[.95] text-white">{title}</p>
       <p className="max-w-prose text-lg text-white/90">{text}</p>
       <Button variant="ghost" asChild>

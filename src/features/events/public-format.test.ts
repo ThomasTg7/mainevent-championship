@@ -89,7 +89,7 @@ describe("map links", () => {
 
 describe("eventStatusTag", () => {
   it("names each state the way the public reads it: upcoming, live, finished", () => {
-    expect(eventStatusTag("scheduled")).toEqual({ tone: "yellow", label: "Próximo" });
+    expect(eventStatusTag("scheduled")).toEqual({ tone: "brand", label: "Próximo" });
     expect(eventStatusTag("live")).toEqual({ tone: "red", label: "● En vivo" });
     expect(eventStatusTag("completed")).toEqual({ tone: "outline", label: "Finalizado" });
     expect(eventStatusTag("cancelled")).toEqual({ tone: "red", label: "Cancelado" });

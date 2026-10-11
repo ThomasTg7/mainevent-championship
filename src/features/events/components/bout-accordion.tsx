@@ -47,7 +47,7 @@ export function BoutItem({ boutId, label, className, summary, details }: BoutIte
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => context.toggle(boutId)}
-        className="mx-auto mt-3 flex min-h-11 items-center gap-2 px-4 font-cond text-xs font-extrabold uppercase tracking-[.14em] text-neutral-600 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+        className="mx-auto mt-3 flex min-h-11 items-center gap-2 px-4 font-cond text-xs font-extrabold uppercase tracking-[.14em] text-neutral-600 transition-opacity hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
       >
         <span className="sr-only">{label}: </span>
         {open ? "Ocultar datos" : "Ver datos"}

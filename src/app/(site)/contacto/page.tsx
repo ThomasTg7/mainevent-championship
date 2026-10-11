@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -11,19 +12,19 @@ export async function generateMetadata(): Promise<Metadata> {
   const [contact, socials] = await Promise.all([getCachedSetting("contact"), getCachedSetting("socials")]);
   return sitePageMetadata({
     title: "Contacto",
-    description: "Escríbenos o llámanos: correo, teléfono, WhatsApp y redes de Guerra Campal.",
+    description: `Escríbenos o llámanos: correo, teléfono, WhatsApp y redes de ${BRAND.name}.`,
     path: "/contacto",
     // Sin ningún dato la página es un «Pronto…»: no se indexa hasta que se cargue el contacto.
     noindex: !contactDetails(contact, socials).hasDetails,
   });
 }
 
-const LINK_CLASS = "text-white underline decoration-yellow decoration-2 underline-offset-4 hover:text-yellow";
+const LINK_CLASS = "text-white underline decoration-brand decoration-2 underline-offset-4 hover:text-accent-bright";
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-1 border-t border-border py-5">
-      <dt className="font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow">{label}</dt>
+      <dt className="font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-accent-bright">{label}</dt>
       <dd className="text-lg text-white/90">{children}</dd>
     </div>
   );

@@ -32,7 +32,7 @@ export function HomeCardSummary({ event, rankLabels, kind }: HomeCardSummaryProp
             }
             tone="light"
             action={
-              <Link href={`/eventos/${event.slug}`} className="inline-flex min-h-11 items-center border-b-2 border-yellow pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-black">
+              <Link href={`/eventos/${event.slug}`} className="inline-flex min-h-11 items-center border-b-2 border-brand pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-black">
                 Ver evento <span aria-hidden>→</span>
               </Link>
             }

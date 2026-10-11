@@ -81,8 +81,8 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
       className={cn(
         "fixed inset-0 z-[110] bg-black flex flex-col justify-center gap-2 px-[clamp(16px,4vw,64px)]",
         closing
-          ? "motion-safe:animate-out motion-safe:fade-out motion-safe:slide-out-to-top-4 duration-300 ease-gc fill-mode-forwards"
-          : "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-4 duration-300 ease-gc",
+          ? "motion-safe:animate-out motion-safe:fade-out motion-safe:slide-out-to-top-4 duration-300 ease-ofl fill-mode-forwards"
+          : "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-4 duration-300 ease-ofl",
       )}
     >
       <button
@@ -102,7 +102,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
           href={link.href}
           onClick={onClose}
           aria-current={active ? "page" : undefined}
-          className={cn("font-display uppercase text-[13vw] leading-[1.05] hover:text-yellow focus-visible:text-yellow", active ? "text-yellow" : "text-white")}
+          className={cn("font-display uppercase text-[13vw] leading-[1.05] hover:text-accent-bright focus-visible:text-accent-bright", active ? "text-accent-bright" : "text-white")}
         >
           {link.label}
         </Link>

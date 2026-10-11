@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import Link from "next/link";
 import { MediaImage } from "@/components/media/media-image";
 import { Tag } from "@/components/ui-gc/tag";
@@ -20,10 +21,10 @@ function Poster({ event, priority }: { event: EventCardDTO; priority: boolean })
   return (
     <div className="relative aspect-[4/5] w-full overflow-hidden bg-[linear-gradient(170deg,#1c1c1c,#0a0a0a_70%)]">
       {image ? (
-        <MediaImage media={image} sizes={EVENT_CARD_SIZES} priority={priority} className="absolute inset-0 size-full object-cover transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105" />
+        <MediaImage media={image} sizes={EVENT_CARD_SIZES} priority={priority} className="absolute inset-0 size-full object-cover transition-transform duration-700 ease-ofl motion-safe:group-hover:scale-105" />
       ) : (
         <div aria-hidden className="absolute inset-0 grid place-items-center">
-          <span className="font-display text-[clamp(120px,22vw,220px)] leading-none text-transparent [-webkit-text-stroke:2px_rgba(255,180,0,.45)]">{event.number ?? "GC"}</span>
+          <span className="font-display text-[clamp(120px,22vw,220px)] leading-none text-transparent [-webkit-text-stroke:2px_rgba(197,155,229,.45)]">{event.number ?? BRAND.shortName}</span>
         </div>
       )}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
@@ -42,14 +43,14 @@ export function EventCard({ event, variant, priority = false }: EventCardProps) 
   return (
     <article
       data-event={event.slug}
-      className={`group relative overflow-hidden border border-border bg-[linear-gradient(170deg,#1c1c1c,#0a0a0a_70%)] transition-colors duration-300 focus-within:border-yellow hover:border-yellow ${
+      className={`group relative overflow-hidden border border-border bg-[linear-gradient(170deg,#1c1c1c,#0a0a0a_70%)] transition-opacity duration-300 focus-within:border-brand hover:border-brand ${
         upcoming ? "grid sm:grid-cols-[minmax(200px,320px)_1fr]" : "flex flex-col"
       }`}
     >
       <Poster event={event} priority={priority} />
       <div className="flex flex-col gap-3 p-5 sm:p-7">
         <div className="flex flex-wrap items-center gap-2">
-          {event.number !== null ? <Tag tone="yellow">Guerra Campal {event.number}</Tag> : null}
+          {event.number !== null ? <Tag tone="brand">{BRAND.name} {event.number}</Tag> : null}
           {status ? <Tag tone={status === "live" ? "red" : "outline"}>{status === "live" ? "● En vivo" : EVENT_STATUS_LABELS[status]}</Tag> : null}
           {main?.isTitleFight ? <Tag tone="outline">Pelea por el título</Tag> : null}
         </div>
@@ -59,11 +60,11 @@ export function EventCard({ event, variant, priority = false }: EventCardProps) 
           </Link>
         </h3>
         <p className="font-cond text-[15px] font-semibold uppercase tracking-[.08em] text-muted-foreground">
-          {formatShortDate(start)} · <span className="font-bold text-yellow">{formatTime(start)} hrs</span> · {event.venueName}, {event.venueCity}
+          {formatShortDate(start)} · <span className="font-bold text-accent-bright">{formatTime(start)} hrs</span> · {event.venueName}, {event.venueCity}
         </p>
         {main ? (
           <p className="font-cond text-base font-bold uppercase tracking-[.06em] text-white">
-            {main.red.lastName} <span className="text-yellow">vs</span> {main.blue.lastName}
+            {main.red.lastName} <span className="text-accent-bright">vs</span> {main.blue.lastName}
             {measure ? <span className="font-semibold text-muted-foreground"> · {measure}</span> : null}
           </p>
         ) : (
@@ -71,13 +72,13 @@ export function EventCard({ event, variant, priority = false }: EventCardProps) 
         )}
         {upcoming && event.eventStatus !== "cancelled" ? (
           <div className="mt-auto flex flex-wrap items-center gap-3 pt-3">
-            <span className="border-b-2 border-yellow font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">Ver evento</span>
+            <span className="border-b-2 border-brand font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">Ver evento</span>
             {event.ticketUrl ? (
               <a
                 href={event.ticketUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative z-10 bg-yellow px-5 py-3 font-cond text-sm font-extrabold uppercase tracking-[.08em] text-black hover:bg-white"
+                className="relative z-10 bg-brand px-5 py-3 font-cond text-sm font-extrabold uppercase tracking-[.08em] text-white transition-transform hover:-translate-y-0.5 hover:bg-brand-hover"
               >
                 Entradas
               </a>

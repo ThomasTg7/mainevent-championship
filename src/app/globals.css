@@ -7,13 +7,15 @@
 
 @theme {
   --color-bg: #000000;
-  --color-surface: #0f0f0f;
-  --color-surface-2: #1a1a1a;
-  --color-border: #2a2a2a;
+  --color-surface: #151218;
+  --color-surface-2: #211c26;
+  --color-border: #39313f;
   --color-text: #ffffff;
-  --color-yellow: #ffb400;
-  --color-yellow-hover: #ffc633;
-  --color-yellow-press: #e0a000;
+  --color-brand: #C51B3A;
+  --color-accent-bright: #C59BE5;
+  --color-brand-violet: #643374;
+  --color-brand-hover: #a71431;
+  --color-brand-press: #8f102b;
   --color-red: #d7263d;
   --color-blue: #1e6fd9;
 
@@ -21,11 +23,11 @@
   --font-cond: var(--font-barlow-condensed), "Arial Narrow", sans-serif;
   --font-body: var(--font-barlow), system-ui, sans-serif;
 
-  --ease-gc: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-ofl: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /*
- * Tokens semánticos de shadcn/ui, mapeados a la paleta Guerra Campal.
+ * Tokens semánticos de shadcn/ui, mapeados a la paleta Open Fight Latam.
  * El panel admin es siempre oscuro (no hay modo claro), así que se
  * definen una sola vez en :root en vez de duplicarlos bajo `.dark`.
  * `--radius: 0` mantiene los bordes rectos de la identidad visual en
@@ -44,20 +46,20 @@
   --card-foreground: var(--color-text);
   --popover: var(--color-surface-2);
   --popover-foreground: var(--color-text);
-  --primary: var(--color-yellow);
-  --primary-foreground: #000000;
+  --primary: var(--color-brand);
+  --primary-foreground: #ffffff;
   --secondary: var(--color-surface-2);
   --secondary-foreground: var(--color-text);
   --muted: var(--color-surface-2);
   --muted-foreground: #a3a3a3;
   --accent: var(--color-surface-2);
   --accent-foreground: var(--color-text);
-  --destructive: var(--color-red);
+  --destructive: #ff7185;
   --destructive-foreground: #ffffff;
   --border: var(--color-border);
   --input: var(--color-border);
-  --ring: var(--color-yellow);
-  --chart-1: var(--color-yellow);
+  --ring: var(--color-accent-bright);
+  --chart-1: var(--color-brand);
   --chart-2: #a3a3a3;
   --chart-3: var(--color-blue);
   --chart-4: var(--color-red);
@@ -65,12 +67,12 @@
   --radius: 0px;
   --sidebar: var(--color-surface);
   --sidebar-foreground: var(--color-text);
-  --sidebar-primary: var(--color-yellow);
-  --sidebar-primary-foreground: #000000;
+  --sidebar-primary: var(--color-brand);
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--color-surface-2);
   --sidebar-accent-foreground: var(--color-text);
   --sidebar-border: var(--color-border);
-  --sidebar-ring: var(--color-yellow);
+  --sidebar-ring: var(--color-accent-bright);
 }
 
 body {
@@ -169,24 +171,5 @@ body {
 @keyframes marquee {
   to {
     transform: translateX(-50%);
-  }
-}
-
-/* Presentación de la home (primera visita de la sesión): las letras suben y la barra amarilla se llena. */
-@keyframes intro-letter {
-  from {
-    transform: translateY(110%);
-  }
-  to {
-    transform: none;
-  }
-}
-
-@keyframes intro-bar {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
   }
 }

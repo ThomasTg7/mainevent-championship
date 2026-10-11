@@ -29,7 +29,7 @@ export function ChoiceButtons<T extends string>({ legend, options, value, onChan
               aria-pressed={selected}
               aria-label={option.ariaLabel}
               onClick={() => onChange(option.value)}
-              className={`flex min-h-14 flex-col items-center justify-center gap-0.5 border px-2 py-2 text-center font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`flex min-h-14 flex-col items-center justify-center gap-0.5 border px-2 py-2 text-center font-semibold transition-opacity focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${
                 selected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-muted"
               } ${option.tone === "red" ? "border-l-4 border-l-[#D7263D]" : option.tone === "blue" ? "border-l-4 border-l-[#1E6FD9]" : ""}`}
             >

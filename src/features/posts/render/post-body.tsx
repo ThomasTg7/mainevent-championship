@@ -11,7 +11,7 @@ export const BODY_IMAGE_SIZES = "(min-width: 768px) 720px, 100vw";
 
 const MAX_DEPTH = 12;
 const EXTERNAL_REL = "noopener noreferrer nofollow";
-const LINK_CLASS = "text-yellow underline underline-offset-4 hover:text-yellow-hover";
+const LINK_CLASS = "text-accent-bright underline underline-offset-4 hover:text-accent-bright-hover";
 
 /** Justificado (el de siempre) con guiones en español: en celular la columna es angosta y sin cortar palabras quedan huecos. */
 const ALIGN_CLASS: Record<TextAlign, string> = { justify: "text-justify hyphens-auto", left: "text-left", center: "text-center", right: "text-right" };
@@ -94,7 +94,7 @@ function renderNode(node: PostNode, media: Record<string, MediaDTO>, depth: numb
       }
       if (level === 3) {
         return (
-          <h3 key={key} {...alignProps(node)} className={`mt-8 mb-3 font-cond text-2xl font-bold tracking-wide text-yellow uppercase ${ALIGN_CLASS[textAlignOf(node)]}`}>
+          <h3 key={key} {...alignProps(node)} className={`mt-8 mb-3 font-cond text-2xl font-bold tracking-wide text-accent-bright uppercase ${ALIGN_CLASS[textAlignOf(node)]}`}>
             {children()}
           </h3>
         );
@@ -103,13 +103,13 @@ function renderNode(node: PostNode, media: Record<string, MediaDTO>, depth: numb
     }
     case "bulletList":
       return (
-        <ul key={key} className="my-5 list-disc space-y-2 pl-6 text-lg leading-relaxed text-white/90 marker:text-yellow">
+        <ul key={key} className="my-5 list-disc space-y-2 pl-6 text-lg leading-relaxed text-white/90 marker:text-accent-bright">
           {children()}
         </ul>
       );
     case "orderedList":
       return (
-        <ol key={key} className="my-5 list-decimal space-y-2 pl-6 text-lg leading-relaxed text-white/90 marker:font-bold marker:text-yellow">
+        <ol key={key} className="my-5 list-decimal space-y-2 pl-6 text-lg leading-relaxed text-white/90 marker:font-bold marker:text-accent-bright">
           {children()}
         </ol>
       );
@@ -117,7 +117,7 @@ function renderNode(node: PostNode, media: Record<string, MediaDTO>, depth: numb
       return <li key={key}>{children()}</li>;
     case "blockquote":
       return (
-        <blockquote key={key} className="my-8 border-l-4 border-yellow bg-surface px-5 py-2 text-xl italic [&_p]:my-3">
+        <blockquote key={key} className="my-8 border-l-4 border-brand bg-surface px-5 py-2 text-xl italic [&_p]:my-3">
           {children()}
         </blockquote>
       );

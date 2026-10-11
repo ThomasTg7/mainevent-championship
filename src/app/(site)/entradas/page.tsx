@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import { PageHeader, PageShell } from "@/components/site/page-shell";
 import { getCachedPublicEvents } from "@/features/events/cached-queries";
@@ -9,7 +10,7 @@ import { TicketsFaq } from "@/features/settings/components/tickets-faq";
 export function generateMetadata(): Promise<Metadata> {
   return sitePageMetadata({
     title: "Entradas",
-    description: "Precios de las entradas de los próximos eventos de Guerra Campal, enlace a la ticketera y puntos de venta.",
+    description: `Precios de las entradas de los próximos eventos de ${BRAND.name}, enlace a la ticketera y puntos de venta.`,
     path: "/entradas",
   });
 }

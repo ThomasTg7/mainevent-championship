@@ -43,7 +43,7 @@ export function BoutDetailCorner({ fighter, side, won, rankLabel, gender }: Bout
       ) : null}
       <h2 className="font-display text-[clamp(26px,6.5vw,52px)] uppercase leading-[.95] break-words text-black">
         {fighter.isPublic ? (
-          <Link href={`/peleadores/${fighter.slug}`} className="underline-offset-4 outline-none hover:underline focus-visible:underline focus-visible:decoration-yellow focus-visible:decoration-[3px]">
+          <Link href={`/peleadores/${fighter.slug}`} className="underline-offset-4 outline-none hover:underline focus-visible:underline focus-visible:decoration-brand focus-visible:decoration-[3px]">
             <FighterName firstName={fighter.firstName} lastName={fighter.lastName} />
           </Link>
         ) : (

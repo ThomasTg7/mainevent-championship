@@ -88,7 +88,7 @@ export function BoutRow({
             <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-cond text-[15px] font-bold uppercase tracking-[.05em] text-black" data-result-line>
               <span>{result.line}</span>
               {result.videoUrl ? (
-                <a href={result.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 border-b-2 border-yellow text-[13px] hover:text-neutral-600">
+                <a href={result.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 border-b-2 border-brand text-[13px] hover:text-neutral-600">
                   Ver la pelea <ExternalLink aria-hidden className="size-3.5" />
                 </a>
               ) : null}
@@ -112,7 +112,7 @@ export function BoutRow({
           {/* La pelea completa (resultado, árbitro, bonos y las tarjetas de los jueces round por round) tiene su página. */}
           <Link
             href={boutHref(eventSlug, bout.id)}
-            className="mx-auto mb-3 flex min-h-11 w-fit items-center gap-2 bg-black px-5 font-cond text-xs font-extrabold uppercase tracking-[.14em] text-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            className="mx-auto mb-3 flex min-h-11 w-fit items-center gap-2 bg-black px-5 font-cond text-xs font-extrabold uppercase tracking-[.14em] text-accent-bright hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
           >
             {result?.scorecards?.length ? "Ver la pelea y las tarjetas" : "Ver la pelea completa"}
             <span className="sr-only">: {bout.red.lastName} vs {bout.blue.lastName}</span>

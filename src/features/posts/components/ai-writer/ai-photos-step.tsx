@@ -39,7 +39,7 @@ export function AiPhotosStep({ photos, galleryKey, onPhotosChange, descriptions,
       }
     >
       <div className="flex gap-3 border border-primary/50 bg-primary/10 p-3 text-sm">
-        <ImageOff aria-hidden className="mt-0.5 size-5 shrink-0 text-primary" />
+        <ImageOff aria-hidden className="mt-0.5 size-5 shrink-0 text-accent-bright" />
         <p>
           <strong>La IA no puede ver, crear ni subir fotos.</strong> Súbelas tú aquí y, debajo de cada una, cuenta qué muestra. La IA solo decide en qué
           parte del texto va cada una.

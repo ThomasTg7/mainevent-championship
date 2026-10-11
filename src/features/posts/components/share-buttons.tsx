@@ -10,7 +10,7 @@ type ShareButtonsProps = {
 };
 
 const BUTTON_CLASS =
-  "inline-flex min-h-11 items-center gap-2 border border-white/30 px-4 font-cond text-sm font-extrabold uppercase tracking-[.08em] text-white transition-colors hover:border-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow";
+  "inline-flex min-h-11 items-center gap-2 border border-white/30 px-4 font-cond text-sm font-extrabold uppercase tracking-[.08em] text-white transition-opacity hover:border-brand hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright";
 
 const COPIED_MESSAGE_MS = 2500;
 
@@ -37,7 +37,7 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow">Compartir</p>
+      <p className="font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-accent-bright">Compartir</p>
       <div className="flex flex-wrap gap-2">
         <a href={`https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`} aria-label="Compartir en WhatsApp" {...external}>
           <MessageCircle aria-hidden className="size-4" /> WhatsApp
@@ -53,7 +53,7 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
         </button>
       </div>
       {/* Siempre en el HTML (vacío hasta copiar): así el lector de pantalla anuncia el cambio. */}
-      <p role="status" aria-live="polite" className="min-h-5 font-cond text-sm font-bold uppercase tracking-[.08em] text-yellow">
+      <p role="status" aria-live="polite" className="min-h-5 font-cond text-sm font-bold uppercase tracking-[.08em] text-accent-bright">
         {message}
       </p>
     </div>

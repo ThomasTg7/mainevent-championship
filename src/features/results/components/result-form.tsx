@@ -116,7 +116,7 @@ export function ResultForm({ bout, techniques, initial = EMPTY_DRAFT, onSubmit, 
               }`}
             >
               <span className="flex items-center gap-2 font-medium">
-                <input type="radio" name={`${uid}-outcome`} value={value} checked={draft.outcome === value} onChange={() => chooseOutcome(value)} className="size-4 accent-[#FFB400]" />
+                <input type="radio" name={`${uid}-outcome`} value={value} checked={draft.outcome === value} onChange={() => chooseOutcome(value)} className="size-4 accent-[#C51B3A]" />
                 {value === "red_win" ? `Gana ${bout.redName}` : value === "blue_win" ? `Gana ${bout.blueName}` : value === "draw" ? "Empate" : "Sin resultado"}
               </span>
               {kind !== "neutral" ? <span className="pl-6 text-xs text-muted-foreground">{kind === "red" ? "Esquina roja" : "Esquina azul"}</span> : null}
@@ -164,7 +164,7 @@ export function ResultForm({ bout, techniques, initial = EMPTY_DRAFT, onSubmit, 
             <div className="grid gap-x-4 sm:grid-cols-2">
               {BONUSES.map((bonus) => (
                 <label key={bonus} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
-                  <input type="checkbox" checked={draft.bonuses.includes(bonus)} onChange={() => toggleBonus(bonus)} className="size-5 accent-[#FFB400]" />
+                  <input type="checkbox" checked={draft.bonuses.includes(bonus)} onChange={() => toggleBonus(bonus)} className="size-5 accent-[#C51B3A]" />
                   {BONUS_LABELS[bonus]}
                 </label>
               ))}

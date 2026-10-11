@@ -39,7 +39,7 @@ export function FighterInfoTabs({ details, socials }: FighterInfoTabsProps) {
           <TabsTrigger
             key={item.value}
             value={item.value}
-            className="h-11 flex-1 px-5 font-cond text-base font-extrabold uppercase tracking-[.12em] text-muted-foreground transition-colors after:hidden data-active:text-white"
+            className="h-11 flex-1 px-5 font-cond text-base font-extrabold uppercase tracking-[.12em] text-muted-foreground transition-opacity after:hidden data-active:text-white"
           >
             {item.label}
           </TabsTrigger>
@@ -47,7 +47,7 @@ export function FighterInfoTabs({ details, socials }: FighterInfoTabsProps) {
         {/* Barra deslizante: mide la mitad del ancho (dos pestañas iguales) y viaja con `translateX`. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-px left-0 h-[3px] w-1/2 bg-yellow transition-transform duration-300 ease-gc motion-reduce:transition-none"
+          className="pointer-events-none absolute -bottom-px left-0 h-[3px] w-1/2 bg-brand transition-transform duration-300 ease-ofl motion-reduce:transition-none"
           style={{ transform: `translateX(${activeIndex * 100}%)` }}
         />
       </TabsList>
@@ -55,7 +55,7 @@ export function FighterInfoTabs({ details, socials }: FighterInfoTabsProps) {
         <TabsContent
           key={item.value}
           value={item.value}
-          className={`text-base motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-300 motion-safe:ease-gc ${
+          className={`text-base motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-300 motion-safe:ease-ofl ${
             direction === "next" ? "motion-safe:slide-in-from-right-6" : "motion-safe:slide-in-from-left-6"
           }`}
         >

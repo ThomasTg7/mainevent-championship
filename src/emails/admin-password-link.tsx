@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import { Body, Button, Container, Head, Heading, Html, Preview, Text } from "@react-email/components";
 
 type AdminPasswordLinkEmailProps = {
@@ -7,15 +8,15 @@ type AdminPasswordLinkEmailProps = {
 
 const COPY = {
   invitation: {
-    preview: "Te dieron acceso al panel de Guerra Campal",
+    preview: `Te dieron acceso al panel de ${BRAND.name}`,
     title: "Te dieron acceso al panel",
-    body: "Crea tu contraseña para entrar al panel de administración de Guerra Campal.",
+    body: `Crea tu contraseña para entrar al panel de administración de ${BRAND.name}.`,
     action: "Crear contraseña",
   },
   reset: {
-    preview: "Restablece tu contraseña del panel de Guerra Campal",
+    preview: `Restablece tu contraseña del panel de ${BRAND.name}`,
     title: "Restablece tu contraseña",
-    body: "Pediste restablecer tu contraseña del panel de Guerra Campal.",
+    body: `Pediste restablecer tu contraseña del panel de ${BRAND.name}.`,
     action: "Elegir nueva contraseña",
   },
 } as const;
@@ -33,7 +34,7 @@ export function AdminPasswordLinkEmail({ url, kind }: AdminPasswordLinkEmailProp
           <Text>{copy.body}</Text>
           <Button
             href={url}
-            style={{ backgroundColor: "#ffb400", color: "#000000", padding: "12px 20px", fontWeight: 700 }}
+            style={{ backgroundColor: BRAND.colors.primary, color: "#ffffff", padding: "12px 20px", fontWeight: 700 }}
           >
             {copy.action}
           </Button>

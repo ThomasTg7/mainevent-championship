@@ -14,7 +14,7 @@ type FighterFiltersProps = {
 };
 
 const controlClass =
-  "h-11 w-full min-w-0 border border-border bg-surface px-3 font-cond text-[15px] font-semibold uppercase tracking-[.05em] text-white outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-yellow focus-visible:ring-2 focus-visible:ring-yellow/50 [&>option]:bg-black";
+  "h-11 w-full min-w-0 border border-border bg-surface px-3 font-cond text-[15px] font-semibold uppercase tracking-[.05em] text-white outline-none transition-opacity placeholder:text-muted-foreground focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-accent-bright/50 [&>option]:bg-black";
 const labelClass = "flex flex-col gap-1.5 font-cond text-[12px] font-extrabold uppercase tracking-[.16em] text-muted-foreground";
 
 /**
@@ -140,7 +140,7 @@ export function FighterFilters({ filters, divisions, countries }: FighterFilters
       </label>
       {/* Sin JavaScript no hay cambio automático: el botón aplica los filtros. Con JavaScript queda oculto. */}
       <noscript>
-        <button type="submit" className="col-span-2 h-11 bg-yellow px-6 font-cond font-extrabold uppercase tracking-[.08em] text-black">
+        <button type="submit" className="col-span-2 h-11 bg-brand px-6 font-cond font-extrabold uppercase tracking-[.08em] text-white">
           Filtrar
         </button>
       </noscript>

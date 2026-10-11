@@ -69,7 +69,7 @@ describe("inbox service", () => {
       });
       expect(row?.consentAt.toISOString()).toBe(NOW.toISOString());
       expect(recorder.sent).toHaveLength(1);
-      expect(recorder.sent[0]).toMatchObject({ to: "avisos@guerracampal.cl", subject: "[Guerra Campal] Nueva postulación: Tomás Vera" });
+      expect(recorder.sent[0]).toMatchObject({ to: "avisos@guerracampal.cl", subject: "[Open Fight Latam] Nueva postulación: Tomás Vera" });
     });
 
     it("the notification email carries the data and a link to the inbox", async () => {
@@ -202,7 +202,7 @@ describe("inbox service", () => {
 
       const [row] = await saved();
       expect(row).toMatchObject({ kind: "sponsorship", name: "Kaizen Fightwear", email: "ana@kaizen.example.cl", phone: null, payload: { contactName: "Ana Soto", message: "Queremos ser patrocinador oficial." } });
-      expect(recorder.sent[0]).toMatchObject({ to: "avisos@guerracampal.cl", subject: "[Guerra Campal] Contacto de patrocinio: Kaizen Fightwear" });
+      expect(recorder.sent[0]).toMatchObject({ to: "avisos@guerracampal.cl", subject: "[Open Fight Latam] Contacto de patrocinio: Kaizen Fightwear" });
     });
 
     it("needs the company, a contact person and consent", async () => {

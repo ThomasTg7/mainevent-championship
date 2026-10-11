@@ -83,10 +83,10 @@ export function sellsTickets(event: { eventStatus: EventStatus; startsAt: string
 }
 
 /** La etiqueta del estado en la portada del evento: lo único que se dice del evento además de su nombre. */
-export function eventStatusTag(status: EventStatus): { tone: "yellow" | "red" | "outline"; label: string } {
+export function eventStatusTag(status: EventStatus): { tone: "brand" | "red" | "outline"; label: string } {
   switch (status) {
     case "scheduled":
-      return { tone: "yellow", label: "Próximo" };
+      return { tone: "brand", label: "Próximo" };
     case "live":
       return { tone: "red", label: "● En vivo" };
     case "completed":

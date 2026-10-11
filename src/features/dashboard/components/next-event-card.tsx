@@ -26,12 +26,12 @@ export function NextEventCard({ event }: { event: Dashboard["nextEvent"] }) {
   }
 
   return (
-    <section aria-labelledby="next-event-title" data-slot="next-event" className="flex flex-col gap-4 border border-border bg-card p-5 sm:p-6">
+    <section aria-labelledby="next-event-title" data-slot="next-event" className="ofl-admin-section flex flex-col gap-4 border-t-2 border-t-brand p-5 sm:p-6">
       <div>
         <p className="mb-1 flex items-center gap-1.5 text-sm text-muted-foreground">
           <Calendar aria-hidden className="size-4" /> Próximo evento
         </p>
-        <h2 id="next-event-title" className="text-2xl font-semibold break-words">
+        <h2 id="next-event-title" className="font-cond text-3xl font-bold break-words">
           {event.name}
         </h2>
         <p className="mt-1 text-muted-foreground">

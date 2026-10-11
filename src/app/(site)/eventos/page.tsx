@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui-gc/button";
@@ -12,7 +13,7 @@ export async function generateMetadata({ searchParams }: PageProps<"/eventos">):
   const page = parsePageParam((await searchParams).pagina);
   return sitePageMetadata({
     title: "Eventos",
-    description: "Los próximos eventos de Guerra Campal con su cartelera y entradas, y los resultados de las veladas anteriores.",
+    description: `Los próximos eventos de ${BRAND.name} con su cartelera y entradas, y los resultados de las veladas anteriores.`,
     // Las páginas de resultados anteriores son listas distintas: cada una se canoniza a sí misma.
     path: page > 1 ? `/eventos?pagina=${page}` : "/eventos",
   });

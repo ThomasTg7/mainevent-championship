@@ -29,7 +29,7 @@ export function FightersPin({ fighters }: { fighters: HomeFighterHighlight[] }) 
             title="Peleadores"
             titleId="home-fighters-title"
             action={
-              <Link href="/peleadores" className="inline-flex min-h-11 items-center border-b-2 border-yellow pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">
+              <Link href="/peleadores" className="inline-flex min-h-11 items-center border-b-2 border-brand pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">
                 Ver todos <span aria-hidden>→</span>
               </Link>
             }
@@ -42,7 +42,7 @@ export function FightersPin({ fighters }: { fighters: HomeFighterHighlight[] }) 
             </li>
           ))}
           <li className="w-[min(78vw,300px)] shrink-0 snap-start md:w-[340px]">
-            <Link href="/peleadores" className="grid h-full min-h-[300px] place-items-center bg-yellow p-6 text-center text-black outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+            <Link href="/peleadores" className="grid h-full min-h-[300px] place-items-center bg-brand p-6 text-center text-white outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
               <span>
                 <span className="block font-display text-[clamp(44px,8vw,58px)] uppercase leading-[.9]">
                   Todo el

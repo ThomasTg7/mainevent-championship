@@ -13,7 +13,7 @@ const COLUMN_FACADE_CLASS: Record<EmbedProvider, string> = {
 };
 
 const PLAY_BADGE_CLASS =
-  "flex size-16 items-center justify-center bg-yellow text-black shadow-lg transition-transform duration-200 motion-safe:group-hover:scale-110 sm:size-20";
+  "flex size-16 items-center justify-center bg-brand text-white shadow-lg transition-transform duration-200 motion-safe:group-hover:scale-110 sm:size-20";
 
 /** YouTube: la imagen fija del video y un «play» grande; al tocarlo, el video empieza ahí mismo. */
 function YouTubePoster({ embed, onPlay }: { embed: Embed; onPlay: () => void }) {
@@ -22,7 +22,7 @@ function YouTubePoster({ embed, onPlay }: { embed: Embed; onPlay: () => void }) 
       type="button"
       onClick={onPlay}
       aria-label="Reproducir video de YouTube"
-      className="group relative block aspect-video w-full overflow-hidden bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow"
+      className="group relative block aspect-video w-full overflow-hidden bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- imagen fija de YouTube (i.ytimg.com, sin cookies); next/image la volvería a pedir y procesar */}
       <img src={youtubeThumbnailUrl(embed.id)} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
@@ -50,7 +50,7 @@ function NetworkCard({ embed, onPlay }: { embed: Embed; onPlay: () => void }) {
       <button
         type="button"
         onClick={onPlay}
-        className="inline-flex min-h-12 items-center gap-2 bg-yellow px-6 font-cond text-base font-extrabold tracking-[0.08em] text-black uppercase transition-colors hover:bg-yellow-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="inline-flex min-h-12 items-center gap-2 bg-brand px-6 font-cond text-base font-extrabold tracking-[0.08em] text-white uppercase transition-opacity hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <Play aria-hidden className="size-4 fill-current" /> Ver en {name}
       </button>
@@ -89,7 +89,7 @@ export function EmbedFacade({ embed }: { embed: Embed }) {
         href={embedCanonicalUrl(embed)}
         target="_blank"
         rel="noopener noreferrer nofollow"
-        className="inline-flex min-h-11 items-center justify-center gap-1.5 self-center px-2 text-sm text-white/70 underline underline-offset-4 hover:text-yellow"
+        className="inline-flex min-h-11 items-center justify-center gap-1.5 self-center px-2 text-sm text-white/70 underline underline-offset-4 hover:text-accent-bright"
       >
         Abrir en {name} <ExternalLink aria-hidden className="size-3.5" />
       </a>

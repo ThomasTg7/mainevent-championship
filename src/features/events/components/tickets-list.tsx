@@ -29,7 +29,7 @@ export function TicketsList({ events }: { events: EventCardDTO[] }) {
         return (
           <section key={event.id} data-event={event.slug} aria-labelledby={`tickets-${event.slug}`} className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-14">
             <div className="flex flex-col gap-3">
-              <p className="flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">
+              <p className="flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-accent-bright before:block before:h-[3px] before:w-7 before:bg-brand">
                 {formatShortDate(start)} · {formatTime(start)} hrs
               </p>
               <h2 id={`tickets-${event.slug}`} className="font-display text-[clamp(38px,6vw,80px)] uppercase leading-[.9] text-white">
@@ -37,7 +37,7 @@ export function TicketsList({ events }: { events: EventCardDTO[] }) {
               </h2>
               {main ? (
                 <p className="font-cond text-lg font-bold uppercase tracking-[.06em] text-white">
-                  {main.red.lastName} <span className="text-yellow">vs</span> {main.blue.lastName}
+                  {main.red.lastName} <span className="text-accent-bright">vs</span> {main.blue.lastName}
                 </p>
               ) : null}
               <p className="font-cond text-base font-semibold uppercase tracking-[.06em] text-muted-foreground">
@@ -66,7 +66,7 @@ export function TicketsList({ events }: { events: EventCardDTO[] }) {
                   <TicketTiers tiers={event.ticketTiers} ticketUrl={event.ticketUrl} eventName={event.name} />
                   {event.ticketPoints ? (
                     <div data-slot="ticket-points">
-                      <h3 className="mb-2 font-cond text-[13px] font-extrabold uppercase tracking-[.16em] text-yellow">Puntos de venta</h3>
+                      <h3 className="mb-2 font-cond text-[13px] font-extrabold uppercase tracking-[.16em] text-accent-bright">Puntos de venta</h3>
                       <p className="max-w-prose whitespace-pre-line text-muted-foreground">{event.ticketPoints}</p>
                     </div>
                   ) : null}

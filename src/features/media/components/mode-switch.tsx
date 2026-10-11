@@ -25,7 +25,7 @@ export function ModeSwitch({ value, onChange }: ModeSwitchProps) {
           aria-pressed={value === mode}
           onClick={() => onChange(mode)}
           className={cn(
-            "flex min-h-11 items-center justify-center gap-2 px-3 text-sm font-semibold uppercase tracking-wide transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+            "flex min-h-11 items-center justify-center gap-2 px-3 text-sm font-semibold uppercase tracking-wide transition-opacity outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
             value === mode ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
           )}
         >

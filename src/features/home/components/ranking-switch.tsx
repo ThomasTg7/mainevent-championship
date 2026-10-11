@@ -47,8 +47,8 @@ export function RankingSwitch({ panels, kickers }: RankingSwitchProps) {
                   aria-controls={`${uid}-panel-${level}`}
                   onClick={() => setActive(level)}
                   className={cn(
-                    "min-h-11 px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] outline-none transition-colors focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white",
-                    active === level ? "bg-yellow text-black" : "text-muted-foreground hover:text-white",
+                    "min-h-11 px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] outline-none transition-opacity focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white",
+                    active === level ? "bg-brand text-white" : "text-muted-foreground hover:text-white",
                   )}
                 >
                   {LABELS[level]}
@@ -64,7 +64,7 @@ export function RankingSwitch({ panels, kickers }: RankingSwitchProps) {
         </div>
       ))}
       <p className="mt-8">
-        <Link href={active === "amateur" ? "/rankings?nivel=amateur" : "/rankings"} className="inline-flex min-h-11 items-center border-b-2 border-yellow pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">
+        <Link href={active === "amateur" ? "/rankings?nivel=amateur" : "/rankings"} className="inline-flex min-h-11 items-center border-b-2 border-brand pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">
           Ver todos los rankings <span aria-hidden>→</span>
         </Link>
       </p>

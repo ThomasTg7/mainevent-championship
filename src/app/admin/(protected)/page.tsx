@@ -42,7 +42,7 @@ export default async function AdminHomePage() {
       {dashboard.rankingWarnings.length > 0 ? (
         <div className="flex flex-col items-start gap-3">
           <RankingWarnings warnings={dashboard.rankingWarnings} />
-          <Link href={adminPath("/rankings")} className="inline-flex min-h-11 items-center font-medium underline underline-offset-4 hover:text-primary">
+          <Link href={adminPath("/rankings")} className="inline-flex min-h-11 items-center font-medium underline underline-offset-4 hover:text-accent-bright">
             Ir a Rankings y títulos
           </Link>
         </div>

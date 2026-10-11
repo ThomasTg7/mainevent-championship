@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -70,7 +71,7 @@ export async function generateMetadata({ params, searchParams }: PageProps<"/pel
   const name = `${fighter.firstName} ${fighter.lastName}`;
   return sitePageMetadata({
     title: `${name}${fighter.nickname ? ` «${fighter.nickname}»` : ""}`,
-    description: `Ficha de ${name}, peleador de ${divisionTitle(fighter.division)} en Guerra Campal: récord, datos y redes.`,
+    description: `Ficha de ${name}, peleador de ${divisionTitle(fighter.division)} en ${BRAND.name}: récord, datos y redes.`,
     path: `/peleadores/${fighter.slug}`,
     noindex: isPreview,
   });

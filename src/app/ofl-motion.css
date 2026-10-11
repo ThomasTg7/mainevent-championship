@@ -1,0 +1,33 @@
+/* All custom motion changes only transform and opacity. */
+@keyframes ofl-page-enter {
+  from { opacity: .8; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ofl-brand-enter {
+  from { opacity: 0; transform: translateY(24px) scale(.94); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ofl-stroke-enter {
+  from { opacity: 0; transform: translate(24px, -40px); }
+  to { opacity: 1; transform: none; }
+}
+
+.ofl-page-enter {
+  animation: ofl-page-enter 280ms var(--ease-ofl) both;
+}
+
+.ofl-intro-logo { animation: ofl-brand-enter 650ms var(--ease-ofl) both; }
+.ofl-intro-mark { animation: ofl-stroke-enter 800ms var(--ease-ofl) both; }
+
+.ofl-intro-leaving {
+  opacity: 0;
+  transform: translateY(-16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ofl-page-enter,
+  .ofl-intro-logo,
+  .ofl-intro-mark { animation: none; transform: none; }
+}

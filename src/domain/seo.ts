@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import type { NewsArticle, Offer, Organization, Person, SportsEvent, Thing, WebSite, WithContext } from "schema-dts";
 import { pickMainBout } from "@/features/events/main-bout";
@@ -13,10 +14,10 @@ import { countryName } from "./units";
 
 // Metadatos y datos estructurados (JSON-LD) del sitio. Todo es puro: recibe lo que ya leyó la página y devuelve datos.
 
-export const SITE_NAME = "Guerra Campal";
+export const SITE_NAME = BRAND.name;
 /** La plantilla del título del sitio: el layout la aplica a cada `title` (las páginas escriben solo su nombre). */
 export const TITLE_TEMPLATE = `%s | ${SITE_NAME}`;
-export const HOME_TITLE = `${SITE_NAME} — MMA en Chile`;
+export const HOME_TITLE = `${SITE_NAME} — MMA`;
 export const DESCRIPTION_MAX = 160;
 
 /** Imagen de marca de reserva (1200×630) para lo que no tiene una propia; vive en `public/`. */
@@ -58,7 +59,7 @@ export function ogImage(media: MediaDTO | null, siteUrl: string, width: number =
 }
 
 export type PageMetadataInput = {
-  /** Sin el sufijo «| Guerra Campal» (lo pone la plantilla del layout); `{ absolute }` lo deja tal cual (home). */
+  /** Sin el sufijo de marca (lo pone la plantilla del layout); `{ absolute }` lo deja tal cual (home). */
   title: string | { absolute: string };
   description: string;
   /** Ruta canónica sin dominio (`/peleadores`); el layout fija `metadataBase`. */

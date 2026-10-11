@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import { Body, Button, Container, Head, Heading, Html, Preview, Section, Text } from "@react-email/components";
 
 export type NotificationRow = { label: string; value: string };
@@ -27,7 +28,7 @@ export function InboxNotificationEmail({ title, rows, inboxUrl }: InboxNotificat
               </Text>
             ))}
           </Section>
-          <Button href={inboxUrl} style={{ backgroundColor: "#ffb400", color: "#000000", padding: "12px 20px", fontWeight: 700, marginTop: "16px" }}>
+          <Button href={inboxUrl} style={{ backgroundColor: BRAND.colors.primary, color: "#ffffff", padding: "12px 20px", fontWeight: 700, marginTop: "16px" }}>
             Abrir en la bandeja
           </Button>
           <Text style={{ color: "#a3a3a3", fontSize: "13px" }}>Si el botón no funciona, copia este enlace en tu navegador: {inboxUrl}</Text>

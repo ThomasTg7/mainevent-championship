@@ -23,7 +23,7 @@ export function RankingScopeList({ items }: { items: ScopeOverview[] }) {
               <p className="text-muted-foreground">Título vacante.</p>
             ) : (
               <p className="flex items-center gap-2">
-                <Crown aria-hidden className="size-4 text-primary" />
+                <Crown aria-hidden className="size-4 text-accent-bright" />
                 <span>
                   Campeón: <span className="font-medium">{championName}</span>
                 </span>

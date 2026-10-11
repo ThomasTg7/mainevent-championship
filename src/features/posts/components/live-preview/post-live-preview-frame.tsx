@@ -19,13 +19,20 @@ export function PostLivePreviewFrame({ shareUrl }: { shareUrl: string }) {
   const [post, setPost] = useState<PostDTO | null>(null);
 
   useEffect(() => {
+    // The iframe can hydrate before its parent attaches the message listener.
+    const requestPost = () => window.parent.postMessage({ type: LIVE_PREVIEW_READY }, window.location.origin);
+    const retry = window.setInterval(requestPost, 250);
     function receive(event: MessageEvent) {
       if (event.origin !== window.location.origin || event.source !== window.parent || !isLivePreviewMessage(event.data)) return;
+      window.clearInterval(retry);
       setPost(event.data.post);
     }
     window.addEventListener("message", receive);
-    window.parent.postMessage({ type: LIVE_PREVIEW_READY }, window.location.origin);
-    return () => window.removeEventListener("message", receive);
+    requestPost();
+    return () => {
+      window.clearInterval(retry);
+      window.removeEventListener("message", receive);
+    };
   }, []);
 
   if (!post) {
@@ -33,7 +40,7 @@ export function PostLivePreviewFrame({ shareUrl }: { shareUrl: string }) {
   }
 
   return (
-    <div onClickCapture={blockNavigation} className="flex min-h-full flex-col">
+    <div onClickCapture={blockNavigation} className="ofl-site flex min-h-full flex-col">
       <Header />
       <main className="flex-1">
         <article>

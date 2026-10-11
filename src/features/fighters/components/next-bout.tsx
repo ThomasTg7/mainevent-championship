@@ -7,15 +7,15 @@ import { FighterFace } from "./fighter-photo";
 type NextBoutProps = { nextBout: NextBoutDTO | null; lastFight: FightHistoryRow | null };
 
 const RESULT_TEXT = { win: "Victoria", loss: "Derrota", draw: "Empate", no_contest: "Sin resultado" } as const;
-const RESULT_CLASS = { win: "bg-yellow text-black", loss: "bg-neutral-700 text-white", draw: "bg-neutral-800 text-neutral-200", no_contest: "bg-neutral-800 text-neutral-200" } as const;
+const RESULT_CLASS = { win: "bg-brand text-white", loss: "bg-neutral-700 text-white", draw: "bg-neutral-800 text-neutral-200", no_contest: "bg-neutral-800 text-neutral-200" } as const;
 
 function OpponentPhoto({ opponent }: { opponent: OpponentDTO }) {
   const photo = (
-    <div className="relative h-[104px] w-[84px] overflow-hidden border-b-4 border-yellow bg-surface sm:h-[132px] sm:w-[106px]">
+    <div className="relative h-[104px] w-[84px] overflow-hidden border-b-4 border-brand bg-surface sm:h-[132px] sm:w-[106px]">
       <FighterFace
         fighter={opponent}
         sizes="(min-width: 640px) 106px, 84px"
-        silhouetteClassName="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)]"
+        silhouetteClassName="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(197,155,229,.55)]"
       />
     </div>
   );
@@ -51,7 +51,7 @@ function BoutCard({ kicker, opponent, chips, event }: { kicker: string; opponent
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
       <OpponentPhoto opponent={opponent} />
       <div className="min-w-0 flex-1">
-        <h2 id="fighter-next-bout-heading" className="font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow">
+        <h2 id="fighter-next-bout-heading" className="font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-accent-bright">
           {kicker}
         </h2>
         <p className="mt-1.5 font-display text-[clamp(26px,4vw,40px)] uppercase leading-none text-white">

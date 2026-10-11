@@ -31,32 +31,32 @@ async function jsonLd(page: Page): Promise<Record<string, unknown>[]> {
 }
 
 const FIXED_PAGES = [
-  { path: "/eventos", title: "Eventos | Guerra Campal" },
-  { path: "/peleadores", title: "Peleadores | Guerra Campal" },
-  { path: "/rankings", title: "Rankings | Guerra Campal" },
-  { path: "/noticias", title: "Noticias | Guerra Campal" },
-  { path: "/entradas", title: "Entradas | Guerra Campal" },
-  { path: "/quiero-pelear", title: "Quiero pelear | Guerra Campal" },
-  { path: "/patrocinar", title: "Patrocinar | Guerra Campal" },
-  { path: "/nosotros", title: "Nosotros | Guerra Campal" },
-  { path: "/contacto", title: "Contacto | Guerra Campal" },
-  { path: "/privacidad", title: "Política de privacidad | Guerra Campal" },
+  { path: "/eventos", title: "Eventos | Open Fight Latam" },
+  { path: "/peleadores", title: "Peleadores | Open Fight Latam" },
+  { path: "/rankings", title: "Rankings | Open Fight Latam" },
+  { path: "/noticias", title: "Noticias | Open Fight Latam" },
+  { path: "/entradas", title: "Entradas | Open Fight Latam" },
+  { path: "/quiero-pelear", title: "Quiero pelear | Open Fight Latam" },
+  { path: "/patrocinar", title: "Patrocinar | Open Fight Latam" },
+  { path: "/nosotros", title: "Nosotros | Open Fight Latam" },
+  { path: "/contacto", title: "Contacto | Open Fight Latam" },
+  { path: "/privacidad", title: "Política de privacidad | Open Fight Latam" },
 ];
 
 test("la home tiene su título, canónica, imagen para compartir y los datos de la promotora", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "es-CL");
-  expect(await head.title(page)).toBe("Guerra Campal — MMA en Chile");
+  expect(await head.title(page)).toBe("Open Fight Latam — MMA");
   // Next escribe la raíz sin la barra final: es la misma URL.
   expect(await head.canonical(page)).toBe(SITE);
-  expect(await head.property(page, "og:title")).toBe("Guerra Campal — MMA en Chile");
+  expect(await head.property(page, "og:title")).toBe("Open Fight Latam — MMA");
   expect(await head.property(page, "og:image")).toBe(BRAND_IMAGE);
   await expect(head.robots(page)).toHaveCount(0);
 
   const data = await jsonLd(page);
   const organization = data.find((item) => item["@type"] === "Organization");
-  expect(organization).toMatchObject({ name: "Guerra Campal", url: SITE });
-  expect(data.find((item) => item["@type"] === "WebSite")).toMatchObject({ name: "Guerra Campal", inLanguage: "es-CL" });
+  expect(organization).toMatchObject({ name: "Open Fight Latam", url: SITE });
+  expect(data.find((item) => item["@type"] === "WebSite")).toMatchObject({ name: "Open Fight Latam", inLanguage: "es-CL" });
 });
 
 for (const { path, title } of FIXED_PAGES) {
@@ -93,30 +93,30 @@ test("el listado de peleadores canoniza sus filtros y marca la búsqueda como no
 
 test("el ranking amateur es otra página con su propia canónica y título", async ({ page }) => {
   await page.goto("/rankings?nivel=amateur");
-  expect(await head.title(page)).toBe("Rankings amateur | Guerra Campal");
+  expect(await head.title(page)).toBe("Rankings amateur | Open Fight Latam");
   expect(await head.canonical(page)).toBe(`${SITE}/rankings?nivel=amateur`);
 
   await page.goto("/rankings?nivel=inventado&otro=1");
-  expect(await head.title(page)).toBe("Rankings | Guerra Campal");
+  expect(await head.title(page)).toBe("Rankings | Open Fight Latam");
   expect(await head.canonical(page)).toBe(`${SITE}/rankings`);
 });
 
 test("el listado de noticias es autocanónico solo con una categoría que existe y una página válida", async ({ page }) => {
   await page.goto("/noticias?categoria=resultados");
-  expect(await head.title(page)).toBe("Resultados · Noticias | Guerra Campal");
+  expect(await head.title(page)).toBe("Resultados · Noticias | Open Fight Latam");
   expect(await head.canonical(page)).toBe(`${SITE}/noticias?categoria=resultados`);
 
   await page.goto("/noticias?pagina=2");
   expect(await head.canonical(page)).toBe(`${SITE}/noticias?pagina=2`);
 
   await page.goto("/noticias?categoria=inventada&pagina=1&utm_source=x");
-  expect(await head.title(page)).toBe("Noticias | Guerra Campal");
+  expect(await head.title(page)).toBe("Noticias | Open Fight Latam");
   expect(await head.canonical(page)).toBe(`${SITE}/noticias`);
 });
 
 test("la ficha de un peleador lleva su JSON-LD de Person y no se indexa en vista previa", async ({ page }) => {
   await page.goto("/peleadores/matias-perez");
-  expect(await head.title(page)).toBe("Matías Pérez «El Toro» | Guerra Campal");
+  expect(await head.title(page)).toBe("Matías Pérez «El Toro» | Open Fight Latam");
   expect(await head.canonical(page)).toBe(`${SITE}/peleadores/matias-perez`);
   await expect(head.robots(page)).toHaveCount(0);
 
@@ -130,8 +130,8 @@ test("un nombre con comillas y una etiqueta de cierre se escapa en las etiquetas
   const { slug } = await createFighter(db, { firstName: "Matías", lastName: "Pérez Comillas", nickname, gender: "male", nationality: "CL", divisionId: ligero!.id, status: "published" }, "e2e");
 
   await page.goto(`/peleadores/${slug}`);
-  expect(await head.title(page)).toBe(`Matías Pérez Comillas «${nickname}» | Guerra Campal`);
-  expect(await head.property(page, "og:title")).toBe(`Matías Pérez Comillas «${nickname}» | Guerra Campal`);
+  expect(await head.title(page)).toBe(`Matías Pérez Comillas «${nickname}» | Open Fight Latam`);
+  expect(await head.property(page, "og:title")).toBe(`Matías Pérez Comillas «${nickname}» | Open Fight Latam`);
   const person = (await jsonLd(page)).find((item) => item["@type"] === "Person");
   expect(person).toMatchObject({ name: "Matías Pérez Comillas", alternateName: nickname });
 });
@@ -153,14 +153,14 @@ test("la vista previa de un borrador lleva noindex y ningún dato estructurado",
 test("un evento próximo lleva SportsEvent con su fecha en hora de Chile, lugar y entradas en CLP", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-5");
   expect(await head.canonical(page)).toBe(`${SITE}/eventos/guerra-campal-5`);
-  expect(await head.title(page)).toMatch(/^Guerra Campal 5 \| Guerra Campal$/);
+  expect(await head.title(page)).toMatch(/^Guerra Campal 5 \| Open Fight Latam$/);
 
   const event = (await jsonLd(page)).find((item) => item["@type"] === "SportsEvent");
   expect(event).toMatchObject({
     name: "Guerra Campal 5",
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    organizer: { name: "Guerra Campal" },
+    organizer: { name: "Open Fight Latam" },
     location: { "@type": "Place" },
   });
   expect(event!.startDate).toMatch(/T\d\d:\d\d:\d\d-0[34]:00$/);
@@ -192,7 +192,7 @@ test("una noticia lleva NewsArticle con su fecha y sección, y og:type article",
   expect(await head.property(page, "og:image")).toBe(BRAND_IMAGE);
 
   const article = (await jsonLd(page)).find((item) => item["@type"] === "NewsArticle");
-  expect(article).toMatchObject({ headline: "Pérez defiende el cinturón ante Soto", articleSection: "Anuncios", author: { name: "Guerra Campal" } });
+  expect(article).toMatchObject({ headline: "Pérez defiende el cinturón ante Soto", articleSection: "Anuncios", author: { name: "Open Fight Latam" } });
   expect(typeof article!.datePublished).toBe("string");
   expect(typeof article!.dateModified).toBe("string");
 });
@@ -209,7 +209,7 @@ test("una noticia con portada usa su portada (variante de 1600 px) como imagen p
   const { slug } = await insertPost(db, { slug: "noticia-e2e-con-portada", title: 'Matías "El Toro" Pérez gana por sumisión', coverMediaId: coverId });
 
   await page.goto(`/noticias/${slug}`);
-  expect(await head.title(page)).toBe('Matías "El Toro" Pérez gana por sumisión | Guerra Campal');
+  expect(await head.title(page)).toBe('Matías "El Toro" Pérez gana por sumisión | Open Fight Latam');
   const image = await head.property(page, "og:image");
   expect(image).toContain("/media/e2e-seo/cover-1600.webp");
   expect(image!.startsWith("http")).toBe(true);

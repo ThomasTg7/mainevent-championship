@@ -31,7 +31,7 @@ export function SponsorLogo({ sponsor, sizes, className, muted = false, decorati
       rel="noopener noreferrer sponsored"
       aria-label={decorative ? undefined : `${sponsor.name} (se abre en otra pestaña)`}
       tabIndex={decorative ? -1 : undefined}
-      className={cn("group/logo block outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-yellow", className)}
+      className={cn("group/logo block outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-bright", className)}
     >
       {image}
     </a>

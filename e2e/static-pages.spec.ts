@@ -40,7 +40,7 @@ test("el Instagram guardado en Configuración queda enlazado en el footer", asyn
 
   await page.goto("/");
   const footer = page.getByRole("contentinfo");
-  await expect(footer.getByRole("link", { name: "Instagram" })).toHaveAttribute("href", "https://www.instagram.com/guerracampal_e2e");
+  await expect(footer.getByRole("link", { name: "Instagram", exact: true })).toHaveAttribute("href", "https://www.instagram.com/guerracampal_e2e");
   // Lo que no tiene perfil no aparece.
   await expect(footer.getByRole("link", { name: "TikTok" })).toHaveCount(0);
 });

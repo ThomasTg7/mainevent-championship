@@ -26,16 +26,16 @@ export function FighterHero({ fighter, figures, rankingTags = [] }: FighterHeroP
         <div className="mx-auto flex w-full max-w-[1320px] flex-1 flex-col px-[clamp(16px,4vw,64px)] lg:grid lg:grid-cols-[1.15fr_.85fr] lg:gap-8">
           <div className="relative z-10 order-2 pb-6 pt-2 short:pb-3 short:pt-0 lg:order-1 lg:self-end lg:pb-12 lg:pt-8">
             <div className="mb-5 flex flex-wrap gap-2 short:mb-2 short:gap-1.5" data-slot="fighter-tags">
-              <Tag tone="yellow">{divisionTitle(fighter.division)}</Tag>
+              <Tag tone="brand">{divisionTitle(fighter.division)}</Tag>
               <Tag tone="outline">{CAREER_STATUS_LABELS[fighter.careerStatus]}</Tag>
               {rankingTags.map((tag) => (
-                <Tag key={tag.label} tone={tag.isTitle ? "yellow" : "outline"}>
+                <Tag key={tag.label} tone={tag.isTitle ? "brand" : "outline"}>
                   {tag.isTitle ? `★ ${tag.label}` : tag.label}
                 </Tag>
               ))}
             </div>
             {fighter.nickname ? (
-              <p className="font-cond text-[clamp(16px,2.4vw,24px)] font-bold tracking-[.12em] text-yellow">“{fighter.nickname}”</p>
+              <p className="font-cond text-[clamp(16px,2.4vw,24px)] font-bold tracking-[.12em] text-accent-bright">“{fighter.nickname}”</p>
             ) : null}
             <h1 id="fighter-name" className="my-2 font-display text-[clamp(38px,7.5vw,104px)] uppercase leading-[.95] text-white short:my-1 short:text-[34px]">
               <FighterName firstName={fighter.firstName} lastName={fighter.lastName} />
@@ -62,7 +62,7 @@ export function FighterHero({ fighter, figures, rankingTags = [] }: FighterHeroP
                 fighter={fighter}
                 sizes={FIGHTER_HERO_SIZES}
                 priority
-                silhouetteClassName="absolute bottom-0 left-1/2 h-[96%] -translate-x-1/2 text-black drop-shadow-[0_0_3px_rgba(255,180,0,.6)]"
+                silhouetteClassName="absolute bottom-0 left-1/2 h-[96%] -translate-x-1/2 text-black drop-shadow-[0_0_3px_rgba(197,155,229,.6)]"
               />
             </HeroParallax>
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black to-transparent lg:hidden" />

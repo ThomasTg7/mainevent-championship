@@ -29,17 +29,17 @@ test("«Ver cartelera» se desliza hasta la cartelera en vez de saltar", async (
   await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 10_000 }).toBeGreaterThanOrEqual(Math.round(target) - 4);
 });
 
-test("las pestañas de bloque son doradas y la activa cambia de color", async ({ page }) => {
+test("las pestañas de bloque usan rojo OFL y la activa cambia de color", async ({ page }) => {
   await page.goto("/eventos/guerra-campal-5");
   const estelar = page.getByRole("tab", { name: "Cartelera estelar" });
   const prelim = page.getByRole("tab", { name: "Preliminares" });
   const background = (tab: typeof estelar) => tab.evaluate((element) => getComputedStyle(element).backgroundColor);
-  // Inactiva: dorada (#FFB400, con texto negro, legible sobre el fondo blanco). Activa: negra.
-  await expect.poll(() => background(prelim)).toBe("rgb(255, 180, 0)");
-  await expect.poll(() => background(estelar)).not.toBe("rgb(255, 180, 0)");
+  // Inactiva: rojo OFL con texto blanco. Activa: negra.
+  await expect.poll(() => background(prelim)).toBe("rgb(197, 27, 58)");
+  await expect.poll(() => background(estelar)).not.toBe("rgb(197, 27, 58)");
   await prelim.click();
-  await expect.poll(() => background(estelar)).toBe("rgb(255, 180, 0)");
-  await expect.poll(() => background(prelim)).not.toBe("rgb(255, 180, 0)");
+  await expect.poll(() => background(estelar)).toBe("rgb(197, 27, 58)");
+  await expect.poll(() => background(prelim)).not.toBe("rgb(197, 27, 58)");
 });
 
 test("tocar una pelea despliega los datos de los dos; abrir otra cierra la anterior; un enlace no la abre", async ({ page }) => {

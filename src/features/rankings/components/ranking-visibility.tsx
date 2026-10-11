@@ -31,7 +31,7 @@ export function RankingVisibility({ level, isPublic }: { level: BoutLevel; isPub
       className={`flex flex-wrap items-center gap-x-4 gap-y-3 border p-3 ${isPublic ? "border-border bg-card" : "border-primary bg-primary/10"}`}
     >
       <div className="flex min-w-0 flex-1 basis-64 items-start gap-2">
-        {isPublic ? <Eye aria-hidden className="mt-0.5 size-5 shrink-0" /> : <EyeOff aria-hidden className="mt-0.5 size-5 shrink-0 text-primary" />}
+        {isPublic ? <Eye aria-hidden className="mt-0.5 size-5 shrink-0" /> : <EyeOff aria-hidden className="mt-0.5 size-5 shrink-0 text-accent-bright" />}
         <div className="flex flex-col gap-1">
           <h2 id="ranking-visibility-title" className="font-semibold">
             {isPublic ? `Rankings ${name} visibles en el sitio` : `Puestos ${name} ocultos: solo se ven los campeones`}

@@ -997,3 +997,17 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** petición del usuario para usar el proyecto como base de otra promotora sin afectar Guerra Campal. No corresponde a un cambio de los planes 00–07.
 - **Impacto:** no cambia el código de aplicación ni el frontend aprobado; despliegue, identidad y documentación de la promotora se adaptarán en OFL. No se exportaron los servicios remotos de demostración: la copia de datos corresponde a la instalación local.
 - **Estado:** configuración aplicada; verificación registrada en docs/reports/ofl-copy.md.
+
+
+## [OFL] Rediseño público y panel aprobado — 2026-10-11
+- **Qué:** identidad Open Fight Latam, logo aportado, rojo/violeta/negro/blanco; nueva portada dividida, noticias editoriales claras, entradas/cifras oscuras, panel grafito con navegación agrupada, foco violeta y controles rojos con texto blanco. Marca compartida, SEO, correos y recursos sociales OFL.
+- **Por qué:** el usuario aprobó el spec `2026-10-11-ofl-redesign-design.md` y pidió implementar todo. Sustituye explícitamente la estética amarilla y la maqueta de Guerra Campal en esta copia.
+- **Impacto:** no se cambian datos guardados, nombres/slugs de eventos, fotos históricas, consultas, permisos, auditoría ni arquitectura. Los planes 00–07 y las guías de despliegue quedan como documentación histórica/funcional; la estética vigente es el nuevo spec. Sin nuevas dependencias. La intro no tapa el contenido y las transiciones respetan reducir movimiento. La revisión y el commit se realizan en la rama local; no se publica ni se integra a main.
+- **Implementación:** hojas CSS importadas desde el layout para evitar el fallo de resolución de imports locales de Tailwind en Windows; icono ICO con bitmap estándar compatible con Next. La temática admin usa el contexto del documento para alcanzar también los diálogos portados.
+- **Estado:** aplicado; verificación en `docs/reports/ofl-redesign.md`.
+
+## [OFL] Recuperación de la vista previa de noticias — 2026-10-11
+- **Qué:** la vista previa repite el aviso de estar lista hasta recibir su contenido; el formulario responde a cada aviso con la noticia actual, también si el iframe se recarga. Los reintentos se cancelan al recibir los datos o desmontar la vista.
+- **Por qué:** las pruebas completas del editor reprodujeron una carrera de hidratación: el iframe podía avisar antes de que el padre escuchara y quedaba en «Cargando vista previa». La transición nueva dejó visible esta fragilidad heredada. Test de regresión primero en rojo, luego en verde.
+- **Impacto:** ajuste mínimo de presentación/comunicación local necesario para conservar el editor operativo; guardas de origen y ventana intactas, sin consultas, escrituras ni cambios de negocio. El fondo de reserva de noticias usa OFL y violeta, sin cambiar fotos guardadas.
+- **Estado:** aplicado; revisión independiente aprobada.

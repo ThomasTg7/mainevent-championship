@@ -73,7 +73,7 @@ export function CornerName({ fighter, side }: { fighter: BoutFighterDTO; side: S
       }`}
     >
       {fighter.isPublic ? (
-        <Link href={`/peleadores/${fighter.slug}`} className="underline-offset-4 outline-none hover:underline focus-visible:underline focus-visible:decoration-yellow focus-visible:decoration-[3px]">
+        <Link href={`/peleadores/${fighter.slug}`} className="underline-offset-4 outline-none hover:underline focus-visible:underline focus-visible:decoration-brand focus-visible:decoration-[3px]">
           {name}
         </Link>
       ) : (

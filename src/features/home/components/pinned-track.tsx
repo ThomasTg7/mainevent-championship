@@ -79,7 +79,7 @@ export function PinnedTrack({ children, sectionId, label }: PinnedTrackProps) {
       tabIndex={0}
       role="group"
       aria-label={label}
-      className="scroll-px-[clamp(16px,4vw,64px)] overflow-x-auto overscroll-x-contain snap-x snap-mandatory [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-yellow [&::-webkit-scrollbar]:hidden"
+      className="scroll-px-[clamp(16px,4vw,64px)] overflow-x-auto overscroll-x-contain snap-x snap-mandatory [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-accent-bright [&::-webkit-scrollbar]:hidden"
     >
       <ul ref={trackRef} className="flex w-max gap-4 px-[clamp(16px,4vw,64px)] pb-[clamp(56px,8vw,110px)] will-change-transform sm:gap-6">
         {children}

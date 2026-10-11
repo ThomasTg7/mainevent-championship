@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { BoutLevel } from "@/domain/bout-enums";
@@ -15,8 +16,8 @@ export async function generateMetadata({ searchParams }: PageProps<"/rankings">)
     title: level === "amateur" ? "Rankings amateur" : "Rankings",
     description:
       level === "amateur"
-        ? "Los rankings amateur de Guerra Campal: libra por libra y por división."
-        : "Campeones y rankings de Guerra Campal: libra por libra y por división, profesional y amateur.",
+        ? `Los rankings amateur de ${BRAND.name}: libra por libra y por división.`
+        : `Campeones y rankings de ${BRAND.name}: libra por libra y por división, profesional y amateur.`,
     // El amateur es otra página (otro contenido): su canónica lleva el nivel; cualquier otro valor cae en `/rankings`.
     path: rankingsHref(level),
     // Sin tarjetas (nivel oculto o aún sin armar) es un «Pronto…»: no se indexa, igual que en el sitemap.
@@ -46,8 +47,8 @@ export default async function RankingsPage({ searchParams }: PageProps<"/ranking
               key={option.level}
               href={rankingsHref(option.level)}
               aria-current={option.level === level ? "page" : undefined}
-              className={`inline-flex min-h-11 items-center px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-yellow ${
-                option.level === level ? "bg-yellow text-black" : "text-muted-foreground hover:text-white"
+              className={`inline-flex min-h-11 items-center px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-accent-bright ${
+                option.level === level ? "bg-brand text-white" : "text-muted-foreground hover:text-white"
               }`}
             >
               {option.label}

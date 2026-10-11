@@ -41,11 +41,15 @@ export function PostLivePreview({ post }: { post: PostDTO }) {
 
   useEffect(() => {
     function receive(event: MessageEvent) {
-      if (event.origin === window.location.origin && event.source === frameRef.current?.contentWindow && event.data?.type === LIVE_PREVIEW_READY) setReady(true);
+      if (event.origin === window.location.origin && event.source === frameRef.current?.contentWindow && event.data?.type === LIVE_PREVIEW_READY) {
+        // Reply even when already ready: an iframe reload loses its previous content.
+        frameRef.current?.contentWindow?.postMessage({ type: LIVE_PREVIEW_MESSAGE, post }, window.location.origin);
+        setReady(true);
+      }
     }
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, []);
+  }, [post]);
 
   useEffect(() => {
     if (!ready) return;

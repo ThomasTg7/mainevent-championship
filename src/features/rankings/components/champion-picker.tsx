@@ -59,7 +59,7 @@ export function ChampionPicker({ level, divisionId, divisionLabel, champion }: C
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         {champion ? (
           <p className="flex min-w-0 flex-1 basis-56 flex-wrap items-center gap-2">
-            <Crown aria-hidden className="size-4 text-primary" />
+            <Crown aria-hidden className="size-4 text-accent-bright" />
             <Flag code={champion.nationality} />
             <span className="font-medium break-words">{champion.name}</span>
             {champion.hiddenNote ? <Badge variant="destructive">{champion.hiddenNote}: deja vacante el título</Badge> : null}

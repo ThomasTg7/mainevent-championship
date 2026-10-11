@@ -1,0 +1,76 @@
+/* A quiet workspace using OFL identity without decorative motion on data. */
+.ofl-admin,
+body:has(.ofl-admin) {
+  --radius: .5rem;
+  --sidebar: #000;
+  --sidebar-accent: #281a32;
+  background: #0d0b10;
+}
+
+body:has(.ofl-admin) [data-slot="sidebar-menu-button"] {
+  min-height: 44px;
+  border-radius: 6px;
+  transition: transform 180ms var(--ease-ofl);
+}
+
+body:has(.ofl-admin) [data-slot="sidebar-menu-button"]:hover {
+  transform: translateX(2px);
+}
+
+body:has(.ofl-admin) [data-slot="sidebar-menu-button"][data-active="true"] {
+  color: var(--color-accent-bright);
+  background: #281a32;
+  border-left: 2px solid var(--color-accent-bright);
+}
+
+body:has(.ofl-admin) [data-slot="input"],
+body:has(.ofl-admin) [data-slot="textarea"],
+body:has(.ofl-admin) [data-slot="select-trigger"],
+body:has(.ofl-admin) [data-slot="native-select"] {
+  background: #151218;
+  min-height: 44px;
+}
+
+body:has(.ofl-admin) [data-slot="card"] {
+  background: #151218;
+  border-color: #39313f;
+}
+
+body:has(.ofl-admin) [data-slot="button"] {
+  min-height: 44px;
+  border-radius: 5px;
+}
+
+body:has(.ofl-admin) [data-slot="button"][data-size^="icon"],
+body:has(.ofl-admin) [data-slot="sidebar-trigger"] {
+  min-width: 44px;
+}
+
+body:has(.ofl-admin) [data-slot="table-head"] {
+  font-size: .75rem;
+  color: #c7bfce;
+  background: #17121c;
+}
+
+body:has(.ofl-admin) [data-slot="dialog-content"],
+body:has(.ofl-admin) [data-slot="popover-content"] {
+  border-radius: 8px;
+}
+
+.ofl-admin-toolbar {
+  background: #100c14;
+  border-bottom: 1px solid #39313f;
+}
+
+.ofl-admin-section {
+  border: 1px solid #39313f;
+  background: #151218;
+  border-radius: 8px;
+}
+
+.ofl-admin-title {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1.1;
+}

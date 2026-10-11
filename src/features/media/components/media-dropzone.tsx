@@ -36,12 +36,12 @@ export function MediaDropzone({ accept, multiple = false, disabled = false, labe
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
       className={cn(
-        "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 border-2 border-dashed border-border p-4 text-center transition-colors focus-within:ring-3 focus-within:ring-ring/50 hover:border-primary",
+        "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 border-2 border-dashed border-border p-4 text-center transition-opacity focus-within:ring-3 focus-within:ring-ring/50 hover:border-primary",
         dragging && "border-primary bg-muted",
         disabled && "pointer-events-none opacity-50",
       )}
     >
-      <ImagePlus aria-hidden className="size-8 text-primary" />
+      <ImagePlus aria-hidden className="size-8 text-accent-bright" />
       <span className="font-semibold">{label}</span>
       <span className="text-xs text-muted-foreground">{hint}</span>
       <input

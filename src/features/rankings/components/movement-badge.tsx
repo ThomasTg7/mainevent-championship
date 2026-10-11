@@ -22,7 +22,7 @@ export function MovementBadge({ movement }: { movement: Movement }) {
       );
     case "new":
       return (
-        <span role="img" aria-label="Nuevo en el ranking" className="bg-yellow px-1.5 py-0.5 font-cond text-[11px] font-extrabold tracking-[.1em] text-black">
+        <span role="img" aria-label="Nuevo en el ranking" className="bg-brand px-1.5 py-0.5 font-cond text-[11px] font-extrabold tracking-[.1em] text-white">
           NUEVO
         </span>
       );

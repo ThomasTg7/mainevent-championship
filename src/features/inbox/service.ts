@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import { and, eq, ne } from "drizzle-orm";
 import { createElement, type ReactElement } from "react";
 import type { z } from "zod";
@@ -45,14 +46,14 @@ const fighterApplication: Handler<FighterApplicationData> = {
     phone: data.phone,
     payload: { birthDate: data.birthDate, weightKg: data.weightKg, record: data.record, gym: data.gym, videoLinks: data.videoLinks, message: data.message },
   }),
-  notification: (data, inboxUrl) => ({ subject: `[Guerra Campal] Nueva postulación: ${data.name}`, react: createElement(NewApplicationEmail, { application: data, inboxUrl }) }),
+  notification: (data, inboxUrl) => ({ subject: `[${BRAND.name}] Nueva postulación: ${data.name}`, react: createElement(NewApplicationEmail, { application: data, inboxUrl }) }),
 };
 
 const sponsorship: Handler<SponsorshipData> = {
   kind: "sponsorship",
   schema: () => sponsorshipSchema,
   row: (data) => ({ name: data.company, email: data.email, phone: data.phone, payload: { contactName: data.contactName, message: data.message } }),
-  notification: (data, inboxUrl) => ({ subject: `[Guerra Campal] Contacto de patrocinio: ${data.company}`, react: createElement(NewSponsorshipEmail, { sponsorship: data, inboxUrl }) }),
+  notification: (data, inboxUrl) => ({ subject: `[${BRAND.name}] Contacto de patrocinio: ${data.company}`, react: createElement(NewSponsorshipEmail, { sponsorship: data, inboxUrl }) }),
 };
 
 /**

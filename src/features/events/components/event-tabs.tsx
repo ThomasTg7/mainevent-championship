@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/domain/brand";
 
 import { SelectField, TextAreaField, TextField } from "@/components/admin/form-fields";
 import { EVENT_STATUS_LABELS } from "@/domain/bout-enums";
@@ -13,7 +14,7 @@ import { TicketTiersField } from "./ticket-tiers-field";
 export function EventDataTab({ showSlug, isLive }: { showSlug: boolean; isLive: boolean }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <TextField name="name" label="Nombre del evento" hint="Ej.: Guerra Campal 5" autoComplete="off" />
+      <TextField name="name" label="Nombre del evento" hint={`Ej.: ${BRAND.name} 5`} autoComplete="off" />
       <TextField name="number" label="Número (opcional)" inputMode="numeric" autoComplete="off" />
       <SelectField
         name="eventStatus"

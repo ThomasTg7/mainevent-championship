@@ -13,15 +13,16 @@ export function HomeNews({ news }: { news: HomeDTO["news"] }) {
   if (!news.main && news.top.length === 0) return null;
 
   return (
-    <section id="noticias" aria-labelledby="home-news-title" className="py-[clamp(72px,10vw,140px)]">
+    <section id="noticias" aria-labelledby="home-news-title" className="ofl-editorial py-[clamp(64px,8vw,110px)]">
       <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)]">
         <SectionHeading
           reveal
+          tone="light"
           kicker="Lo último"
           title="Noticias"
           titleId="home-news-title"
           action={
-            <Link href="/noticias" className="inline-flex min-h-11 items-center border-b-2 border-yellow pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">
+            <Link href="/noticias" className="inline-flex min-h-11 items-center border-b-2 border-brand pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-black">
               Todas las noticias <span aria-hidden>→</span>
             </Link>
           }

@@ -46,7 +46,7 @@ export function GalleryItem({ media, position, total, numbered = false, extra, d
       </Button>
       <div className="relative size-16 shrink-0 overflow-hidden bg-muted sm:size-20">
         <MediaImage media={media} sizes="80px" className="size-full object-cover" />
-        {numbered ? <span className="absolute inset-x-0 bottom-0 bg-black/80 py-0.5 text-center text-[11px] font-bold text-primary">FOTO {position + 1}</span> : null}
+        {numbered ? <span className="absolute inset-x-0 bottom-0 bg-black/80 py-0.5 text-center text-[11px] font-bold text-accent-bright">FOTO {position + 1}</span> : null}
       </div>
       {/* En celular no cabe junto a los 4 botones; cada botón ya dice "foto N" a los lectores de pantalla. */}
       <span className="hidden min-w-0 flex-1 truncate text-sm sm:block">Foto {position + 1}</span>

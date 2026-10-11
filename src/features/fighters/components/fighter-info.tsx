@@ -64,7 +64,7 @@ function Socials({ socials }: { socials: FighterProfileDTO["socials"] }) {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center border border-border px-5 font-cond text-base font-extrabold uppercase tracking-[.1em] text-white transition-colors hover:border-yellow hover:text-yellow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow"
+            className="inline-flex min-h-11 items-center border border-border px-5 font-cond text-base font-extrabold uppercase tracking-[.1em] text-white transition-opacity hover:border-brand hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright"
           >
             {SOCIAL_LABELS[network]}
             <span className="sr-only"> (se abre en otra pestaña)</span>

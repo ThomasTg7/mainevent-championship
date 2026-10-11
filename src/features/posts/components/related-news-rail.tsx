@@ -16,7 +16,7 @@ export function RelatedNewsRail({ posts }: { posts: PostCardDTO[] }) {
         <h2 id="related-news-title" className="font-display text-[clamp(32px,5vw,56px)] uppercase leading-none text-white">
           Noticias
         </h2>
-        <Link href="/noticias" className="inline-flex min-h-11 items-center font-cond text-sm font-extrabold uppercase tracking-[.1em] text-yellow underline-offset-4 hover:underline">
+        <Link href="/noticias" className="inline-flex min-h-11 items-center font-cond text-sm font-extrabold uppercase tracking-[.1em] text-accent-bright underline-offset-4 hover:underline">
           Todas las noticias →
         </Link>
       </div>
@@ -24,7 +24,7 @@ export function RelatedNewsRail({ posts }: { posts: PostCardDTO[] }) {
         // El recuadro con scroll es enfocable para poder recorrerlo con el teclado.
         tabIndex={0}
         aria-label="Noticias relacionadas"
-        className="-mx-[clamp(16px,4vw,64px)] flex snap-x snap-mandatory gap-4 overflow-x-auto px-[clamp(16px,4vw,64px)] pb-4 [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-yellow"
+        className="-mx-[clamp(16px,4vw,64px)] flex snap-x snap-mandatory gap-4 overflow-x-auto px-[clamp(16px,4vw,64px)] pb-4 [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-accent-bright"
       >
         {posts.map((post) => (
           <li key={post.id} className="w-[78vw] max-w-[320px] shrink-0 snap-start sm:w-[300px]">

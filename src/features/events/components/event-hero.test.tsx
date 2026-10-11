@@ -26,14 +26,22 @@ const event = (heroMedia: MediaDTO | null) =>
 const watermark = (container: HTMLElement) => container.querySelector('[data-slot="hero-watermark"]');
 
 describe("EventHero background lettering", () => {
-  it("draws the outlined «GUERRA CAMPAL» behind the fighters when there is no cover image", () => {
+  it("draws the outlined «OFL» behind the fighters when there is no cover image", () => {
     const { container } = render(<EventHero event={event(null)} showCountdown={false} />);
-    expect(watermark(container)?.textContent).toBe("GUERRA CAMPAL");
+    expect(watermark(container)?.textContent).toBe("OFL");
   });
 
   it("leaves an uploaded cover image clean", () => {
     const { container } = render(<EventHero event={event(cover)} showCountdown={false} />);
     expect(watermark(container)).toBeNull();
+  });
+
+  it("keeps the mobile cover variants and its independently selected focal point", () => {
+    const mobile = { ...cover, id: "mobile", focal: { x: 0.2, y: 0.8 }, variants: [{ width: 800, height: 1200, url: "/v/mobile.webp" }] };
+    const { container } = render(<EventHero event={{ ...event(cover), heroMobileMedia: mobile }} showCountdown={false} />);
+    expect(container.querySelector("source")).toHaveAttribute("srcset", "/v/mobile.webp 800w");
+    expect(container.querySelector("img")?.style.getPropertyValue("--hero-mobile-position")).toBe("20% 80%");
+    expect(container.querySelector("img")?.style.getPropertyValue("--hero-desktop-position")).toBe("50% 50%");
   });
 });
 

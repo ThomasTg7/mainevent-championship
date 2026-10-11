@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import { PageEmpty, PageHeader, PageShell } from "@/components/site/page-shell";
 import { hasPostBodyContent } from "@/domain/post-body";
@@ -10,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const { body } = await getCachedSetting("privacy");
   return sitePageMetadata({
     title: "Política de privacidad",
-    description: "Cómo Guerra Campal cuida y usa los datos personales de quienes la contactan.",
+    description: `Cómo ${BRAND.name} cuida y usa los datos personales de quienes la contactan.`,
     path: "/privacidad",
     noindex: !hasPostBodyContent(body),
   });

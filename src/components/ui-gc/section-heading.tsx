@@ -15,7 +15,7 @@ type SectionHeadingProps = {
   className?: string;
 };
 
-/** Rótulo amarillo con raya + título grande de sección (maqueta) y, a la derecha, una acción opcional. */
+/** Rótulo de marca con raya y título grande de sección y, a la derecha, una acción opcional. */
 export function SectionHeading({ kicker, title, action, tone = "dark", titleId, reveal = false, className }: SectionHeadingProps) {
   const isLight = tone === "light";
 
@@ -24,8 +24,8 @@ export function SectionHeading({ kicker, title, action, tone = "dark", titleId, 
       <div>
         <div
           className={cn(
-            "flex items-center gap-2.5 mb-3.5 font-cond font-extrabold uppercase tracking-[.2em] text-[13px] before:block before:h-[3px] before:w-7 before:bg-yellow",
-            isLight ? "text-black" : "text-yellow",
+            "flex items-center gap-2.5 mb-3.5 font-cond font-extrabold uppercase tracking-[.2em] text-[13px] before:block before:h-[3px] before:w-7 before:bg-brand",
+            isLight ? "text-black" : "text-accent-bright",
           )}
         >
           {kicker}

@@ -6,7 +6,9 @@ El usuario pide una identidad nueva para Open Fight Latam (OFL), aplicada al sit
 
 Trabajar exclusivamente en `C:\Users\thoma\Documents\Proyectos\OFL`. Guerra Campal no se modifica. La arquitectura y las funcionalidades existentes se conservan.
 
-## Dirección propuesta
+**Estado:** aprobado por el usuario el 11 de octubre de 2026; implementación autorizada en la copia OFL.
+
+## Dirección aprobada
 
 Una presentación de promotora deportiva profesional: fotografía grande, pelea estelar protagonista, titulares condensados, información de evento clara y contraste entre superficies negras y blancas. El trazo diagonal del logo es el gesto propio de OFL: aparece en la portada, separadores puntuales y botones. El rojo identifica las acciones principales; el violeta identifica navegación, foco y acentos secundarios.
 
@@ -14,7 +16,7 @@ La referencia UFC orienta la jerarquía del contenido y la presentación de cart
 
 ## Decisiones propuestas por el diseñador
 
-Estas decisiones son una propuesta, no preferencias ya confirmadas por el usuario:
+El usuario aprobó la propuesta completa:
 
 - Panel oscuro, con navegación negra, superficie de trabajo grafito y texto claro.
 - Tipografías existentes Anton para titulares, Barlow Condensed para navegación/datos deportivos y Barlow para lectura y formularios. Conservan legibilidad y evitan nuevas dependencias.

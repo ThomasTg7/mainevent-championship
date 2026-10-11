@@ -31,16 +31,16 @@ export function PostCard({ post, variant, heading: Heading = "h3", priority = fa
   const feature = variant === "feature";
 
   return (
-    <article data-post={post.slug} className={`group relative flex h-full flex-col bg-surface transition-colors focus-within:outline-2 focus-within:outline-yellow ${feature ? "lg:grid lg:grid-cols-[1.5fr_1fr] lg:items-center" : ""}`}>
+    <article data-post={post.slug} className={`ofl-photo-card group relative flex h-full flex-col bg-surface focus-within:outline-2 focus-within:outline-accent-bright ${feature ? "lg:grid lg:grid-cols-[1.5fr_1fr] lg:items-center" : ""}`}>
       <PostCover cover={post.cover} sizes={POST_CARD_SIZES[variant]} priority={priority} />
-      <div
+      <div data-slot="post-card-body"
         className={
           feature
-            ? "relative z-10 mx-4 -mt-10 flex flex-col gap-3 border-t-[5px] border-yellow bg-surface p-6 sm:mx-9 sm:gap-4 sm:p-8 lg:m-0 lg:border-t-0 lg:border-l-[5px] lg:p-10"
-            : "flex flex-1 flex-col gap-3 border-t-[3px] border-yellow p-4 sm:p-5"
+            ? "relative z-10 mx-4 -mt-10 flex flex-col gap-3 border-t-[5px] border-brand bg-surface p-6 sm:mx-9 sm:gap-4 sm:p-8 lg:m-0 lg:border-t-0 lg:border-l-[5px] lg:p-10"
+            : "flex flex-1 flex-col gap-3 border-t-[3px] border-brand p-4 sm:p-5"
         }
       >
-        <p data-slot="post-card-meta" className="font-cond text-xs font-extrabold uppercase leading-snug tracking-[.14em] text-yellow">
+        <p data-slot="post-card-meta" className="font-cond text-xs font-extrabold uppercase leading-snug tracking-[.14em] text-accent-bright">
           {post.category.name}
           <span className="font-semibold text-muted-foreground"> · {formatShortDate(new Date(post.date))}</span>
         </p>

@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui-gc/button";
@@ -14,7 +15,7 @@ export async function generateMetadata({ searchParams }: PageProps<"/peleadores"
   const { filters, page } = parsePublicFilters(await searchParams);
   return sitePageMetadata({
     title: "Peleadores",
-    description: "Todo el plantel de Guerra Campal: busca por nombre o apodo y filtra por división, país y estado.",
+    description: `Todo el plantel de ${BRAND.name}: busca por nombre o apodo y filtra por división, país y estado.`,
     path: fightersCanonicalPath(filters, page),
     // Cada búsqueda de texto es una página distinta que nadie debería encontrar en Google.
     noindex: Boolean(filters.q),

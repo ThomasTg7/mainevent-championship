@@ -12,7 +12,7 @@ import type { HomeDTO, HomeEvent, HomeHero, HomeStats } from "./dto";
 import { pickHighlights, pickHomeRankingCards } from "./highlights";
 
 /**
- * Las cifras de la banda amarilla: solo eventos finalizados y públicos y sus peleas terminadas. Finalizaciones = KO/TKO +
+ * Las cifras de la banda: solo eventos finalizados y públicos y sus peleas terminadas. Finalizaciones = KO/TKO +
  * sumisión. Una consulta (los conteos de SQL son `bigint`: se castean a `int`).
  */
 export async function getHomeStats(db: Db): Promise<HomeStats> {

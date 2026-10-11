@@ -198,7 +198,7 @@ describe("RecordSummary", () => {
     expect(total).toHaveTextContent("12-2-0");
     expect(total.compareDocumentPosition(gc) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(pro.querySelector("[data-record-list]")?.className).toContain("flex-col");
-    expect(gc).toHaveTextContent("Guerra Campal");
+    expect(gc).toHaveTextContent("Open Fight Latam");
     expect(pro).not.toHaveTextContent(/GC/);
   });
 

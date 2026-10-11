@@ -20,12 +20,14 @@ import {
   UserRound,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { BRAND } from "@/domain/brand";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
@@ -36,18 +38,18 @@ import {
 import { authClient } from "@/lib/auth-client";
 
 const SECTIONS = [
-  { href: adminPath("/"), label: "Inicio", icon: Home },
-  { href: adminPath("/peleadores"), label: "Peleadores", icon: Swords },
-  { href: adminPath("/divisiones"), label: "Divisiones", icon: Layers },
-  { href: adminPath("/eventos"), label: "Eventos", icon: Calendar },
-  { href: adminPath("/noticias"), label: "Noticias", icon: Newspaper },
-  { href: adminPath("/rankings"), label: "Rankings", icon: Trophy },
-  { href: adminPath("/patrocinadores"), label: "Patrocinadores", icon: Handshake },
-  { href: adminPath("/bandeja"), label: "Bandeja", icon: Inbox },
-  { href: adminPath("/configuracion"), label: "Configuración", icon: Settings },
-  { href: adminPath("/usuarios"), label: "Usuarios", icon: UserCog },
-  { href: adminPath("/papelera"), label: "Papelera", icon: Trash2 },
-  { href: adminPath("/historial"), label: "Historial", icon: History },
+  { href: adminPath("/"), label: "Inicio", icon: Home, group: "Promotora" },
+  { href: adminPath("/peleadores"), label: "Peleadores", icon: Swords, group: "Promotora" },
+  { href: adminPath("/divisiones"), label: "Divisiones", icon: Layers, group: "Promotora" },
+  { href: adminPath("/eventos"), label: "Eventos", icon: Calendar, group: "Promotora" },
+  { href: adminPath("/rankings"), label: "Rankings", icon: Trophy, group: "Promotora" },
+  { href: adminPath("/noticias"), label: "Noticias", icon: Newspaper, group: "Contenido" },
+  { href: adminPath("/patrocinadores"), label: "Patrocinadores", icon: Handshake, group: "Contenido" },
+  { href: adminPath("/bandeja"), label: "Bandeja", icon: Inbox, group: "Contenido" },
+  { href: adminPath("/configuracion"), label: "Configuración", icon: Settings, group: "Administración" },
+  { href: adminPath("/usuarios"), label: "Usuarios", icon: UserCog, group: "Administración" },
+  { href: adminPath("/papelera"), label: "Papelera", icon: Trash2, group: "Administración" },
+  { href: adminPath("/historial"), label: "Historial", icon: History, group: "Administración" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -70,13 +72,15 @@ export function AdminSidebar({ email, newInbox = 0 }: { email: string; /** Mensa
       <SidebarHeader className="px-3 py-4">
         <Link href={adminPath("/")} className="flex items-center gap-2 px-1" onClick={() => setOpenMobile(false)}>
           <Logo size="sm" />
+          <span className="font-cond text-xs font-semibold uppercase tracking-widest text-muted-foreground">Panel<br />{BRAND.shortName}</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
+        {["Promotora", "Contenido", "Administración"].map((group) => <SidebarGroup key={group}>
+          <SidebarGroupLabel className="font-cond uppercase tracking-[.14em] text-muted-foreground">{group}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {SECTIONS.map((section) => (
+              {SECTIONS.filter((section) => section.group === group).map((section) => (
                 <SidebarMenuItem key={section.href}>
                   <SidebarMenuButton asChild isActive={isActive(pathname, section.href)}>
                     <Link href={section.href} onClick={() => setOpenMobile(false)}>
@@ -89,7 +93,7 @@ export function AdminSidebar({ email, newInbox = 0 }: { email: string; /** Mensa
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
+        </SidebarGroup>)}
       </SidebarContent>
       <SidebarFooter className="px-3 py-3 gap-2">
         <span className="px-2 text-xs text-muted-foreground truncate">{email}</span>

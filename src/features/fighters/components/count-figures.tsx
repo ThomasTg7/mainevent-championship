@@ -27,7 +27,7 @@ export function CountFigures({ items, className, valueClassName = "text-[clamp(2
         // El término va antes que el valor en el HTML (lectores de pantalla); `flex-col-reverse` pone la cifra arriba.
         <div key={item.label} className="flex flex-col-reverse border-border pt-3.5 text-center [&:not(:first-child)]:border-l">
           <dt className="mt-1 font-cond text-[11px] font-bold uppercase tracking-[.14em] text-muted-foreground">{item.label}</dt>
-          <dd className={`font-display leading-none tabular-nums ${valueClassName} ${item.accent ? "text-yellow" : "text-white"}`}>
+          <dd className={`font-display leading-none tabular-nums ${valueClassName} ${item.accent ? "text-accent-bright" : "text-white"}`}>
             <span data-count={item.value}>{item.value}</span>
           </dd>
         </div>

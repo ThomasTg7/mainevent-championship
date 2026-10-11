@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/domain/brand";
 
 import { TextField } from "@/components/admin/form-fields";
 
@@ -19,7 +20,7 @@ export function FighterRecordTab() {
     <div className="flex flex-col gap-6">
       <p className="max-w-prose text-muted-foreground">
         Récord total de toda la carrera, cargado a mano. El récord en la promotora se calcula solo con las peleas de
-        Guerra Campal y se muestra aparte.
+        {BRAND.name} y se muestra aparte.
       </p>
       {GROUPS.map((group) => (
         <fieldset key={group.prefix} className="flex flex-col gap-3">

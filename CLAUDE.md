@@ -1,8 +1,9 @@
-# Guerra Campal — Reglas del proyecto
+# Open Fight Latam — Reglas del proyecto
 
-Plataforma web para la promotora de MMA Guerra Campal (Chile). Sitio público estilo UFC + panel de administración propio.
+Plataforma web para la promotora de MMA Open Fight Latam (OFL). Copia independiente de Guerra Campal. Sitio público estilo UFC + panel de administración propio.
 
-- Spec: `docs/superpowers/specs/2026-09-28-guerra-campal-design.md`
+- Spec de marca vigente: `docs/superpowers/specs/2026-10-11-ofl-redesign-design.md` (aprobado por el usuario).
+- Spec funcional heredado: `docs/superpowers/specs/2026-09-28-guerra-campal-design.md`
 - Planes: `docs/superpowers/plans/` (ejecutar en orden 00 → 07)
 - Flujo de trabajo (ejecución + revisión): `docs/WORKFLOW.md`
 - Registro de decisiones: `docs/decisions.md`
@@ -56,10 +57,10 @@ Plataforma web para la promotora de MMA Guerra Campal (Chile). Sitio público es
 
 ## UI/UX — Sitio público (vista del cliente)
 
-- Seguir la estética de `maqueta/index.html` y los tokens del spec: negro, blanco, amarillo `#FFB400`; Anton + Barlow Condensed + Barlow; mayúsculas, bordes rectos, fotos recortadas.
+- Seguir el spec aprobado de OFL: negro, blanco, rojo `#C51B3A`, violeta `#643374`, acento `#C59BE5`; Anton + Barlow Condensed + Barlow; mayúsculas, bordes rectos y fotografía protagonista. La maqueta de Guerra Campal queda como referencia histórica.
 - Móvil primero, sin scroll horizontal en ningún ancho ≥ 320 px.
 - Animaciones fluidas pero al servicio del contenido: la información (fecha, cartelera, récord, entradas) debe ser legible sin esperar ninguna animación.
-- Accesibilidad: contraste AA, foco visible, textos alternativos, un solo `h1` por página, navegación por teclado. Texto sobre amarillo siempre negro.
+- Accesibilidad: contraste AA, foco visible, textos alternativos, un solo `h1` por página, navegación por teclado. Texto sobre rojo OFL siempre blanco; texto sobre blanco siempre oscuro.
 - Toda página con datos tiene estado vacío digno (p. ej. "Pronto anunciaremos el próximo evento").
 
 ## Verificación antes de cerrar una tarea

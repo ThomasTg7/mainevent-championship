@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { ReactNode } from "react";
 
 /** Contenedor de una página del sitio: ancho de la maqueta y espacio bajo el header fijo. */
@@ -8,10 +9,10 @@ export function PageShell({ children }: { children: ReactNode }) {
 type PageHeaderProps = { title: string; kicker?: string; className?: string; children?: ReactNode };
 
 /** Cabecera de una página: la etiqueta de acento y el único `h1`. `children` va debajo (bajada, fecha…). */
-export function PageHeader({ title, kicker = "Guerra Campal", className = "mb-14", children }: PageHeaderProps) {
+export function PageHeader({ title, kicker = `${BRAND.name}`, className = "mb-14", children }: PageHeaderProps) {
   return (
     <header className={className}>
-      <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-yellow before:block before:h-[3px] before:w-7 before:bg-yellow">
+      <p className="mb-3.5 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-accent-bright before:block before:h-[3px] before:w-7 before:bg-brand">
         {kicker}
       </p>
       <h1 className="font-display text-[clamp(44px,8vw,96px)] uppercase leading-[.9] text-white">{title}</h1>

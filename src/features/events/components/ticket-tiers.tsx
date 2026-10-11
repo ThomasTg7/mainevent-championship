@@ -8,7 +8,7 @@ type TicketTiersProps = {
   eventName: string;
 };
 
-const tierClass = "grid grid-cols-[1fr_auto] items-center gap-4 border-l-[6px] border-yellow bg-black px-5 py-5 text-white sm:px-6";
+const tierClass = "grid grid-cols-[1fr_auto] items-center gap-4 border-l-[6px] border-brand bg-black px-5 py-5 text-white sm:px-6";
 
 function TierContent({ tier }: { tier: TicketTier }) {
   return (
@@ -20,7 +20,7 @@ function TierContent({ tier }: { tier: TicketTier }) {
         </p>
         {tier.description ? <p className="mt-1 font-cond text-sm font-semibold uppercase tracking-[.06em] text-muted-foreground">{tier.description}</p> : null}
       </div>
-      <p className={`font-display text-[28px] leading-none sm:text-[34px] ${tier.soldOut ? "text-muted-foreground line-through" : "text-yellow"}`}>{formatClp(tier.priceClp)}</p>
+      <p className={`font-display text-[28px] leading-none sm:text-[34px] ${tier.soldOut ? "text-muted-foreground line-through" : "text-accent-bright"}`}>{formatClp(tier.priceClp)}</p>
     </>
   );
 }
@@ -40,7 +40,7 @@ export function TicketTiers({ tiers, ticketUrl, eventName }: TicketTiersProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${tier.name}: ${formatClp(tier.priceClp)}. Comprar en la ticketera (se abre en otra pestaña)`}
-              className={`${tierClass} transition-[transform,box-shadow] duration-300 ease-gc hover:-translate-x-2 hover:shadow-[10px_10px_0_rgba(255,180,0,.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow motion-reduce:transition-none motion-reduce:hover:translate-x-0`}
+              className={`${tierClass} transition-transform duration-300 ease-ofl hover:-translate-x-2 hover:shadow-[10px_10px_0_rgba(197,155,229,.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright motion-reduce:transition-none motion-reduce:hover:translate-x-0`}
             >
               <TierContent tier={tier} />
             </a>

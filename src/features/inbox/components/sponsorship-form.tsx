@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/domain/brand";
 
 import { useActionState } from "react";
 import { SITE_INPUT_CLASS, SiteField, siteFieldProps } from "@/components/site/site-field";
@@ -16,7 +17,7 @@ export function SponsorshipForm() {
   const values = state.values ?? {};
 
   if (state.ok) {
-    return <SentNotice title="¡Gracias por escribirnos!" text="Recibimos tu mensaje. Te contactaremos pronto para conversar cómo tu marca puede ser parte de Guerra Campal." />;
+    return <SentNotice title="¡Gracias por escribirnos!" text={`Recibimos tu mensaje. Te contactaremos pronto para conversar cómo tu marca puede ser parte de ${BRAND.name}.`} />;
   }
 
   return (

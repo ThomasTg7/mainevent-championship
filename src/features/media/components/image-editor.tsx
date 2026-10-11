@@ -71,7 +71,7 @@ export function ImageEditor({ kind, src, natural, initial, onSave, onCancel, onB
         </p>
         {resolution.warning ? (
           <p role="status" className="flex items-start gap-2 border-l-4 border-primary bg-muted p-3 text-sm">
-            <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
+            <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-accent-bright" />
             <span>{resolution.warning}</span>
           </p>
         ) : null}

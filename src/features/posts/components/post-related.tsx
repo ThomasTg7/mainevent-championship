@@ -5,7 +5,7 @@ import { formatShortDate } from "@/lib/format-date";
 import type { PostEventDTO, PostFighterDTO } from "../dto";
 
 const LINK_CLASS =
-  "group flex min-h-14 items-center gap-3 border border-border bg-surface p-2 pr-4 outline-none transition-colors hover:border-yellow focus-visible:border-yellow";
+  "group flex min-h-14 items-center gap-3 border border-border bg-surface p-2 pr-4 outline-none transition-opacity hover:border-brand focus-visible:border-brand";
 
 /** Peleadores y eventos de la noticia, con enlace a su ficha o página. No se dibuja nada si no hay relacionados públicos. */
 export function PostRelated({ fighters, events }: { fighters: PostFighterDTO[]; events: PostEventDTO[] }) {
@@ -22,10 +22,10 @@ export function PostRelated({ fighters, events }: { fighters: PostFighterDTO[]; 
             <li key={fighter.id}>
               <Link href={`/peleadores/${fighter.slug}`} className={LINK_CLASS}>
                 <span className="grid size-12 shrink-0 place-items-center overflow-hidden bg-surface-2 text-white">
-                  <FighterFace fighter={fighter} sizes="48px" silhouetteClassName="h-full w-auto text-black drop-shadow-[0_0_1px_rgba(255,180,0,.6)]" />
+                  <FighterFace fighter={fighter} sizes="48px" silhouetteClassName="h-full w-auto text-black drop-shadow-[0_0_1px_rgba(197,155,229,.6)]" />
                 </span>
                 <span className="flex min-w-0 flex-col">
-                  <span className="font-cond text-lg font-bold uppercase leading-tight tracking-[.04em] text-white group-hover:text-yellow">
+                  <span className="font-cond text-lg font-bold uppercase leading-tight tracking-[.04em] text-white group-hover:text-accent-bright">
                     {fighter.firstName} {fighter.lastName}
                   </span>
                   <span className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -44,7 +44,7 @@ export function PostRelated({ fighters, events }: { fighters: PostFighterDTO[]; 
             <li key={event.id}>
               <Link href={`/eventos/${event.slug}`} className={LINK_CLASS}>
                 <span className="flex min-w-0 flex-col px-2">
-                  <span className="font-cond text-lg font-bold uppercase leading-tight tracking-[.04em] text-white group-hover:text-yellow">{event.name}</span>
+                  <span className="font-cond text-lg font-bold uppercase leading-tight tracking-[.04em] text-white group-hover:text-accent-bright">{event.name}</span>
                   <span className="text-sm text-muted-foreground">{formatShortDate(new Date(event.startsAt))}</span>
                 </span>
               </Link>

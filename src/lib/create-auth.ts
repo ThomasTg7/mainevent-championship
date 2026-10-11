@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { and, eq } from "drizzle-orm";
@@ -58,8 +59,8 @@ export function createAuth({ db, mailer, baseURL, secret, google }: CreateAuthOp
           to: user.email,
           subject:
             kind === "invitation"
-              ? "Tu acceso al panel de Guerra Campal"
-              : "Restablece tu contraseña de Guerra Campal",
+              ? `Tu acceso al panel de ${BRAND.name}`
+              : `Restablece tu contraseña de ${BRAND.name}`,
           react: createElement(AdminPasswordLinkEmail, { url, kind }),
         });
       },

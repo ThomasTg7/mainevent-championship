@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/domain/brand";
 
 import { Copy, ExternalLink } from "lucide-react";
 import { useId } from "react";
@@ -15,7 +16,7 @@ const AI_CHATS = [
 ];
 
 const FACTS_PLACEHOLDER = [
-  "Ej.: Guerra Campal 5, sábado 12 de octubre en el Movistar Arena.",
+  `Ej.: ${BRAND.name} 5, sábado 12 de octubre en el Movistar Arena.`,
   "Pelea estelar: Pérez venció a Soto por KO en el segundo round y retuvo el cinturón peso pluma.",
   "Declaración de Pérez: «Este cinturón es para Valparaíso».",
   "Video del KO: https://youtu.be/…",

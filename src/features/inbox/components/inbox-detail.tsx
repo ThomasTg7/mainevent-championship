@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { ReactNode } from "react";
 import type { FighterApplicationPayload, InboxMessage, SponsorshipPayload } from "@/db/schema/inbox";
 import { whatsappUrl } from "@/domain/phone";
@@ -16,7 +17,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-const LINK_CLASS = "underline underline-offset-4 hover:text-primary";
+const LINK_CLASS = "underline underline-offset-4 hover:text-accent-bright";
 
 function ApplicationFields({ payload }: { payload: FighterApplicationPayload }) {
   return (
@@ -55,7 +56,7 @@ function SponsorshipFields({ payload }: { payload: SponsorshipPayload }) {
 /** Un mensaje de la bandeja completo, con los botones para responder (correo y WhatsApp) y cambiar su estado. */
 export function InboxDetail({ message }: { message: InboxMessage }) {
   const isApplication = message.kind === "fighter_application";
-  const subject = isApplication ? "Guerra Campal: tu postulación" : "Guerra Campal: tu mensaje de patrocinio";
+  const subject = isApplication ? `${BRAND.name}: tu postulación` : `${BRAND.name}: tu mensaje de patrocinio`;
   const whatsapp = message.phone ? whatsappUrl(message.phone) : null;
 
   return (

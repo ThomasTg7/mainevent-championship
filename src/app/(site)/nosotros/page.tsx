@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageEmpty, PageHeader, PageShell } from "@/components/site/page-shell";
@@ -11,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const { body } = await getCachedSetting("about");
   return sitePageMetadata({
     title: "Nosotros",
-    description: "Conoce a Guerra Campal, la promotora de MMA de Chile.",
+    description: `Conoce a ${BRAND.name}, la promotora de MMA de Chile.`,
     path: "/nosotros",
     // Sin texto la página es un «Pronto…»: no se indexa hasta que la promotora lo escriba.
     noindex: !hasPostBodyContent(body),

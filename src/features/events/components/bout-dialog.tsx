@@ -130,7 +130,7 @@ function BoutForm({ target, divisions, fighterIdsInCard, onClose }: { target: No
         <div className="grid grid-cols-2 gap-2">
           {(["division", "catchweight"] as const).map((measure) => (
             <label key={measure} className="flex min-h-11 cursor-pointer items-center gap-2 border border-border px-3 has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-              <input type="radio" name="measure" value={measure} checked={draft.measure === measure} onChange={() => change({ measure })} className="size-4 accent-[#FFB400]" />
+              <input type="radio" name="measure" value={measure} checked={draft.measure === measure} onChange={() => change({ measure })} className="size-4 accent-[#C51B3A]" />
               {measure === "division" ? "División" : "Peso pactado"}
             </label>
           ))}
@@ -182,7 +182,7 @@ function BoutForm({ target, divisions, fighterIdsInCard, onClose }: { target: No
       </div>
 
       <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
-        <input type="checkbox" checked={draft.isTitleFight} onChange={(event) => change({ isTitleFight: event.target.checked })} className="size-5 accent-[#FFB400]" />
+        <input type="checkbox" checked={draft.isTitleFight} onChange={(event) => change({ isTitleFight: event.target.checked })} className="size-5 accent-[#C51B3A]" />
         <span>
           <span className="font-medium">Pelea por el título</span>
           <span className="block text-xs text-muted-foreground">Si gana el retador, el panel sugerirá el cambio de campeón.</span>

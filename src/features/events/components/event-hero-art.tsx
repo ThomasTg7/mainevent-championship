@@ -1,0 +1,57 @@
+import { BrandMark } from "@/components/brand/brand-mark";
+import type { CSSProperties } from "react";
+import { BRAND } from "@/domain/brand";
+import { FighterFigure } from "@/features/fighters/components/fighter-photo";
+import { HeroParallax } from "@/features/fighters/components/hero-parallax";
+import type { MediaDTO } from "@/features/media/dto";
+import type { BoutDTO, BoutFighterDTO, EventPageDTO } from "../dto";
+
+function srcSet(media: MediaDTO) {
+  return media.variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ") || undefined;
+}
+
+function HeroPicture({ desktop, mobile }: { desktop: MediaDTO; mobile: MediaDTO | null }) {
+  const largest = desktop.variants.at(-1);
+  return (
+    <picture>
+      {mobile ? <source media="(max-width: 767px)" srcSet={srcSet(mobile)} sizes="100vw" /> : null}
+      <img src={largest?.url ?? desktop.originalUrl} srcSet={srcSet(desktop)} sizes="(min-width: 1024px) 64vw, 100vw" alt={desktop.alt}
+        width={largest?.width || desktop.width || undefined} height={largest?.height || desktop.height || undefined}
+        fetchPriority="high" decoding="async" style={{
+          "--hero-desktop-position": `${desktop.focal.x * 100}% ${desktop.focal.y * 100}%`,
+          "--hero-mobile-position": `${(mobile ?? desktop).focal.x * 100}% ${(mobile ?? desktop).focal.y * 100}%`,
+        } as CSSProperties}
+        className="ofl-hero-image absolute inset-0 size-full object-cover" />
+    </picture>
+  );
+}
+
+function FaceOffFighter({ fighter, side }: { fighter: BoutFighterDTO; side: "red" | "blue" }) {
+  return (
+    <div className={`pointer-events-none absolute bottom-0 z-[2] h-[95%] w-[58%] lg:h-[88%] ${side === "red" ? "left-[-5%]" : "right-[-5%]"}`}>
+      <HeroParallax className="absolute inset-0">
+        <FighterFigure fighter={fighter} sizes="(min-width: 1024px) 36vw, 58vw" priority={side === "red"}
+          imageClassName={side === "blue" ? "-scale-x-100" : undefined}
+          silhouetteClassName={`absolute bottom-0 left-1/2 h-full -translate-x-1/2 text-black ${side === "red" ? "drop-shadow-[0_0_5px_rgba(215,38,61,.8)]" : "-scale-x-100 drop-shadow-[0_0_5px_rgba(30,111,217,.8)]"}`} />
+      </HeroParallax>
+    </div>
+  );
+}
+
+/** Uploaded covers keep priority; the OFL motif is only the fallback stage. */
+export function EventHeroArt({ event, main }: { event: EventPageDTO; main: BoutDTO | null }) {
+  return (
+    <div className="relative isolate h-[330px] overflow-hidden sm:h-[430px] lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[64%]">
+      <div aria-hidden className="ofl-hero-pulse absolute inset-0" />
+      {event.heroMedia ? <HeroPicture desktop={event.heroMedia} mobile={event.heroMobileMedia} /> : (
+        <>
+          <div data-slot="hero-watermark" aria-hidden className="absolute inset-x-0 top-[10%] text-center font-display text-[50vw] leading-none text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,.08)] lg:text-[33vw]">{BRAND.shortName}</div>
+          <BrandMark className="absolute left-1/2 top-0 h-full -translate-x-1/2 opacity-70" />
+          {main ? <><FaceOffFighter fighter={main.red} side="red" /><FaceOffFighter fighter={main.blue} side="blue" /></> : null}
+        </>
+      )}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[35%] bg-gradient-to-t from-black to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[3] hidden w-[30%] bg-gradient-to-r from-black to-transparent lg:block" />
+    </div>
+  );
+}

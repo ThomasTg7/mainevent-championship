@@ -47,9 +47,9 @@ export function PhotoGallery({ media, title }: PhotoGalleryProps) {
               type="button"
               onClick={() => setOpenIndex(index)}
               aria-label={`Ver foto ${index + 1} de ${media.length}${item.alt ? `: ${item.alt}` : ""}`}
-              className="group relative block aspect-[4/3] w-full overflow-hidden bg-surface outline-none focus-visible:ring-2 focus-visible:ring-yellow"
+              className="group relative block aspect-[4/3] w-full overflow-hidden bg-surface outline-none focus-visible:ring-2 focus-visible:ring-accent-bright"
             >
-              <MediaImage media={item} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" className="size-full object-cover transition-transform duration-500 ease-gc motion-safe:group-hover:scale-105" />
+              <MediaImage media={item} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" className="size-full object-cover transition-transform duration-500 ease-ofl motion-safe:group-hover:scale-105" />
             </button>
           </li>
         ))}
@@ -73,10 +73,10 @@ export function PhotoGallery({ media, title }: PhotoGalleryProps) {
               <MediaImage media={current} sizes="96vw" className="max-h-[78dvh] w-auto max-w-full object-contain" />
               {media.length > 1 ? (
                 <>
-                  <button type="button" onClick={() => step(-1)} aria-label="Foto anterior" className="absolute left-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center bg-black/70 text-white hover:bg-yellow hover:text-black">
+                  <button type="button" onClick={() => step(-1)} aria-label="Foto anterior" className="absolute left-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center bg-black/70 text-white hover:bg-brand hover:text-white">
                     <ChevronLeft aria-hidden />
                   </button>
-                  <button type="button" onClick={() => step(1)} aria-label="Foto siguiente" className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center bg-black/70 text-white hover:bg-yellow hover:text-black">
+                  <button type="button" onClick={() => step(1)} aria-label="Foto siguiente" className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center bg-black/70 text-white hover:bg-brand hover:text-white">
                     <ChevronRight aria-hidden />
                   </button>
                 </>

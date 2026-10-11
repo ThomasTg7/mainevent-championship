@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui-gc/button";
@@ -16,13 +17,13 @@ export async function generateMetadata({ searchParams }: PageProps<"/noticias">)
   const active = (await getCachedPublicPostCategories()).find((category) => category.slug === text(query.categoria));
   return sitePageMetadata({
     title: active ? `${active.name} · Noticias` : "Noticias",
-    description: "Anuncios, resultados, entrevistas y detrás de cámaras de Guerra Campal.",
+    description: `Anuncios, resultados, entrevistas y detrás de cámaras de ${BRAND.name}.`,
     path: postsListHref(active?.slug, parsePageParam(query.pagina)),
   });
 }
 
 const FILTER_CLASS =
-  "inline-flex min-h-11 items-center border px-4 font-cond text-sm font-extrabold uppercase tracking-[.1em] transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow";
+  "inline-flex min-h-11 items-center border px-4 font-cond text-sm font-extrabold uppercase tracking-[.1em] transition-opacity outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright";
 
 export default async function NoticiasPage({ searchParams }: PageProps<"/noticias">) {
   const query = await searchParams;
@@ -41,7 +42,7 @@ export default async function NoticiasPage({ searchParams }: PageProps<"/noticia
 
       {categories.length > 0 ? (
         <nav aria-label="Categorías de noticias" className="mb-10 flex flex-wrap gap-2">
-          <Link href="/noticias" aria-current={active ? undefined : "page"} className={`${FILTER_CLASS} ${active ? "border-white/30 text-white hover:border-yellow" : "border-yellow bg-yellow text-black"}`}>
+          <Link href="/noticias" aria-current={active ? undefined : "page"} className={`${FILTER_CLASS} ${active ? "border-white/30 text-white hover:border-brand" : "border-brand bg-brand text-white"}`}>
             Todas
           </Link>
           {categories.map((category) => (
@@ -49,7 +50,7 @@ export default async function NoticiasPage({ searchParams }: PageProps<"/noticia
               key={category.id}
               href={postsListHref(category.slug, 1)}
               aria-current={active?.id === category.id ? "page" : undefined}
-              className={`${FILTER_CLASS} ${active?.id === category.id ? "border-yellow bg-yellow text-black" : "border-white/30 text-white hover:border-yellow"}`}
+              className={`${FILTER_CLASS} ${active?.id === category.id ? "border-brand bg-brand text-white" : "border-white/30 text-white hover:border-brand"}`}
             >
               {category.name}
             </Link>

@@ -1,6 +1,6 @@
 # OFL — copia independiente de Guerra Campal
 
-Creada el 11 de octubre de 2026 desde la carpeta local GuerraCampal. Conserva frontend, backend, panel, código, historial Git, documentación, migraciones, pruebas y archivos locales de imágenes. El diseño y los contenidos todavía son los de Guerra Campal.
+Creada el 11 de octubre de 2026 desde la carpeta local GuerraCampal. Conserva frontend, backend, panel, código, historial Git, documentación, migraciones, pruebas y archivos locales de imágenes. El diseño público y del panel corresponde a Open Fight Latam. Los datos y fotos de Guerra Campal se conservan como contenido heredado de vista previa.
 
 ## Usar la copia
 
@@ -40,4 +40,6 @@ El historial Git se conserva en la rama `codex/ofl-copy`; se retiró `origin`. P
 
 ## Cambiar la promotora
 
-El frontend, las fotos y los contenidos se pueden adaptar en esta copia. No se ha cambiado aún la marca visible. Las reglas, el spec y los planes heredados describen Guerra Campal: actualizar sus requisitos cuando se defina el diseño de OFL.
+La identidad se define en `src/domain/brand.ts` y en el spec aprobado `docs/superpowers/specs/2026-10-11-ofl-redesign-design.md`. El logo suministrado, negro/blanco, rojo y violeta se aplican a todo el sitio y al panel. Los contenidos, afiches, nombres de eventos y redes guardadas siguen siendo los de la copia; se pueden sustituir desde el panel cuando estén disponibles los de OFL. El enlace oficial de Instagram de OFL aparece por separado.
+
+Rama de trabajo del rediseño: `codex/ofl-redesign`. Las reglas funcionales heredadas siguen vigentes; la estética OFL sustituye la paleta amarilla y la maqueta antigua.

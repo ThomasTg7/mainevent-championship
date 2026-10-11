@@ -10,12 +10,12 @@ type ButtonProps = ComponentPropsWithoutRef<"button"> & {
 };
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-[.6em] font-cond font-extrabold uppercase tracking-[.08em] text-[15px] px-7 py-[15px] relative isolate overflow-hidden transition-[color,transform] duration-300 ease-gc active:scale-[.97] before:content-[''] before:absolute before:inset-0 before:-z-10 before:transition-transform before:duration-500 before:ease-gc";
+  "inline-flex min-h-12 items-center justify-center gap-[.6em] font-cond font-extrabold uppercase tracking-[.06em] text-[15px] px-7 py-[15px] relative isolate overflow-hidden cursor-pointer transition-transform duration-200 ease-ofl active:scale-[.97] disabled:opacity-50 disabled:pointer-events-none before:content-[''] before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:transition-transform before:duration-250 before:ease-ofl";
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-yellow text-black before:bg-white before:-translate-x-full hover:before:translate-x-0",
-  ghost: "border-2 border-white text-white hover:text-black before:bg-white before:translate-y-full hover:before:translate-y-0",
-  dark: "bg-black text-white hover:text-black before:bg-yellow before:-translate-x-full hover:before:translate-x-0",
+  primary: "bg-brand text-white before:bg-brand-hover before:-translate-x-full hover:before:translate-x-0 hover:-translate-y-0.5",
+  ghost: "border border-white/45 text-white before:bg-surface-2 before:translate-y-full hover:before:translate-y-0",
+  dark: "bg-black text-white hover:text-white before:bg-brand before:-translate-x-full hover:before:translate-x-0",
 };
 
 export function Button({ variant, asChild, className, ...props }: ButtonProps) {

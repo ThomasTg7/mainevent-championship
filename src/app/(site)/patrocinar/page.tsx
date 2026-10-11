@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import { PageHeader, PageShell } from "@/components/site/page-shell";
 import { SponsorshipForm } from "@/features/inbox/components/sponsorship-form";
@@ -6,7 +7,7 @@ import { sitePageMetadata } from "@/features/seo/site-metadata";
 export function generateMetadata(): Promise<Metadata> {
   return sitePageMetadata({
     title: "Patrocinar",
-    description: "Haz que tu marca sea parte de Guerra Campal: escríbenos y conversemos cómo patrocinar un evento.",
+    description: `Haz que tu marca sea parte de ${BRAND.name}: escríbenos y conversemos cómo patrocinar un evento.`,
     path: "/patrocinar",
   });
 }

@@ -1,10 +1,14 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import { anton, barlow, barlowCondensed } from "./fonts";
 import "./globals.css";
+import "./ofl-public.css";
+import "./ofl-admin.css";
+import "./ofl-motion.css";
 
 export const metadata: Metadata = {
-  title: "Guerra Campal",
-  description: "Promotora de MMA Guerra Campal (Chile).",
+  title: BRAND.name,
+  description: BRAND.description,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

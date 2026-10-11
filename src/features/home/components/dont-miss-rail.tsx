@@ -35,10 +35,10 @@ export function DontMissRail({ posts }: { posts: PostCardDTO[] }) {
             // Con una sola tarjeta no hay nada que recorrer.
             posts.length > 1 ? (
               <div className="flex gap-2">
-                <button type="button" aria-label="Anterior" onClick={() => scrollByCard(-1)} className="grid size-[46px] place-items-center border-2 border-border transition-colors hover:border-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-yellow">
+                <button type="button" aria-label="Anterior" onClick={() => scrollByCard(-1)} className="grid size-[46px] place-items-center border-2 border-border transition-opacity hover:border-brand hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-accent-bright">
                   <span aria-hidden>←</span>
                 </button>
-                <button type="button" aria-label="Siguiente" onClick={() => scrollByCard(1)} className="grid size-[46px] place-items-center border-2 border-border transition-colors hover:border-yellow hover:bg-yellow hover:text-black focus-visible:outline-2 focus-visible:outline-yellow">
+                <button type="button" aria-label="Siguiente" onClick={() => scrollByCard(1)} className="grid size-[46px] place-items-center border-2 border-border transition-opacity hover:border-brand hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-accent-bright">
                   <span aria-hidden>→</span>
                 </button>
               </div>
@@ -51,7 +51,7 @@ export function DontMissRail({ posts }: { posts: PostCardDTO[] }) {
           tabIndex={0}
           aria-label="Videos y galerías"
           data-reveal
-          className="-mx-[clamp(16px,4vw,64px)] flex snap-x snap-mandatory gap-5 overflow-x-auto px-[clamp(16px,4vw,64px)] pb-3 [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-yellow [&::-webkit-scrollbar]:hidden"
+          className="-mx-[clamp(16px,4vw,64px)] flex snap-x snap-mandatory gap-5 overflow-x-auto px-[clamp(16px,4vw,64px)] pb-3 [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-accent-bright [&::-webkit-scrollbar]:hidden"
         >
           {posts.map((post) => (
             <li key={post.id} className="w-[min(78vw,300px)] shrink-0 snap-start">

@@ -10,8 +10,8 @@ type FightCardTabsProps = {
 
 /**
  * Pestañas por bloque de la cartelera («Cartelera estelar», «Preliminares»…) sobre fondo blanco. Solo las pestañas son
- * interactivas; el contenido lo arma el servidor. Cada pestaña es dorada con texto negro (legible sobre blanco) y la
- * activa pasa a negro con texto dorado; la entrada del panel usa solo `transform` y `opacity` y se queda quieta si la
+ * interactivas; el contenido lo arma el servidor. Cada pestaña es roja con texto blanco y la
+ * activa pasa a negro con texto violeta claro; la entrada del panel usa solo `transform` y `opacity` y se queda quieta si la
  * persona pidió menos movimiento. Con un solo bloque no hay pestañas.
  */
 export function FightCardTabs({ segments }: FightCardTabsProps) {
@@ -33,7 +33,7 @@ export function FightCardTabs({ segments }: FightCardTabsProps) {
           <TabsTrigger
             key={segment.id}
             value={segment.id}
-            className="h-auto min-h-11 flex-none rounded-none border-2 border-yellow bg-yellow! px-5 py-2.5 font-cond text-[15px] font-extrabold uppercase tracking-[.1em] text-black! transition-colors duration-300 after:hidden hover:bg-black/85! hover:text-yellow! data-active:bg-black! data-active:text-yellow! motion-reduce:transition-none"
+            className="h-auto min-h-11 flex-none rounded-none border-2 border-brand bg-brand! px-5 py-2.5 font-cond text-[15px] font-extrabold uppercase tracking-[.1em] text-white! transition-opacity duration-300 after:hidden hover:bg-black/85! hover:text-accent-bright! data-active:bg-black! data-active:text-accent-bright! motion-reduce:transition-none"
           >
             {segment.name}
           </TabsTrigger>

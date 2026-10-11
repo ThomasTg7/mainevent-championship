@@ -20,7 +20,7 @@ export function HelpTip({ topic, children }: HelpTipProps) {
       <PopoverTrigger
         type="button"
         aria-label={`Ayuda: ${topic}`}
-        className="-my-3 inline-flex size-11 shrink-0 items-center justify-center text-muted-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-primary data-[state=open]:text-primary"
+        className="-my-3 inline-flex size-11 shrink-0 items-center justify-center text-muted-foreground hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-accent-bright data-[state=open]:text-accent-bright"
       >
         <CircleHelp aria-hidden className="size-4" />
       </PopoverTrigger>

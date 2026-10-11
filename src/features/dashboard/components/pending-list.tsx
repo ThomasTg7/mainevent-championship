@@ -29,7 +29,7 @@ type PendingListProps = {
 export function PendingList({ title, hint, emptyText, items }: PendingListProps) {
   const headingId = `pending-${title.toLowerCase().replace(/\W+/g, "-")}`;
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-3 border border-border bg-card p-5 sm:p-6">
+    <section aria-labelledby={headingId} className="ofl-admin-section flex flex-col gap-3 p-5 sm:p-6">
       <div>
         <h2 id={headingId} className="text-lg font-semibold">
           {title}
@@ -42,7 +42,7 @@ export function PendingList({ title, hint, emptyText, items }: PendingListProps)
         <ul className="flex flex-col">
           {items.map((item) => (
             <li key={`${item.type}-${item.id}`} className="border-b border-border last:border-b-0">
-              <Link href={editHref(item)} className="flex min-h-11 flex-col justify-center gap-0.5 py-2 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary">
+              <Link href={editHref(item)} className="flex min-h-11 flex-col justify-center gap-0.5 py-2 hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-accent-bright">
                 <span className="break-words font-medium">{item.title}</span>
                 <span className="text-sm text-muted-foreground">
                   {TYPE_LABELS[item.type]}

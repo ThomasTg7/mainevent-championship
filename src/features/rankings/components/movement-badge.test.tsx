@@ -29,8 +29,8 @@ describe("MovementBadge", () => {
     render(<MovementBadge movement={{ kind: "new" }} />);
     const badge = screen.getByLabelText("Nuevo en el ranking");
     expect(badge.textContent).toBe("NUEVO");
-    expect(badge.className).toContain("bg-yellow");
-    expect(badge.className).toContain("text-black");
+    expect(badge.className).toContain("bg-brand");
+    expect(badge.className).toContain("text-white");
   });
 
   it("shows a dash for no change", () => {

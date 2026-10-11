@@ -38,7 +38,7 @@ export function BoutResultSummary({ bout }: { bout: BoutDTO }) {
     <div data-slot="bout-result" className="flex flex-col gap-6 bg-black p-6 sm:p-8">
       <div className="text-center">
         <p className={LABEL}>Resultado</p>
-        <p className="mt-2 font-display text-[clamp(30px,7vw,60px)] uppercase leading-[.95] text-yellow">{verdict}</p>
+        <p className="mt-2 font-display text-[clamp(30px,7vw,60px)] uppercase leading-[.95] text-accent-bright">{verdict}</p>
       </div>
       {/* En celular, un dato bajo otro y centrados; desde `sm`, en una fila (el método ocupa dos columnas). */}
       <dl className="grid grid-cols-1 gap-x-4 gap-y-5 text-center sm:grid-cols-4">
@@ -62,7 +62,7 @@ export function BoutResultSummary({ bout }: { bout: BoutDTO }) {
       {result.bonuses.length > 0 ? (
         <ul aria-label="Bonos" className="flex flex-wrap justify-center gap-2">
           {result.bonuses.map((bonus) => (
-            <li key={bonus} className="bg-yellow px-3 py-1 font-cond text-xs font-extrabold uppercase tracking-[.12em] text-black">
+            <li key={bonus} className="bg-brand px-3 py-1 font-cond text-xs font-extrabold uppercase tracking-[.12em] text-white">
               ★ {BONUS_LABELS[bonus]}
             </li>
           ))}
@@ -73,7 +73,7 @@ export function BoutResultSummary({ bout }: { bout: BoutDTO }) {
           href={result.videoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mx-auto inline-flex min-h-11 items-center gap-2 border-2 border-yellow px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white hover:bg-yellow hover:text-black"
+          className="mx-auto inline-flex min-h-11 items-center gap-2 border-2 border-brand px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white hover:bg-brand hover:text-white"
         >
           Ver la pelea <ExternalLink aria-hidden className="size-4" />
         </a>

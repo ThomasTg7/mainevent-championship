@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { Logo } from "@/components/brand/logo";
+import { BrandMark } from "@/components/brand/brand-mark";
 
-const SEEN_KEY = "gc-intro-seen";
+const SEEN_KEY = "ofl-intro-seen";
 const SHOW_MS = 1100;
-const LEAVE_MS = 600;
+const LEAVE_MS = 300;
 
 type Phase = "idle" | "showing" | "leaving" | "done";
 
@@ -21,7 +23,7 @@ function markSeen(): boolean {
 }
 
 /**
- * Presentación de la home (el «GC» sube y una barra amarilla se llena) solo en la primera visita de la sesión y nunca con
+ * Presentación OFL solo en la primera visita de la sesión y nunca con
  * «reducir movimiento». Aparece después de hidratar: el contenido y la imagen principal ya están pintados debajo, así que no
  * retrasa nada ni esconde información. No intercepta clics y los lectores de pantalla la ignoran.
  */
@@ -51,13 +53,10 @@ export function IntroLoader() {
     <div
       data-slot="intro-loader"
       aria-hidden="true"
-      className={`pointer-events-none fixed inset-0 z-[1000] grid place-items-center bg-black transition-[clip-path] duration-[600ms] ease-gc ${phase === "leaving" ? "[clip-path:inset(0_0_100%_0)]" : "[clip-path:inset(0)]"}`}
+      className={`pointer-events-none fixed bottom-5 right-5 z-[1000] grid h-28 w-40 place-items-center overflow-hidden border border-brand bg-black transition-[transform,opacity] duration-300 ease-ofl ${phase === "leaving" ? "ofl-intro-leaving" : ""}`}
     >
-      <div className="flex overflow-hidden font-display text-[clamp(90px,18vw,220px)] leading-none">
-        <span className="inline-block animate-[intro-letter_.7s_cubic-bezier(.2,.8,.2,1)_both] text-white">G</span>
-        <span className="inline-block animate-[intro-letter_.7s_cubic-bezier(.2,.8,.2,1)_.1s_both] text-yellow">C</span>
-      </div>
-      <div className="absolute bottom-0 left-0 h-1.5 w-full origin-left animate-[intro-bar_.9s_ease-in-out_.2s_both] bg-yellow" />
+      <BrandMark className="ofl-intro-mark absolute h-28 opacity-50" />
+      <div className="ofl-intro-logo relative"><Logo size="md" /></div>
     </div>
   );
 }

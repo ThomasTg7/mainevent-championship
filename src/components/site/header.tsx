@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/domain/brand";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -41,14 +42,14 @@ export function Header() {
       <header
         className={cn(
           // Fondo sólido como capa aparte con opacity: solo se animan transform y opacity.
-          "fixed top-0 left-0 right-0 z-[100] h-[76px] flex items-center transition-transform duration-300 ease-gc",
+          "ofl-header fixed top-0 left-0 right-0 z-[100] h-[76px] flex items-center transition-transform duration-300 ease-ofl",
           "before:absolute before:inset-0 before:-z-10 before:bg-black/90 before:backdrop-blur-md before:border-b before:border-border before:opacity-0 before:transition-opacity before:duration-300",
           solid && "before:opacity-100",
           hidden && "-translate-y-full",
         )}
       >
-        <div className="max-w-[1320px] mx-auto w-full px-[clamp(16px,4vw,64px)] flex items-center gap-10">
-          <Link href="/" aria-label="Guerra Campal inicio">
+        <div className="max-w-[1320px] mx-auto w-full px-[clamp(16px,4vw,64px)] flex items-center gap-8">
+          <Link href="/" aria-label={`${BRAND.name} inicio`}>
             <Logo />
           </Link>
           <nav aria-label="Principal" className="hidden lg:flex gap-8 mr-auto">
@@ -58,8 +59,8 @@ export function Header() {
                 href={link.href}
                 aria-current={isActiveNavLink(pathname, link.href) ? "page" : undefined}
                 className={cn(
-                  "font-cond font-bold uppercase tracking-[.1em] text-[15px] transition-colors",
-                  isActiveNavLink(pathname, link.href) ? "text-yellow" : "text-white/85 hover:text-white",
+                  "ofl-nav-link font-cond font-bold uppercase tracking-[.06em] text-[15px]",
+                  isActiveNavLink(pathname, link.href) ? "text-accent-bright" : "text-white/85 hover:text-white",
                 )}
               >
                 {link.label}

@@ -56,7 +56,7 @@ export function AiAnswerStep({ answer, onAnswerChange, photoIds, notices, onLoad
         <ul id={summaryId} aria-label="Lo que se cargará" className="flex flex-col gap-1 text-sm">
           {summary.map((item) => (
             <li key={item.text} className={`flex items-start gap-2 ${item.ok ? "" : "text-amber-300"}`}>
-              {item.ok ? <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" /> : <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />}
+              {item.ok ? <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-accent-bright" /> : <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />}
               <span className="min-w-0 break-words">{item.text}</span>
             </li>
           ))}

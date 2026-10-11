@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import { formatClock } from "@/domain/clock";
 import type { ComputedRecord } from "@/domain/record";
 import type { ManualRecord } from "../dto";
@@ -56,7 +57,7 @@ function GuerraCampalRecord({ record, title }: { record: ComputedRecord; title: 
     .join(" · ");
   return (
     <>
-      <p className={RECORD_CLASS} aria-label={`Récord en Guerra Campal ${title.toLowerCase()}: ${formatRecord(record)}`}>
+      <p className={RECORD_CLASS} aria-label={`Récord en ${BRAND.name} ${title.toLowerCase()}: ${formatRecord(record)}`}>
         {formatRecord(record)}
       </p>
       {extra ? <p className="mt-2 text-sm text-muted-foreground">{extra}</p> : null}
@@ -96,7 +97,7 @@ const labelClass = "mb-2 font-cond text-[13px] font-bold uppercase tracking-[.16
 export function RecordSummary({ manual, computed }: RecordSummaryProps) {
   const levels = (
     [
-      { key: "pro", title: "Profesional", titleClass: "text-yellow" },
+      { key: "pro", title: "Profesional", titleClass: "text-accent-bright" },
       { key: "amateur", title: "Amateur", titleClass: "text-[#FF7A1A]" },
     ] as const
   )
@@ -123,7 +124,7 @@ export function RecordSummary({ manual, computed }: RecordSummaryProps) {
                 ) : null}
                 {showGc ? (
                   <div data-record="gc" className="w-full">
-                    <p className={labelClass}>Guerra Campal</p>
+                    <p className={labelClass}>{BRAND.name}</p>
                     <GuerraCampalRecord record={computed[key]} title={title} />
                   </div>
                 ) : null}

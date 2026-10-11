@@ -27,10 +27,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <SmoothScroll>
+      <div className="ofl-site flex min-h-svh flex-col">
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
       <Analytics />
+      </div>
     </SmoothScroll>
   );
 }

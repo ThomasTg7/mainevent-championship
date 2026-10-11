@@ -1,3 +1,4 @@
+import { BRAND } from "@/domain/brand";
 import type { Metadata } from "next";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -26,7 +27,7 @@ import { SponsorStrip } from "@/features/sponsors/components/sponsor-strip";
 export function generateMetadata(): Promise<Metadata> {
   return sitePageMetadata({
     title: { absolute: HOME_TITLE },
-    description: "Guerra Campal, la promotora de MMA de Chile: próximo evento, cartelera, peleadores, rankings, noticias y entradas.",
+    description: `${BRAND.name}, la promotora de MMA de Chile: próximo evento, cartelera, peleadores, rankings, noticias y entradas.`,
     path: "/",
   });
 }

@@ -37,28 +37,28 @@ function divisionLabel(division: FighterCardDTO["division"]): string {
 export function FighterCard({ fighter, priority = false, badge, backdrop, heading: Heading = "h2" }: FighterCardProps) {
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden border border-border bg-[linear-gradient(170deg,#1c1c1c,#0a0a0a_70%)] transition-colors duration-300 focus-within:border-yellow focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-yellow hover:border-yellow">
+    <article className="group relative flex h-full flex-col overflow-hidden border border-border bg-[linear-gradient(170deg,#1c1c1c,#0a0a0a_70%)] transition-opacity duration-300 focus-within:border-brand focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent-bright hover:border-brand">
       <div className="relative h-[clamp(210px,36vw,340px)] overflow-hidden sm:h-[clamp(240px,26vw,340px)]">
         <FighterFigure
           fighter={fighter}
           sizes={FIGHTER_CARD_SIZES}
           priority={priority}
           bodyFit="object-contain"
-          imageClassName="absolute inset-0 transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105"
-          silhouetteClassName="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,180,0,.55)] transition-transform duration-700 ease-gc motion-safe:group-hover:scale-105"
+          imageClassName="absolute inset-0 transition-transform duration-700 ease-ofl motion-safe:group-hover:scale-105"
+          silhouetteClassName="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(197,155,229,.55)] transition-transform duration-700 ease-ofl motion-safe:group-hover:scale-105"
         />
         {backdrop ? (
           <span
             data-slot="fighter-card-backdrop"
             aria-hidden="true"
-            className="pointer-events-none absolute right-3.5 top-1.5 font-display text-[clamp(72px,12vw,120px)] leading-none text-transparent [-webkit-text-stroke:1px_rgba(255,180,0,.25)]"
+            className="pointer-events-none absolute right-3.5 top-1.5 font-display text-[clamp(72px,12vw,120px)] leading-none text-transparent [-webkit-text-stroke:1px_rgba(197,155,229,.25)]"
           >
             {backdrop}
           </span>
         ) : null}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0c0c0c] to-transparent" />
         {badge ? (
-          <span className="absolute left-3 top-3 z-10 bg-yellow px-2 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] text-black">
+          <span className="absolute left-3 top-3 z-10 bg-brand px-2 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] text-white">
             {badge}
           </span>
         ) : null}
@@ -66,7 +66,7 @@ export function FighterCard({ fighter, priority = false, badge, backdrop, headin
 
       <div className="relative -mt-8 flex flex-1 flex-col px-4 pb-4 sm:px-6 sm:pb-6">
         {fighter.nickname ? (
-          <p className="font-cond text-[13px] font-bold tracking-[.1em] text-yellow sm:text-sm">“{fighter.nickname}”</p>
+          <p className="font-cond text-[13px] font-bold tracking-[.1em] text-accent-bright sm:text-sm">“{fighter.nickname}”</p>
         ) : null}
         <Heading className="my-1 font-display text-[clamp(24px,5vw,36px)] uppercase leading-[.95] text-white">
           <Link href={`/peleadores/${fighter.slug}`} className="outline-none after:absolute after:inset-0">

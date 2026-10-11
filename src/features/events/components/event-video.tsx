@@ -31,8 +31,8 @@ export function EventVideo({ url, title }: EventVideoProps) {
       {playing ? (
         <iframe title={title} src={`${embed}?autoplay=1&rel=0`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" className="absolute inset-0 size-full" />
       ) : (
-        <button type="button" onClick={() => setPlaying(true)} className="group absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(ellipse_at_center,#2a1f06,#0b0b0b_70%)] outline-none focus-visible:ring-2 focus-visible:ring-yellow">
-          <span className="grid size-16 place-items-center rounded-full border-2 border-white transition-colors group-hover:border-yellow group-hover:bg-yellow group-hover:text-black">
+        <button type="button" onClick={() => setPlaying(true)} className="group absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(ellipse_at_center,#2a1f06,#0b0b0b_70%)] outline-none focus-visible:ring-2 focus-visible:ring-accent-bright">
+          <span className="grid size-16 place-items-center rounded-full border-2 border-white transition-opacity group-hover:border-brand group-hover:bg-brand group-hover:text-white">
             <Play aria-hidden className="ml-1 size-7 fill-current" />
           </span>
           <span className="font-cond text-lg font-extrabold uppercase tracking-[.1em] text-white">{title}</span>

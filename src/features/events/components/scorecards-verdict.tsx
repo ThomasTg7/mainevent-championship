@@ -14,7 +14,7 @@ export function ScorecardsVerdict({ bout, scorecards }: { bout: BoutDTO; scoreca
   return (
     <div data-slot="scorecards-verdict" className="flex flex-col items-center gap-2 bg-black px-5 py-5 text-center">
       <p className="font-cond text-[11px] font-extrabold uppercase tracking-[.14em] text-white/60">Resultado</p>
-      <p className="font-display text-[clamp(24px,5vw,40px)] uppercase leading-[.95] text-yellow">
+      <p className="font-display text-[clamp(24px,5vw,40px)] uppercase leading-[.95] text-accent-bright">
         {verdict} · {result.methodText}
       </p>
       <p className="font-display text-[clamp(20px,4vw,30px)] leading-none text-white tabular-nums">{scorecardsLine(scorecards, result.outcome)}</p>
