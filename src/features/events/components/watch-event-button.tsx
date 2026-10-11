@@ -20,7 +20,7 @@ export function WatchEventButton({ eventName, platforms = [], children = "Ver", 
 
   return <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild><Button type="button" variant="primary" className={className} aria-label={ariaLabel}>{children}</Button></DialogTrigger>
-    <DialogContent data-lenis-prevent overlayClassName="z-[190] bg-black/80" className="ofl-site z-[200] max-h-[85dvh] overflow-y-auto rounded-none border border-border bg-surface p-6 text-white sm:max-w-xl">
+    <DialogContent data-lenis-prevent overlayClassName="ofl-watch-overlay z-[190] bg-black/80" className="ofl-site ofl-watch-dialog z-[200] max-h-[85dvh] overflow-y-auto rounded-none border border-border bg-surface p-6 text-white sm:max-w-xl">
       <DialogTitle className="pr-8 font-display text-3xl uppercase ofl-gradient-text">Dónde ver</DialogTitle>
       <DialogDescription className="text-white/70">{eventName} · Elige tu plataforma para ver la transmisión.</DialogDescription>
       {platforms.length ? <ul className="flex flex-col gap-4">

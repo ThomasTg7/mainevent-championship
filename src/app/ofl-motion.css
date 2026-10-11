@@ -27,7 +27,41 @@
   transform: translateY(-16px);
 }
 
+@keyframes ofl-watch-dialog-enter {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ofl-watch-dialog-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(.98); }
+}
+
+@keyframes ofl-watch-overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ofl-watch-dialog[data-state="open"] {
+  animation: ofl-watch-dialog-enter 360ms var(--ease-ofl) both;
+}
+
+.ofl-watch-dialog[data-state="closed"] {
+  animation: ofl-watch-dialog-exit 220ms ease-in both;
+}
+
+.ofl-watch-overlay[data-state="open"] {
+  animation: ofl-watch-overlay-enter 320ms ease-out both;
+}
+
+.ofl-watch-overlay[data-state="closed"] {
+  animation: ofl-watch-overlay-enter 220ms ease-in reverse both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .ofl-watch-dialog[data-state],
+  .ofl-watch-overlay[data-state] { animation: none; }
+
   .ofl-page-enter,
   .ofl-intro-logo,
   .ofl-intro-mark { animation: none; transform: none; }

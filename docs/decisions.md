@@ -1,5 +1,12 @@
 # Registro de decisiones
 
+## [OFL] Transición suave del modal Dónde ver — 2026-10-11
+
+- **Qué:** entrada progresiva de 360 ms, desvanecido del fondo de 320 ms y cierre de 220 ms en el modal compartido por «Ver» y «Dónde ver». Desplazamiento de hasta 12 px y escala de .98 a 1; solo transform y opacity. Sin animación si se solicita movimiento reducido.
+- **Por qué:** el usuario percibe brusca la transición predeterminada de 100 ms. Se comprobó ese tiempo en el navegador antes del cambio.
+- **Impacto:** plan 06; clases propias del modal público, sin cambiar los demás diálogos, sus enlaces, foco ni bloqueo de scroll. Sin dependencias, cambios de datos o consultas.
+- **Estado:** aplicado; verificación en `docs/reports/ofl-watch-modal-motion.md`.
+
 ## [OFL] Portada móvil independiente y reutilización con el afiche — 2026-10-11
 
 - **Qué:** la portada móvil se muestra aunque el evento carezca de portada de computador; desde 768 px se conserva el escenario de marca/careo cuando falta la horizontal. El navegador selecciona la variante móvil por debajo de 768 px. En la pestaña Imágenes se agregan «Usar el afiche como portada móvil» y «Usar la portada móvil como afiche», con aplicación al guardar el evento.
