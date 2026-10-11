@@ -17,6 +17,7 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
   const main = pickMainBout(event.segments.flatMap((segment) => segment.bouts), (bout) => bout.status === "cancelled");
   const start = new Date(event.startsAt);
   const status = eventStatusTag(event.eventStatus);
+  const watchLabel = <><span className="min-[400px]:hidden">Ver</span><span className="hidden min-[400px]:inline">Dónde ver</span></>;
   return (
     <section id={EVENT_HERO_ID} data-site-hero aria-labelledby="event-title" className="ofl-hero relative isolate flex min-h-[max(760px,100svh)] items-end overflow-hidden pt-24 text-center lg:min-h-[max(850px,100svh)]">
       <EventHeroArt event={event} main={main} />
@@ -33,10 +34,10 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
           <p className="mt-5 font-cond text-base font-semibold tracking-[.03em] text-white sm:text-lg">{formatShortDate(start)} · {formatTime(start)} hrs</p>
           <p className="mt-1 text-sm text-white/70">{event.venue.name}{event.venue.city ? `, ${event.venue.city}` : ""}</p>
           {showCountdown ? <Countdown target={event.startsAt} className="my-6 justify-center" /> : <div className="h-6" />}
-          <div className="flex flex-wrap justify-center gap-3">
-            {ticketHref ? <Button variant="primary" asChild><a href={ticketHref} {...(ticketExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}>Comprar entradas</a></Button> : null}
-            <Button variant="ghost" asChild><SmoothAnchor href="#cartelera">{event.eventStatus === "completed" ? "Ver cartelera y resultados" : "Ver cartelera completa"}</SmoothAnchor></Button>
-            <Button variant="primary" asChild>{event.streamUrl ? <a href={event.streamUrl} target="_blank" rel="noopener noreferrer">Dónde ver</a> : <SmoothAnchor href="#donde-ver">Dónde ver</SmoothAnchor>}</Button>
+          <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:justify-center">
+            {ticketHref ? <Button variant="primary" className="order-1 min-w-0 whitespace-nowrap px-4 sm:px-7" asChild><a href={ticketHref} aria-label="Comprar entradas" {...(ticketExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}><span className="min-[400px]:hidden">Entradas</span><span className="hidden min-[400px]:inline">Comprar entradas</span></a></Button> : null}
+            <Button variant="ghost" className="order-3 col-span-2 sm:order-2" asChild><SmoothAnchor href="#cartelera">{event.eventStatus === "completed" ? "Ver cartelera y resultados" : "Ver cartelera completa"}</SmoothAnchor></Button>
+            <Button variant="primary" className={`order-2 min-w-0 whitespace-nowrap px-4 sm:order-3 sm:px-7 ${!ticketHref ? "col-span-2" : ""}`} asChild>{event.streamUrl ? <a href={event.streamUrl} aria-label="Dónde ver" target="_blank" rel="noopener noreferrer">{watchLabel}</a> : <SmoothAnchor href="#donde-ver" aria-label="Dónde ver">{watchLabel}</SmoothAnchor>}</Button>
           </div>
           {!event.streamUrl ? <p id="donde-ver" className="mt-4 scroll-mt-28 text-sm text-white/80">Pronto anunciaremos dónde ver este evento.</p> : null}
         </div>

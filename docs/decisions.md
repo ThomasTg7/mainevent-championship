@@ -1032,6 +1032,13 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Impacto:** ajuste del spec público OFL; sin consultas, datos, dependencias o permisos nuevos. Las etiquetas de ficha y rankings que ya están fuera de la foto conservan su ubicación.
 - **Estado:** aplicado; validación en `docs/reports/ofl-champion-presentation.md`.
 
+## [OFL] Botones de portada juntos en celular — 2026-10-11
+
+- **Qué:** entradas y transmisión comparten una fila de dos columnas en celular; la cartelera ocupa la fila siguiente. Por debajo de 400 px, las etiquetas visibles se acortan a «Entradas» y «Ver», conservando sus nombres completos accesibles. Desde 400 px se muestran los textos completos; escritorio conserva su distribución.
+- **Por qué:** petición del usuario para que las dos acciones principales permanezcan juntas en la portada.
+- **Impacto:** portada compartida de inicio y eventos; sin cambios funcionales, consultas o dependencias.
+- **Estado:** aplicado.
+
 ## [OFL] Restaurar dorado original y marca blanca del evento — 2026-10-11
 - **Qué:** restituir el degradado dorado original `#F4DE8C → #D4AF37 → #A8832C` de la franja de campeón, conservando ancho, altura, posición y letras blancas solicitadas. «Open Fight Latam» en la portada compartida pasa a blanco.
 - **Por qué:** corrección expresa del usuario: conservar el dorado anterior con la estructura nueva, y mostrar la marca en blanco.
