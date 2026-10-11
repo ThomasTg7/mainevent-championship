@@ -15,3 +15,9 @@ Fecha: 2026-10-11. Rama: `codex/ofl-redesign`.
 - `pnpm lint`: en verde.
 - E2e de eventos, noticias, relaciones, historial, entradas, SEO y contenido OFL: 69 escenarios cubiertos. Primera corrida: 68 pasaron; falló la comprobación de un encabezado `Location` relativo en el test nuevo. Corregida la resolución del encabezado contra la URL base, `pnpm test:e2e e2e/ofl-content.spec.ts --workers=1` pasó sus 3 pruebas (375/1440 px y redirecciones antiguas, incluyendo pelea y query).
 - Lint se repitió tras una carrera de lectura con la carpeta temporal eliminada por Playwright al iniciar; sin cambio de código por ese fallo de infraestructura.
+
+## Incidencia del servidor local: detalle de peleas
+
+- El servidor de 3002 devolvía un 404 genérico para detalles de pelea que existían en la base. Su inventario generado de rutas omitía `/eventos/[slug]/peleas/[boutId]` y otras rutas anidadas, aunque sus archivos existían; el servidor independiente de e2e sí las registraba.
+- Se reconstruyó la caché `.next/dev` y se reinició únicamente el servidor OFL de 3002. Su inventario vuelve a incluir las rutas omitidas. No requirió cambios en URLs, datos o código de producto.
+- Verificación en el servidor real: clic desde la cartelera de OFL 1, 3 y 5 a 375/1440 px; los 21 detalles enlazados de OFL 1–5 responden 200; una pelea inexistente sigue devolviendo 404. Servidor dejado activo en `http://localhost:3002`.
