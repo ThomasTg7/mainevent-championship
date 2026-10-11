@@ -133,3 +133,7 @@ Publicar en internet, configurar dominios, extraer contenido de Instagram, crear
 ## Estado
 
 Propuesta de diseño preparada para revisión del usuario. La implementación de la aplicación se inicia después de aprobar esta descripción o de que el usuario indique que prefiere delegar esas decisiones y avanzar directamente.
+
+
+## Ajuste solicitado el 11 de octubre de 2026
+La portada compartida usa foto/careo a ancho completo e información centrada: etiquetas, nombres, fecha, recinto, contador y botones. En PC los nombres pueden ir en una sola línea; en móvil se apilan. «Dónde ver» abre la transmisión configurada; sin ella, enlaza al aviso de anuncio pendiente. El navbar se oculta dentro de la portada y vuelve fuera de ella. Su línea superior pasa de rojo a violeta horizontalmente. Las pestañas de cartelera activas son negras con letras rojo OFL. Los textos violeta de eventos y detalles de pelea y la llamada «Ver la pelea y las tarjetas» usan un degradado vertical rojo a violeta. El logo compartido pierde el fondo negro y conserva las letras y el rayo completos.

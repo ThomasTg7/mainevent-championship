@@ -38,7 +38,7 @@ export function BoutResultSummary({ bout }: { bout: BoutDTO }) {
     <div data-slot="bout-result" className="flex flex-col gap-6 bg-black p-6 sm:p-8">
       <div className="text-center">
         <p className={LABEL}>Resultado</p>
-        <p className="mt-2 font-display text-[clamp(30px,7vw,60px)] uppercase leading-[.95] text-accent-bright">{verdict}</p>
+        <p className="mt-2 font-display text-[clamp(30px,7vw,60px)] uppercase leading-[.95] ofl-gradient-text">{verdict}</p>
       </div>
       {/* En celular, un dato bajo otro y centrados; desde `sm`, en una fila (el método ocupa dos columnas). */}
       <dl className="grid grid-cols-1 gap-x-4 gap-y-5 text-center sm:grid-cols-4">

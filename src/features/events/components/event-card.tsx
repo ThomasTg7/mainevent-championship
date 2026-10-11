@@ -60,11 +60,11 @@ export function EventCard({ event, variant, priority = false }: EventCardProps) 
           </Link>
         </h3>
         <p className="font-cond text-[15px] font-semibold uppercase tracking-[.08em] text-muted-foreground">
-          {formatShortDate(start)} · <span className="font-bold text-accent-bright">{formatTime(start)} hrs</span> · {event.venueName}, {event.venueCity}
+          {formatShortDate(start)} · <span className="font-bold ofl-gradient-text">{formatTime(start)} hrs</span> · {event.venueName}, {event.venueCity}
         </p>
         {main ? (
           <p className="font-cond text-base font-bold uppercase tracking-[.06em] text-white">
-            {main.red.lastName} <span className="text-accent-bright">vs</span> {main.blue.lastName}
+            {main.red.lastName} <span className="ofl-gradient-text">vs</span> {main.blue.lastName}
             {measure ? <span className="font-semibold text-muted-foreground"> · {measure}</span> : null}
           </p>
         ) : (

@@ -25,7 +25,7 @@ export function SectionHeading({ kicker, title, action, tone = "dark", titleId, 
         <div
           className={cn(
             "flex items-center gap-2.5 mb-3.5 font-cond font-extrabold uppercase tracking-[.2em] text-[13px] before:block before:h-[3px] before:w-7 before:bg-brand",
-            isLight ? "text-black" : "text-accent-bright",
+            isLight ? "text-black" : "ofl-gradient-text",
           )}
         >
           {kicker}

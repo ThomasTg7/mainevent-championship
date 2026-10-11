@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     ".next-e2e/**",
     // Servidores de revisión (`E2E_DIST_DIR=.next-review…`, docs/WORKFLOW.md).
     ".next-review*/**",
+    // Local agent review artifacts are outside the application source.
+    ".superpowers/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

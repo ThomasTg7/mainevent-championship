@@ -10,7 +10,32 @@
 }
 
 .ofl-header {
-  border-top: 3px solid var(--color-brand);
+  border-top: 3px solid transparent;
+  border-image: linear-gradient(90deg, var(--color-brand), var(--color-brand-violet)) 1;
+}
+
+/* Shared vertical OFL ink, matching the lightning bolt. */
+.ofl-site .ofl-gradient-text,
+.ofl-site .text-accent-bright:not(svg) {
+  color: transparent;
+  background-image: linear-gradient(180deg, var(--color-brand), var(--color-brand-violet));
+  background-clip: text;
+  -webkit-background-clip: text;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.ofl-site .ofl-gradient-text svg,
+.ofl-site .text-accent-bright svg { color: var(--color-brand); }
+
+.ofl-site .ofl-gradient-button {
+  background-image: linear-gradient(180deg, var(--color-brand), var(--color-brand-violet));
+  color: white;
+}
+
+@media (forced-colors: active) {
+  .ofl-site .ofl-gradient-text,
+  .ofl-site .text-accent-bright:not(svg) { color: LinkText; background-image: none; }
 }
 
 .ofl-nav-link {

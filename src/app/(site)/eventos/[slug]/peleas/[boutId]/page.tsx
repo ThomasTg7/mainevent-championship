@@ -58,20 +58,20 @@ export default async function BoutPage({ params }: PageProps<"/eventos/[slug]/pe
     <>
       <header className="bg-black px-[clamp(16px,4vw,64px)] pb-10 pt-[calc(76px+clamp(24px,5vw,56px))]">
         <div className="mx-auto w-full max-w-[1100px]">
-          <Link href={`/eventos/${event.slug}#cartelera`} className="font-cond text-sm font-bold uppercase tracking-[.1em] text-accent-bright underline-offset-4 hover:underline">
+          <Link href={`/eventos/${event.slug}#cartelera`} className="font-cond text-sm font-bold uppercase tracking-[.1em] ofl-gradient-text underline-offset-4 hover:underline">
             ← {event.name} · Cartelera
           </Link>
           <p className="mt-6 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-muted-foreground">
             {segmentName} · {formatShortDate(new Date(event.startsAt))}
           </p>
           <h1 className="mt-2 font-display text-[clamp(40px,9vw,96px)] uppercase leading-[.9] text-white">
-            {bout.red.lastName} <span className="text-accent-bright">vs</span> {bout.blue.lastName}
+            {bout.red.lastName} <span className="ofl-gradient-text">vs</span> {bout.blue.lastName}
           </h1>
           <p className="mt-3 flex flex-wrap gap-x-3 font-cond text-sm font-semibold uppercase tracking-[.1em] text-white/80">
             {measure ? <span>{measure}</span> : null}
             <span>{roundsLabel(bout)}</span>
             {bout.level === "amateur" ? <span>Amateur</span> : null}
-            {bout.isTitleFight ? <span className="text-accent-bright">★ Pelea por el título</span> : null}
+            {bout.isTitleFight ? <span className="ofl-gradient-text">★ Pelea por el título</span> : null}
           </p>
         </div>
       </header>

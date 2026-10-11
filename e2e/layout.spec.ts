@@ -19,6 +19,8 @@ for (const viewport of MOBILE_VIEWPORTS) {
 test("el botón Menú abre el menú móvil y muestra Peleadores", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
+  await page.locator("#cartelera").scrollIntoViewIfNeeded();
+  await expect(page.locator(".ofl-header")).not.toHaveAttribute("inert", "");
 
   await page.getByRole("button", { name: "Menú" }).click();
 
@@ -29,6 +31,8 @@ test("el botón Menú abre el menú móvil y muestra Peleadores", async ({ page 
 test("con teclado: el menú recibe el foco, Escape lo cierra y el foco vuelve al botón", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
+  await page.locator("#cartelera").scrollIntoViewIfNeeded();
+  await expect(page.locator(".ofl-header")).not.toHaveAttribute("inert", "");
 
   const menuButton = page.getByRole("button", { name: "Menú" });
   await menuButton.focus();
@@ -45,6 +49,8 @@ test("con teclado: el menú recibe el foco, Escape lo cierra y el foco vuelve al
 test("con el menú abierto, Tab no sale del menú", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
+  await page.locator("#cartelera").scrollIntoViewIfNeeded();
+  await expect(page.locator(".ofl-header")).not.toHaveAttribute("inert", "");
   await page.getByRole("button", { name: "Menú" }).click();
 
   const mobileMenu = page.getByRole("navigation", { name: "Menú móvil" });
@@ -57,13 +63,15 @@ test("con el menú abierto, Tab no sale del menú", async ({ page }) => {
 test("el nav muestra los 5 links en escritorio", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
+  await page.locator("#cartelera").scrollIntoViewIfNeeded();
+  await expect(page.locator(".ofl-header")).not.toHaveAttribute("inert", "");
 
   const nav = page.getByRole("navigation", { name: "Principal" });
 
   await expect(nav.getByRole("link")).toHaveCount(5);
 });
 
-test("en /peleadores el menú marca Peleadores en violeta claro, y al cerrarse se anima antes de desaparecer", async ({ page }) => {
+test("en /peleadores el menú marca Peleadores con degradado OFL, y al cerrarse se anima antes de desaparecer", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/peleadores/matias-perez");
   await page.getByRole("button", { name: "Menú" }).click();
@@ -71,7 +79,7 @@ test("en /peleadores el menú marca Peleadores en violeta claro, y al cerrarse s
   const mobileMenu = page.getByRole("navigation", { name: "Menú móvil" });
   const current = mobileMenu.getByRole("link", { name: "Peleadores" });
   await expect(current).toHaveAttribute("aria-current", "page");
-  await expect(current).toHaveCSS("color", "rgb(197, 155, 229)");
+  await expect(current).toHaveCSS("background-image", /linear-gradient/);
   await expect(mobileMenu.getByRole("link", { name: "Eventos" })).not.toHaveAttribute("aria-current", "page");
 
   await page.getByRole("button", { name: "Cerrar menú" }).click();
@@ -80,10 +88,10 @@ test("en /peleadores el menú marca Peleadores en violeta claro, y al cerrarse s
   await expect(page.locator("#mobile-menu")).toHaveAttribute("data-state", "closed");
 });
 
-test("en escritorio el enlace de la sección actual va en violeta claro", async ({ page }) => {
+test("en escritorio el enlace de la sección actual va con degradado OFL", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/rankings");
   const current = page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Rankings" });
   await expect(current).toHaveAttribute("aria-current", "page");
-  await expect(current).toHaveCSS("color", "rgb(197, 155, 229)");
+  await expect(current).toHaveCSS("background-image", /linear-gradient/);
 });

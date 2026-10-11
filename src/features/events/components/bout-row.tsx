@@ -112,9 +112,9 @@ export function BoutRow({
           {/* La pelea completa (resultado, árbitro, bonos y las tarjetas de los jueces round por round) tiene su página. */}
           <Link
             href={boutHref(eventSlug, bout.id)}
-            className="mx-auto mb-3 flex min-h-11 w-fit items-center gap-2 bg-black px-5 font-cond text-xs font-extrabold uppercase tracking-[.14em] text-accent-bright hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            className="ofl-gradient-button mx-auto mb-3 flex min-h-11 w-fit items-center gap-2 px-5 font-cond text-xs font-extrabold uppercase tracking-[.14em] transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
           >
-            {result?.scorecards?.length ? "Ver la pelea y las tarjetas" : "Ver la pelea completa"}
+            <span>{result?.scorecards?.length ? "Ver la pelea y las tarjetas" : "Ver la pelea completa"}</span>
             <span className="sr-only">: {bout.red.lastName} vs {bout.blue.lastName}</span>
             <ArrowRight aria-hidden className="size-4" />
           </Link>

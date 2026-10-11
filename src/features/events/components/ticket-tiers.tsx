@@ -20,7 +20,7 @@ function TierContent({ tier }: { tier: TicketTier }) {
         </p>
         {tier.description ? <p className="mt-1 font-cond text-sm font-semibold uppercase tracking-[.06em] text-muted-foreground">{tier.description}</p> : null}
       </div>
-      <p className={`font-display text-[28px] leading-none sm:text-[34px] ${tier.soldOut ? "text-muted-foreground line-through" : "text-accent-bright"}`}>{formatClp(tier.priceClp)}</p>
+      <p className={`font-display text-[28px] leading-none sm:text-[34px] ${tier.soldOut ? "text-muted-foreground line-through" : "ofl-gradient-text"}`}>{formatClp(tier.priceClp)}</p>
     </>
   );
 }

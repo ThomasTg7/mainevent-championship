@@ -15,7 +15,7 @@ function HeroPicture({ desktop, mobile }: { desktop: MediaDTO; mobile: MediaDTO 
   return (
     <picture>
       {mobile ? <source media="(max-width: 767px)" srcSet={srcSet(mobile)} sizes="100vw" /> : null}
-      <img src={largest?.url ?? desktop.originalUrl} srcSet={srcSet(desktop)} sizes="(min-width: 1024px) 64vw, 100vw" alt={desktop.alt}
+      <img src={largest?.url ?? desktop.originalUrl} srcSet={srcSet(desktop)} sizes="100vw" alt={desktop.alt}
         width={largest?.width || desktop.width || undefined} height={largest?.height || desktop.height || undefined}
         fetchPriority="high" decoding="async" style={{
           "--hero-desktop-position": `${desktop.focal.x * 100}% ${desktop.focal.y * 100}%`,
@@ -41,7 +41,7 @@ function FaceOffFighter({ fighter, side }: { fighter: BoutFighterDTO; side: "red
 /** Uploaded covers keep priority; the OFL motif is only the fallback stage. */
 export function EventHeroArt({ event, main }: { event: EventPageDTO; main: BoutDTO | null }) {
   return (
-    <div className="relative isolate h-[330px] overflow-hidden sm:h-[430px] lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[64%]">
+    <div className="absolute inset-0 isolate overflow-hidden">
       <div aria-hidden className="ofl-hero-pulse absolute inset-0" />
       {event.heroMedia ? <HeroPicture desktop={event.heroMedia} mobile={event.heroMobileMedia} /> : (
         <>
@@ -50,8 +50,7 @@ export function EventHeroArt({ event, main }: { event: EventPageDTO; main: BoutD
           {main ? <><FaceOffFighter fighter={main.red} side="red" /><FaceOffFighter fighter={main.blue} side="blue" /></> : null}
         </>
       )}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[35%] bg-gradient-to-t from-black to-transparent" />
-      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[3] hidden w-[30%] bg-gradient-to-r from-black to-transparent lg:block" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-[3] bg-[linear-gradient(180deg,transparent_15%,rgba(0,0,0,.2)_35%,rgba(0,0,0,.8)_65%,#000_100%)]" />
     </div>
   );
 }

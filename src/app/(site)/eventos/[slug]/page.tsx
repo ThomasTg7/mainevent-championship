@@ -131,7 +131,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
 
       <section aria-labelledby="venue-title" className="bg-black py-[clamp(56px,8vw,110px)]">
         <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)]">
-          <p id="venue-title" className="mb-8 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] text-accent-bright before:block before:h-[3px] before:w-7 before:bg-brand">
+          <p id="venue-title" className="mb-8 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] ofl-gradient-text before:block before:h-[3px] before:w-7 before:bg-brand">
             El lugar
           </p>
           <VenueMap name={event.venue.name} address={event.venue.address} city={event.venue.city} lat={event.venue.lat} lng={event.venue.lng} />

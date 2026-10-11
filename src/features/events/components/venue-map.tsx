@@ -11,7 +11,7 @@ export function VenueMap({ name, address, city, lat, lng }: VenueMapProps) {
     <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr] lg:items-center">
       <div className="flex flex-col gap-3">
         <p className="flex items-start gap-3">
-          <MapPin aria-hidden className="mt-1 size-6 shrink-0 text-accent-bright" />
+          <MapPin aria-hidden className="mt-1 size-6 shrink-0 text-brand" />
           <span>
             <span className="block font-display text-[clamp(26px,4vw,40px)] uppercase leading-none text-white">{name}</span>
             <span className="mt-2 block font-cond text-base font-semibold uppercase tracking-[.06em] text-muted-foreground">
@@ -24,7 +24,7 @@ export function VenueMap({ name, address, city, lat, lng }: VenueMapProps) {
             href={mapLinkUrl(lat, lng)}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-fit border-b-2 border-brand font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white hover:text-accent-bright"
+            className="w-fit border-b-2 border-brand font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white hover:text-brand"
           >
             Cómo llegar
           </a>

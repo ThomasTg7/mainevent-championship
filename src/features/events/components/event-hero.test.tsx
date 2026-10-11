@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { MediaDTO } from "@/features/media/dto";
 import { stubBrowserApis } from "@/test/browser-stubs";
@@ -26,6 +26,16 @@ const event = (heroMedia: MediaDTO | null) =>
 const watermark = (container: HTMLElement) => container.querySelector('[data-slot="hero-watermark"]');
 
 describe("EventHero background lettering", () => {
+  it("links Dónde ver to the configured broadcast", () => {
+    render(<EventHero event={{ ...event(cover), streamUrl: "https://youtube.com/watch?v=test" }} showCountdown={false} />);
+    expect(screen.getByRole("link", { name: "Dónde ver" })).toHaveAttribute("href", "https://youtube.com/watch?v=test");
+  });
+
+  it("provides a broadcast information destination when no stream is announced", () => {
+    render(<EventHero event={event(null)} showCountdown={false} />);
+    expect(screen.getByRole("link", { name: "Dónde ver" })).toHaveAttribute("href", "#donde-ver");
+    expect(screen.getByText("Pronto anunciaremos dónde ver este evento.")).toBeInTheDocument();
+  });
   it("draws the outlined «OFL» behind the fighters when there is no cover image", () => {
     const { container } = render(<EventHero event={event(null)} showCountdown={false} />);
     expect(watermark(container)?.textContent).toBe("OFL");

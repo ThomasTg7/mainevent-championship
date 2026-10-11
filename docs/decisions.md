@@ -1011,3 +1011,11 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** las pruebas completas del editor reprodujeron una carrera de hidratación: el iframe podía avisar antes de que el padre escuchara y quedaba en «Cargando vista previa». La transición nueva dejó visible esta fragilidad heredada. Test de regresión primero en rojo, luego en verde.
 - **Impacto:** ajuste mínimo de presentación/comunicación local necesario para conservar el editor operativo; guardas de origen y ventana intactas, sin consultas, escrituras ni cambios de negocio. El fondo de reserva de noticias usa OFL y violeta, sin cambiar fotos guardadas.
 - **Estado:** aplicado; revisión independiente aprobada.
+
+
+## [OFL] Portadas centradas, degradados y logo transparente — 2026-10-11
+- **Qué:** portada compartida de home/evento con fotografía a ancho completo, nombres e información centrados, contador y acciones centrados; nuevo enlace «Dónde ver» a la transmisión o aviso de anuncio pendiente. Pestaña activa negra con texto rojo OFL. Texto antes violeta en eventos, detalle de pelea y rótulos públicos con degradado vertical rojo/violeta; botón de detalle de pelea con fondo degradado y letras blancas; línea superior del navbar con degradado horizontal.
+- **Por qué:** ajustes visuales y estructurales solicitados explícitamente por el usuario sobre el rediseño aprobado. Sustituyen la portada dividida del spec.
+- **Impacto:** navbar oculto mientras se ve la portada y visible fuera de ella, con controles ocultos fuera del orden de foco; barra fija del evento debajo del navbar en PC para mantener sus botones accesibles. Logo compartido transparente y contenido completo, incluido el rayo; original conservado. Las propuestas de recorte generadas alteraban bordes y se descartaron; el activo final conserva los píxeles originales mediante máscara de luminancia SVG. Sin nuevas dependencias, consultas, cambios de datos o permisos. El lint excluye artefactos locales de revisión `.superpowers/`, que incluían un script CommonJS fuera de la aplicación.
+- **Planes siguientes:** 00–07 conservados como histórico; esta petición actualiza la presentación del spec OFL vigente.
+- **Estado:** implementado; validación registrada en `docs/reports/ofl-event-presentation.md`.

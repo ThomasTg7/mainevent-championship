@@ -18,18 +18,23 @@ export function Header() {
   const pathname = usePathname();
 
   useEffect(() => {
-    let lastY = window.scrollY;
-
     function onScroll() {
       const y = window.scrollY;
       setSolid(y > 40);
-      setHidden(y > lastY && y > 300);
-      lastY = y;
+      const hero = document.querySelector("[data-site-hero]");
+      setHidden(Boolean(hero && hero.getBoundingClientRect().bottom > 76));
     }
-
+    const observer = new MutationObserver(onScroll);
+    observer.observe(document.querySelector("main") ?? document.body, { childList: true, subtree: true });
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [pathname]);
 
   const closeMenu = useCallback(() => {
     setMenuOpen(false);
@@ -40,12 +45,13 @@ export function Header() {
   return (
     <>
       <header
+        inert={hidden && !menuOpen}
         className={cn(
           // Fondo sólido como capa aparte con opacity: solo se animan transform y opacity.
           "ofl-header fixed top-0 left-0 right-0 z-[100] h-[76px] flex items-center transition-transform duration-300 ease-ofl",
           "before:absolute before:inset-0 before:-z-10 before:bg-black/90 before:backdrop-blur-md before:border-b before:border-border before:opacity-0 before:transition-opacity before:duration-300",
           solid && "before:opacity-100",
-          hidden && "-translate-y-full",
+          hidden && !menuOpen && "-translate-y-full",
         )}
       >
         <div className="max-w-[1320px] mx-auto w-full px-[clamp(16px,4vw,64px)] flex items-center gap-8">

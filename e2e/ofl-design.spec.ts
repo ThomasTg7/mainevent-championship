@@ -8,7 +8,8 @@ for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
-    await expect(page.getByRole("banner").getByRole("img", { name: BRAND.name })).toBeVisible();
+    await expect(page.locator(".ofl-header")).toHaveAttribute("inert", "");
+    await expect(page.locator(".ofl-header [role=img]")).toHaveAttribute("aria-label", BRAND.name);
     await expect(page.getByRole("link", { name: "Instagram de OFL" })).toHaveAttribute("href", BRAND.instagramUrl);
     await expect(page.locator('[data-slot="intro-loader"]')).toHaveCount(0);
     await expect(page.locator(".ofl-page-enter")).toHaveCSS("animation-name", "none");
@@ -63,7 +64,8 @@ test("las transiciones permiten navegar y volver al inicio sin errores", async (
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await page.locator("#peleadores").scrollIntoViewIfNeeded();
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.locator("#cartelera").scrollIntoViewIfNeeded();
+  await expect(page.locator(".ofl-header")).not.toHaveAttribute("inert", "");
   await page.getByRole("banner").getByRole("link", { name: "Noticias", exact: true }).click();
   await expect(page).toHaveURL(/\/noticias$/);
   await page.getByRole("banner").getByRole("link", { name: `${BRAND.name} inicio`, exact: true }).click();
