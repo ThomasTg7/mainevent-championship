@@ -10,16 +10,21 @@ function srcSet(media: MediaDTO) {
   return media.variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ") || undefined;
 }
 
-function HeroPicture({ desktop, mobile }: { desktop: MediaDTO; mobile: MediaDTO | null }) {
-  const largest = desktop.variants.at(-1);
+const EMPTY_COVER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E";
+
+function HeroPicture({ desktop, mobile }: { desktop: MediaDTO | null; mobile: MediaDTO | null }) {
+  const image = desktop ?? mobile;
+  if (!image) return null;
+  const largest = image.variants.at(-1);
+  const mobileLargest = mobile?.variants.at(-1);
   return (
-    <picture>
-      {mobile ? <source media="(max-width: 767px)" srcSet={srcSet(mobile)} sizes="100vw" /> : null}
-      <img src={largest?.url ?? desktop.originalUrl} srcSet={srcSet(desktop)} sizes="100vw" alt={desktop.alt}
-        width={largest?.width || desktop.width || undefined} height={largest?.height || desktop.height || undefined}
+    <picture data-slot="event-hero-picture" className={!desktop ? "md:hidden" : undefined}>
+      {mobile ? <source media="(max-width: 767px)" srcSet={srcSet(mobile)} sizes="100vw" width={mobileLargest?.width || mobile.width || undefined} height={mobileLargest?.height || mobile.height || undefined} /> : null}
+      <img src={desktop ? largest?.url ?? desktop.originalUrl : EMPTY_COVER} srcSet={desktop ? srcSet(desktop) : undefined} sizes="100vw" alt={image.alt}
+        width={largest?.width || image.width || undefined} height={largest?.height || image.height || undefined}
         fetchPriority="high" decoding="async" style={{
-          "--hero-desktop-position": `${desktop.focal.x * 100}% ${desktop.focal.y * 100}%`,
-          "--hero-mobile-position": `${(mobile ?? desktop).focal.x * 100}% ${(mobile ?? desktop).focal.y * 100}%`,
+          "--hero-desktop-position": `${image.focal.x * 100}% ${image.focal.y * 100}%`,
+          "--hero-mobile-position": `${(mobile ?? image).focal.x * 100}% ${(mobile ?? image).focal.y * 100}%`,
         } as CSSProperties}
         className="ofl-hero-image absolute inset-0 size-full object-cover" />
     </picture>
@@ -43,13 +48,14 @@ export function EventHeroArt({ event, main }: { event: EventPageDTO; main: BoutD
   return (
     <div className="absolute inset-0 isolate overflow-hidden">
       <div aria-hidden className="ofl-hero-pulse absolute inset-0" />
-      {event.heroMedia ? <HeroPicture desktop={event.heroMedia} mobile={event.heroMobileMedia} /> : (
-        <>
+      {event.heroMedia || event.heroMobileMedia ? <HeroPicture desktop={event.heroMedia} mobile={event.heroMobileMedia} /> : null}
+      {!event.heroMedia ? (
+        <div className={event.heroMobileMedia ? "hidden md:block" : undefined}>
           <div data-slot="hero-watermark" aria-hidden className="absolute inset-x-0 top-[10%] text-center font-display text-[50vw] leading-none text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,.08)] lg:text-[33vw]">{BRAND.shortName}</div>
           <BrandMark className="absolute left-1/2 top-0 h-full -translate-x-1/2 opacity-70" />
           {main ? <><FaceOffFighter fighter={main.red} side="red" /><FaceOffFighter fighter={main.blue} side="blue" /></> : null}
-        </>
-      )}
+        </div>
+      ) : null}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-[3] bg-[linear-gradient(180deg,transparent_15%,rgba(0,0,0,.2)_35%,rgba(0,0,0,.8)_65%,#000_100%)]" />
     </div>
   );

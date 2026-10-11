@@ -4,7 +4,7 @@ import type { PgTable } from "drizzle-orm/pg-core";
 import sharp, { type Metadata } from "sharp";
 import type { Db } from "@/db";
 import { media, type MediaRow, type StoredVariant } from "@/db/schema/media";
-import { MAX_INPUT_PIXELS, MAX_UPLOAD_BYTES, MEDIA_SPECS, checkResolution, isMediaKind, type MediaKind } from "@/domain/media-specs";
+import { MAX_INPUT_PIXELS, MAX_UPLOAD_BYTES, MEDIA_SPECS, checkResolution, isMediaKind, isMediaKindCompatible, type MediaKind } from "@/domain/media-specs";
 import type { StorageDriver } from "@/lib/storage";
 import { UserFacingError } from "@/lib/user-facing-error";
 import { toMediaDTO, type MediaDTO } from "./dto";
@@ -75,7 +75,7 @@ export async function assertUsableMedia(db: Db, refs: { id: string | null; kind:
     .where(and(inArray(media.id, wanted.map((ref) => ref.id)), eq(media.status, "ready"), isNull(media.deletedAt)));
   const kindById = new Map(rows.map((row) => [row.id, row.kind]));
 
-  if (wanted.some((ref) => kindById.get(ref.id) !== ref.kind)) {
+  if (wanted.some((ref) => !isMediaKindCompatible(kindById.get(ref.id), ref.kind))) {
     throw new MediaError("La imagen ya no está disponible. Súbela de nuevo.");
   }
 }

@@ -51,6 +51,12 @@ export function isMediaKind(value: string): value is MediaKind {
   return (MEDIA_KINDS as readonly string[]).includes(value);
 }
 
+/** Only event posters and mobile covers share the same crop, resolution and variants. */
+export function isMediaKindCompatible(actual: MediaKind | undefined, expected: MediaKind): boolean {
+  if (actual === expected) return true;
+  return (actual === "event_poster" && expected === "event_hero_mobile") || (actual === "event_hero_mobile" && expected === "event_poster");
+}
+
 export function checkResolution(kind: MediaKind, w: number, h: number): { ok: boolean; warning?: string } {
   const spec = MEDIA_SPECS[kind];
 

@@ -19,13 +19,16 @@ type MediaFieldProps = {
   label?: string;
   /** Imagen ya guardada (la carga el servidor con `getMedia`). */
   media?: MediaDTO | null;
+  /** Optional controlled selection, for forms that reuse an image across compatible fields. */
+  value?: MediaDTO | null;
   /** Al guardar una imagen (con su `MediaDTO`, para mostrarla sin pedirla de nuevo) o al quitarla (`null`, `null`). */
   onChange?: (mediaId: string | null, media: MediaDTO | null) => void;
 };
 
-export function MediaField({ kind, name, label, media: initialMedia = null, onChange }: MediaFieldProps) {
+export function MediaField({ kind, name, label, media: initialMedia = null, value, onChange }: MediaFieldProps) {
   const spec = MEDIA_SPECS[kind];
-  const [media, setMedia] = useState<MediaDTO | null>(initialMedia);
+  const [localMedia, setMedia] = useState<MediaDTO | null>(initialMedia);
+  const media = value === undefined ? localMedia : value;
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleSaved = useCallback(

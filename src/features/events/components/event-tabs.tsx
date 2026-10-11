@@ -1,5 +1,7 @@
 "use client";
 import { BRAND } from "@/domain/brand";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 import { SelectField, TextAreaField, TextField } from "@/components/admin/form-fields";
 import { EVENT_STATUS_LABELS } from "@/domain/bout-enums";
@@ -70,6 +72,16 @@ export function EventPlaceTab() {
 type EventImagesTabProps = { heroMedia: MediaDTO | null; heroMobileMedia: MediaDTO | null; posterMedia: MediaDTO | null; gallery: MediaDTO[] };
 
 export function EventImagesTab({ heroMedia, heroMobileMedia, posterMedia, gallery }: EventImagesTabProps) {
+  const [images, setImages] = useState({ mobile: heroMobileMedia, poster: posterMedia });
+  const [reused, setReused] = useState(false);
+  function select(target: "mobile" | "poster", media: MediaDTO | null) {
+    setImages((current) => ({
+      ...current,
+      [target]: media,
+      ...(media && current.mobile?.id === media.id ? { mobile: media } : {}),
+      ...(media && current.poster?.id === media.id ? { poster: media } : {}),
+    }));
+  }
   return (
     <div className="flex flex-col gap-8">
       <div className="grid gap-8 md:grid-cols-2">
@@ -80,15 +92,18 @@ export function EventImagesTab({ heroMedia, heroMobileMedia, posterMedia, galler
         </section>
         <section className="flex flex-col gap-2">
           <h3 className="text-base font-semibold">{MEDIA_SPECS.event_hero_mobile.label}</h3>
-          <p className="text-sm text-muted-foreground">Se usa en celular; si falta, se usa la portada horizontal.</p>
-          <MediaField kind="event_hero_mobile" name="heroMobileMediaId" media={heroMobileMedia} />
+          <p className="text-sm text-muted-foreground">Se usa directamente en celular, incluso sin portada de computador. Si falta, se usa la horizontal. Ajusta el punto de enfoque para el encuadre a pantalla completa.</p>
+          <MediaField kind="event_hero_mobile" name="heroMobileMediaId" value={images.mobile} onChange={(_id, media) => select("mobile", media)} />
+          <Button type="button" variant="outline" className="min-h-11 whitespace-normal" disabled={!images.poster} onClick={() => { select("mobile", images.poster); setReused(true); }}>Usar el afiche como portada móvil</Button>
         </section>
         <section className="flex flex-col gap-2">
           <h3 className="text-base font-semibold">{MEDIA_SPECS.event_poster.label}</h3>
           <p className="text-sm text-muted-foreground">Aparece en los listados de eventos.</p>
-          <MediaField kind="event_poster" name="posterMediaId" media={posterMedia} />
+          <MediaField kind="event_poster" name="posterMediaId" value={images.poster} onChange={(_id, media) => select("poster", media)} />
+          <Button type="button" variant="outline" className="min-h-11 whitespace-normal" disabled={!images.mobile} onClick={() => { select("poster", images.mobile); setReused(true); }}>Usar la portada móvil como afiche</Button>
         </section>
       </div>
+      {reused ? <p role="status" className="text-sm text-muted-foreground">Imagen reutilizada. Guarda los cambios para aplicarla al evento.</p> : null}
       <section className="flex flex-col gap-2">
         <h3 className="text-base font-semibold">Galería del evento</h3>
         <p className="text-sm text-muted-foreground">Fotos del evento (se pueden ordenar). Se muestran en la página pública, sobre todo después de la velada.</p>

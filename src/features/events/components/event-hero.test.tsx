@@ -57,6 +57,13 @@ describe("EventHero background lettering", () => {
     expect(container.querySelector("img")?.style.getPropertyValue("--hero-mobile-position")).toBe("20% 80%");
     expect(container.querySelector("img")?.style.getPropertyValue("--hero-desktop-position")).toBe("50% 50%");
   });
+
+  it("renders a mobile-only cover while keeping the desktop fallback", () => {
+    const mobile = { ...cover, id: "mobile-only", kind: "event_hero_mobile" as const, variants: [{ width: 1080, height: 1350, url: "/v/mobile-only.webp" }] };
+    const { container } = render(<EventHero event={{ ...event(null), heroMobileMedia: mobile }} showCountdown={false} />);
+    expect(container.querySelector('source[media="(max-width: 767px)"]')).toHaveAttribute("srcset", "/v/mobile-only.webp 1080w");
+    expect(container.querySelector('[data-slot="hero-watermark"]')?.parentElement).toHaveClass("hidden", "md:block");
+  });
 });
 
 describe("EventHero face-off", () => {

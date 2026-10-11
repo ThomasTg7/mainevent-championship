@@ -1,5 +1,12 @@
 # Registro de decisiones
 
+## [OFL] Portada móvil independiente y reutilización con el afiche — 2026-10-11
+
+- **Qué:** la portada móvil se muestra aunque el evento carezca de portada de computador; desde 768 px se conserva el escenario de marca/careo cuando falta la horizontal. El navegador selecciona la variante móvil por debajo de 768 px. En la pestaña Imágenes se agregan «Usar el afiche como portada móvil» y «Usar la portada móvil como afiche», con aplicación al guardar el evento.
+- **Por qué:** el render anterior dependía de `heroMedia`, por lo que ignoraba una imagen móvil configurada sin horizontal. En OFL 5 se comprobó que la fuente móvil sí era correcta; el recorte percibido viene de llenar la pantalla. Afiche y móvil comparten exactamente formato, resolución y variantes 4:5, y el usuario pide reutilizarlos.
+- **Impacto:** planes 01, 03 y 06: compatibilidad limitada a `event_poster` ↔ `event_hero_mobile`; no habilita otros tipos. Se reutiliza el mismo medio, sin duplicar archivos ni cambiar el tipo de origen. Los dos campos conservan sus FK, validación de existencia/estado, auditoría e invalidación existentes. Las vistas previas compartidas reciben las ediciones de ese medio y quitarlo de un campo conserva el otro. Sin migraciones, dependencias ni consultas nuevas.
+- **Estado:** aplicado; verificación en `docs/reports/ofl-event-image-reuse.md`.
+
 ## [OFL] Scroll con rueda y plataformas de transmisión por evento — 2026-10-11
 
 - **Qué:** Lenis observa `document.body` para actualizar la altura real después de navegar o crear el pin. Cada evento incorpora una pestaña «Dónde ver» con hasta 12 plataformas ordenadas: nombre y enlace HTTP(S) obligatorios, imagen opcional. «Ver» en las tarjetas y la cartelera resumida, y «Dónde ver» en la portada, abren el mismo modal con un enlace «Ir a ver» por plataforma.

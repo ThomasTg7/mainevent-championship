@@ -22,6 +22,16 @@ const findEvent = async (id: string) => (await db.select().from(events).where(eq
 const MISSING = "00000000-0000-4000-8000-000000000000";
 
 describe("createEvent", () => {
+  it("accepts the same ready 4:5 image as mobile cover and poster in either direction", async () => {
+    for (const kind of ["event_hero_mobile", "event_poster"] as const) {
+      const image = await insertMedia(db, kind);
+      const { id } = await createEvent(db, validEventInput({ name: `Shared ${kind}`, heroMobileMediaId: image, posterMediaId: image }), "admin-1");
+      expect(await findEvent(id)).toMatchObject({ heroMobileMediaId: image, posterMediaId: image });
+    }
+    const gallery = await insertMedia(db, "gallery");
+    await expect(createEvent(db, validEventInput({ heroMobileMediaId: gallery }), "admin-1")).rejects.toThrow("La imagen ya no está disponible");
+  });
+
   it("creates a draft with a slug from the name, the date in Chile time and an audit row", async () => {
     const { id, slug } = await createEvent(db, validEventInput(), "admin-1");
     expect(slug).toBe("ofl-9");

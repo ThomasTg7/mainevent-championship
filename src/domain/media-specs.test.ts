@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { MEDIA_SPECS, checkResolution, clampCrop, describeSpec, formatsLabel, variantWidthsFor } from "./media-specs";
+import { MEDIA_KINDS, MEDIA_SPECS, checkResolution, clampCrop, describeSpec, formatsLabel, isMediaKindCompatible, variantWidthsFor } from "./media-specs";
+
+it("allows reuse only between posters and mobile covers with identical processing specs", () => {
+  for (const kind of MEDIA_KINDS) expect(isMediaKindCompatible(kind, kind)).toBe(true);
+  expect(isMediaKindCompatible("event_poster", "event_hero_mobile")).toBe(true);
+  expect(isMediaKindCompatible("event_hero_mobile", "event_poster")).toBe(true);
+  expect(isMediaKindCompatible("event_hero", "event_hero_mobile")).toBe(false);
+  expect(isMediaKindCompatible("event_poster", "gallery")).toBe(false);
+  expect(isMediaKindCompatible(undefined, "event_poster")).toBe(false);
+  const { label: posterLabel, ...poster } = MEDIA_SPECS.event_poster;
+  const { label: mobileLabel, ...mobile } = MEDIA_SPECS.event_hero_mobile;
+  expect(posterLabel).not.toBe(mobileLabel);
+  expect(poster).toEqual(mobile);
+});
 
 describe("checkResolution", () => {
   it("warns with the exact minimum when the image is too small", () => {
