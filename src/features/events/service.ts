@@ -11,6 +11,7 @@ import { fromSantiagoInputs, toSantiagoInputs } from "@/lib/santiago-time";
 import { UserFacingError } from "@/lib/user-facing-error";
 import { withMapsLocation } from "./location";
 import { eventInputSchema, type EventData, type EventRawInput } from "./schema";
+import { loadWatchPlatforms, writeWatchPlatforms } from "./watch-platforms";
 
 const NOT_FOUND = "No se encontró el evento";
 
@@ -41,7 +42,7 @@ function editableColumns(data: EventData) {
     ticketProvider: data.ticketProvider,
     ticketTiers: data.ticketTiers,
     ticketPoints: data.ticketPoints,
-    streamUrl: data.streamUrl,
+    streamUrl: data.watchPlatforms === undefined ? data.streamUrl : data.watchPlatforms[0]?.url ?? null,
   };
 }
 
@@ -51,6 +52,7 @@ async function assertUsableImages(db: Db, data: EventData): Promise<void> {
     { id: data.heroMobileMediaId, kind: "event_hero_mobile" },
     { id: data.posterMediaId, kind: "event_poster" },
     ...data.galleryMediaIds.map((id) => ({ id, kind: "gallery" as const })),
+    ...(data.watchPlatforms ?? []).map((platform) => ({ id: platform.mediaId, kind: "sponsor_logo" as const })),
   ]);
 }
 
@@ -128,6 +130,7 @@ export async function createEvent(db: Db, input: EventRawInput, actorId: string)
     if (!created) throw new UserFacingError("No se pudo guardar el evento");
 
     await writeGallery(tx, created.id, data.galleryMediaIds);
+    await writeWatchPlatforms(tx, created.id, data.watchPlatforms);
     await logAudit(tx, { actorId, action: "create", entityType: "event", entityId: created.id, summary: `Creó el evento ${data.name}` });
     return { id: created.id, slug };
   });
@@ -160,6 +163,7 @@ export async function updateEvent(db: Db, id: string, input: EventRawInput, acto
       })
       .where(eq(events.id, id));
     await writeGallery(tx, id, data.galleryMediaIds);
+    await writeWatchPlatforms(tx, id, data.watchPlatforms);
     const newDay = toSantiagoInputs(data.startsAt).date;
     if (newDay !== toSantiagoInputs(current.startsAt).date) await moveSegmentTimesToDay(tx, id, newDay);
     await logAudit(tx, { actorId, action: "update", entityType: "event", entityId: id, summary: `Editó el evento ${data.name}` });
@@ -226,6 +230,8 @@ export async function duplicateEvent(db: Db, id: string, actorId: string): Promi
       .returning({ id: events.id });
     if (!created) throw new UserFacingError("No se pudo duplicar el evento");
 
+    const platforms = await loadWatchPlatforms(tx, [id]);
+    await writeWatchPlatforms(tx, created.id, platforms.map(({ name, url, mediaId }) => ({ name, url, mediaId })));
     const segments = await tx.select().from(cardSegments).where(eq(cardSegments.eventId, id)).orderBy(asc(cardSegments.sortOrder), asc(cardSegments.id));
     if (segments.length > 0) {
       await tx

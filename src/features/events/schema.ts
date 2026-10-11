@@ -5,6 +5,7 @@ import { isGoogleMapsLink } from "@/domain/maps-link";
 import { publicationShape, requireScheduleDate } from "@/features/publication/schema";
 import { addDaysToDate, fromSantiagoInputs } from "@/lib/santiago-time";
 import { IMAGE_UNAVAILABLE, optionalHttpUrl, optionalImageId, optionalNumber, optionalSlug, optionalText } from "@/lib/zod-fields";
+import { watchPlatformsSchema, type WatchPlatformInput } from "./watch-schema";
 
 /** Id de evento (o de bloque o pelea) que llega de la URL o de una action: uuid o nada. */
 export const eventIdSchema = z.uuid();
@@ -82,6 +83,7 @@ export type EventData = {
   ticketTiers: TicketTier[];
   ticketPoints: string | null;
   streamUrl: string | null;
+  watchPlatforms?: WatchPlatformInput[];
   eventStatus: (typeof EVENT_STATUSES)[number] | undefined;
   /** El estado que tenía el evento cuando se abrió el formulario: `eventStatus` solo se aplica si el admin lo cambió. */
   eventStatusBefore: (typeof EVENT_STATUSES)[number] | undefined;
@@ -119,6 +121,7 @@ export const eventInputSchema = z
     ticketTiers,
     ticketPoints: optionalText(600, "Los puntos de venta"),
     streamUrl: optionalHttpUrl("El enlace de la transmisión"),
+    watchPlatforms: watchPlatformsSchema,
     eventStatus,
     eventStatusBefore: eventStatus,
     ...publicationShape,

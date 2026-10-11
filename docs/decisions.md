@@ -1,5 +1,12 @@
 # Registro de decisiones
 
+## [OFL] Scroll con rueda y plataformas de transmisión por evento — 2026-10-11
+
+- **Qué:** Lenis observa `document.body` para actualizar la altura real después de navegar o crear el pin. Cada evento incorpora una pestaña «Dónde ver» con hasta 12 plataformas ordenadas: nombre y enlace HTTP(S) obligatorios, imagen opcional. «Ver» en las tarjetas y la cartelera resumida, y «Dónde ver» en la portada, abren el mismo modal con un enlace «Ir a ver» por plataforma.
+- **Por qué:** la rueda se frenaba al límite de una página anterior porque Lenis observaba un `html` de altura fija. El usuario pide administrar varias transmisiones, independientes para cada evento, y elegirlas desde un modal.
+- **Impacto:** extensión de los planes 03 y 06; tabla Postgres `event_watch_platforms` con FK e índices para evento/orden e imagen. Lecturas por lotes, escritura transaccional dentro de las actions existentes protegidas por `requireAdmin`, validación Zod, auditoría e invalidación de `event:<id>` y listados. El formato de logo existente se reutiliza para imágenes de plataformas; sus referencias impiden la limpieza de medios en uso. La migración 0019 conserva los enlaces `stream_url` anteriores; el servicio mantiene compatibilidad para entradas heredadas. Sin nuevas dependencias.
+- **Estado:** aplicado. Verificación en `docs/reports/ofl-event-watch.md`.
+
 Toda desviación del spec o de un plan, decisión técnica no prevista, o pendiente, se anota aquí. Lo lee la revisión (Opus) al terminar cada plan y lo usa para ajustar los planes siguientes.
 
 Formato:

@@ -8,6 +8,27 @@ async function expectNoHorizontalScroll(page: Page) {
 }
 
 test.describe("home con movimiento", () => {
+  test("la rueda recorre toda la home después de navegar desde una página más corta", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/eventos");
+    await expect(page.locator("html")).toHaveClass(/lenis/);
+    await page.getByRole("link", { name: "Open Fight Latam inicio" }).click();
+    await expect(page.locator(".pin-spacer")).toHaveCount(1);
+    const end = await page.locator("#peleadores").evaluate((section) => {
+      const spacer = section.parentElement!;
+      return spacer.getBoundingClientRect().bottom + scrollY;
+    });
+    await page.mouse.move(700, 600);
+    for (let index = 0; index < 14; index++) {
+      await page.mouse.wheel(0, 1000);
+      await page.waitForTimeout(250);
+    }
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(end);
+    await page.mouse.wheel(0, -1000);
+    const bottom = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(bottom - 500);
+  });
+
   test("muestra la portada con el careo, la cuenta regresiva y las entradas", async ({ page }) => {
     await page.goto("/");
 

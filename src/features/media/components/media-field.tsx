@@ -15,13 +15,15 @@ type MediaFieldProps = {
   kind: MediaKind;
   /** Nombre del campo del formulario: se envía el id de la imagen (o vacío). */
   name: string;
+  /** A contextual upload label when the same image format is used elsewhere. */
+  label?: string;
   /** Imagen ya guardada (la carga el servidor con `getMedia`). */
   media?: MediaDTO | null;
   /** Al guardar una imagen (con su `MediaDTO`, para mostrarla sin pedirla de nuevo) o al quitarla (`null`, `null`). */
   onChange?: (mediaId: string | null, media: MediaDTO | null) => void;
 };
 
-export function MediaField({ kind, name, media: initialMedia = null, onChange }: MediaFieldProps) {
+export function MediaField({ kind, name, label, media: initialMedia = null, onChange }: MediaFieldProps) {
   const spec = MEDIA_SPECS[kind];
   const [media, setMedia] = useState<MediaDTO | null>(initialMedia);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,7 +72,7 @@ export function MediaField({ kind, name, media: initialMedia = null, onChange }:
         <MediaDropzone
           accept={acceptsHeic(kind) ? [...spec.accepts, ...HEIC_ACCEPT] : spec.accepts}
           disabled={busy}
-          label={`Subir ${spec.label.toLowerCase()}`}
+          label={`Subir ${label ?? spec.label.toLowerCase()}`}
           hint={`Arrastra la imagen aquí o toca para elegirla · ${formatsLabel(kind)} · máx. 15 MB`}
           onFiles={([file]) => editing.pickFile(file)}
         />

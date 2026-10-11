@@ -52,7 +52,8 @@ export const EVENT_FIELD_TABS = {
   data: ["name", "number", "slug", "eventStatus"],
   place: ["startsDate", "startsTime", "doorsTime", "endsTime", "venueName", "venueAddress", "venueCity", "mapsUrl"],
   images: ["heroMediaId", "heroMobileMediaId", "posterMediaId", "galleryMediaIds"],
-  tickets: ["ticketUrl", "ticketProvider", "ticketTiers", "ticketPoints", "streamUrl"],
+  tickets: ["ticketUrl", "ticketProvider", "ticketTiers", "ticketPoints"],
+  watch: ["watchPlatforms", "streamUrl"],
   publication: ["status", "publishAt"],
 } as const;
 

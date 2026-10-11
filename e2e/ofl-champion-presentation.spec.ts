@@ -6,7 +6,7 @@ for (const width of [375, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/eventos/ofl-5");
     const hero = page.locator("#event-hero");
-    const watch = hero.getByRole("link", { name: "Dónde ver" });
+    const watch = hero.getByRole("button", { name: "Dónde ver" });
     await expect(watch).toHaveCSS("background-color", "rgb(197, 27, 58)");
     await expect(watch).toHaveCSS("color", "rgb(255, 255, 255)");
     const corner = page.getByRole("tabpanel").locator('[data-corner="red"]').first();

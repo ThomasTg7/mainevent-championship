@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { MediaDTO } from "@/features/media/dto";
 import { stubBrowserApis } from "@/test/browser-stubs";
@@ -26,15 +26,18 @@ const event = (heroMedia: MediaDTO | null) =>
 const watermark = (container: HTMLElement) => container.querySelector('[data-slot="hero-watermark"]');
 
 describe("EventHero background lettering", () => {
-  it("links Dónde ver to the configured broadcast", () => {
+  it("opens Dónde ver with the configured broadcast link", () => {
     render(<EventHero event={{ ...event(cover), streamUrl: "https://youtube.com/watch?v=test" }} showCountdown={false} />);
-    expect(screen.getByRole("link", { name: "Dónde ver" })).toHaveAttribute("href", "https://youtube.com/watch?v=test");
-    expect(screen.getByRole("link", { name: "Dónde ver" })).toHaveClass("bg-brand", "text-white");
+    const trigger = screen.getByRole("button", { name: "Dónde ver" });
+    expect(trigger).toHaveClass("bg-brand", "text-white");
+    fireEvent.click(trigger);
+    expect(screen.getByRole("dialog")).toBeVisible();
+    expect(screen.getByRole("link", { name: /Ir a ver/ })).toHaveAttribute("href", "https://youtube.com/watch?v=test");
   });
 
   it("provides a broadcast information destination when no stream is announced", () => {
     render(<EventHero event={event(null)} showCountdown={false} />);
-    expect(screen.getByRole("link", { name: "Dónde ver" })).toHaveAttribute("href", "#donde-ver");
+    fireEvent.click(screen.getByRole("button", { name: "Dónde ver" }));
     expect(screen.getByText("Pronto anunciaremos dónde ver este evento.")).toBeInTheDocument();
   });
   it("draws the outlined «OFL» behind the fighters when there is no cover image", () => {

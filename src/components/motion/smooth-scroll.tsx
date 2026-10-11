@@ -65,7 +65,8 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
 
       gsapInstance = gsap;
       gsap.registerPlugin(ScrollTrigger);
-      instance = new LenisConstructor();
+      // The html element has a fixed viewport height; observe the body so route changes and scroll pins update the limit.
+      instance = new LenisConstructor({ content: document.body });
       instance.on("scroll", ScrollTrigger.update);
 
       tick = (time: number) => instance?.raf(time * 1000);

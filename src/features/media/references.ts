@@ -1,6 +1,7 @@
 import { sql, type SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { eventGallery, events } from "@/db/schema/events";
+import { eventWatchPlatforms } from "@/db/schema/event-watch-platforms";
 import { fighterGallery, fighters } from "@/db/schema/fighters";
 import { postBodyMedia, postGallery, posts } from "@/db/schema/posts";
 import { sponsors } from "@/db/schema/sponsors";
@@ -24,6 +25,7 @@ export const MEDIA_REFERENCES: MediaReference[] = [
   { label: "Portada móvil del evento", column: events.heroMobileMediaId },
   { label: "Afiche del evento", column: events.posterMediaId },
   { label: "Galería del evento", column: eventGallery.mediaId },
+  { label: "Imagen de plataforma de transmisión", column: eventWatchPlatforms.mediaId },
   { label: "Portada de la noticia", column: posts.coverMediaId },
   { label: "Galería de la noticia", column: postGallery.mediaId },
   { label: "Imagen dentro de la noticia", column: postBodyMedia.mediaId },

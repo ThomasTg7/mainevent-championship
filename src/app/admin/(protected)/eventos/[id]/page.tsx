@@ -49,6 +49,7 @@ export default async function AdminEditarEventoPage({ params, searchParams }: Pa
         posterMedia={posterMedia}
         gallery={gallery}
         tiers={event.ticketTiers}
+        watchPlatforms={edit.watchPlatforms}
         publication={{ status: event.status, publishAt: event.publishAt }}
         previewHref={createEventPreviewLinkAction.bind(null, event.id)}
         isEdit

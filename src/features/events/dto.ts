@@ -62,6 +62,7 @@ export type BoutDTO = {
 export type SegmentDTO = { id: string; name: string; startsAt: string | null; bouts: BoutDTO[] };
 
 export type EventVenueDTO = { name: string; address: string; city: string; lat: number | null; lng: number | null };
+export type WatchPlatformDTO = { name: string; url: string; media: MediaDTO | null };
 
 /** Lo que necesitan los listados, la home y la página de entradas. */
 export type EventCardDTO = {
@@ -78,6 +79,7 @@ export type EventCardDTO = {
   ticketUrl: string | null;
   ticketTiers: TicketTier[];
   ticketPoints: string | null;
+  watchPlatforms?: WatchPlatformDTO[];
   heroMedia: MediaDTO | null;
   heroMobileMedia: MediaDTO | null;
   posterMedia: MediaDTO | null;

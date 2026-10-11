@@ -134,6 +134,13 @@
       "when": 1791061131968,
       "tag": "0018_jazzy_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791746006179,
+      "tag": "0019_abandoned_firestar",
+      "breakpoints": true
     }
   ]
 }

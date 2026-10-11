@@ -109,7 +109,6 @@ export function EventTicketsTab({ tiers, tiersError }: EventTicketsTabProps) {
       </div>
       <TicketTiersField initial={tiers} error={tiersError} />
       <TextAreaField name="ticketPoints" label="Puntos de venta" rows={3} maxLength={600} hint="Dónde comprar sin ticketera: boletería, tienda, etc." />
-      <TextField name="streamUrl" label="Enlace de la transmisión (opcional)" type="url" inputMode="url" hint="YouTube, Twitch u otro (https://…)." autoComplete="off" />
     </div>
   );
 }

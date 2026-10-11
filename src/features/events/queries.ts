@@ -8,6 +8,7 @@ import { boutMediaIds, selectBoutRows, toBoutDTO, type BoutRow } from "./bout-ro
 import type { EventCardDTO, EventPageDTO, SegmentDTO } from "./dto";
 import { upcomingEvents } from "./event-scope";
 import { pickMainBout } from "./main-bout";
+import { loadWatchPlatforms, toWatchPlatforms } from "./watch-platforms";
 
 const PUBLIC_PAGE_SIZE = 12;
 
@@ -80,10 +81,11 @@ export async function getPublicEventBySlug(db: Db, slug: string, { preview = fal
     .limit(1);
   if (!event) return null;
 
-  const [segmentRows, boutRows, galleryRows] = await Promise.all([
+  const [segmentRows, boutRows, galleryRows, platformRows] = await Promise.all([
     db.select().from(cardSegments).where(eq(cardSegments.eventId, event.id)).orderBy(asc(cardSegments.sortOrder), asc(cardSegments.id)),
     selectBoutRows(db, eq(bouts.eventId, event.id)),
     db.select({ mediaId: eventGallery.mediaId }).from(eventGallery).where(eq(eventGallery.eventId, event.id)).orderBy(asc(eventGallery.sortOrder)),
+    loadWatchPlatforms(db, [event.id]),
   ]);
 
   const boutsBySegment = new Map<string, BoutRow[]>();
@@ -91,6 +93,7 @@ export async function getPublicEventBySlug(db: Db, slug: string, { preview = fal
   const mediaById = await loadMedia(db, [
     ...eventImageIds(event),
     ...galleryRows.map((row) => row.mediaId),
+    ...platformRows.map((row) => row.mediaId),
     ...boutRows.flatMap((row) => boutMediaIds(row, true)),
   ]);
 
@@ -107,6 +110,7 @@ export async function getPublicEventBySlug(db: Db, slug: string, { preview = fal
     venue: { name: event.venueName, address: event.venueAddress, city: event.venueCity, lat: event.lat, lng: event.lng },
     ticketProvider: event.ticketProvider,
     streamUrl: event.streamUrl,
+    watchPlatforms: toWatchPlatforms(platformRows, event.id, mediaById, event.streamUrl),
     gallery: galleryRows.flatMap((row) => mediaById.get(row.mediaId) ?? []),
     segments,
   };
@@ -142,14 +146,12 @@ async function loadMainBouts(db: Db, eventIds: string[]): Promise<Map<string, Bo
 }
 
 async function toEventCards(db: Db, rows: Event[]): Promise<EventCardDTO[]> {
-  const mainBouts = await loadMainBouts(
-    db,
-    rows.map((event) => event.id),
-  );
-  const mediaById = await loadMedia(db, [...rows.flatMap(eventImageIds), ...[...mainBouts.values()].flatMap((row) => boutMediaIds(row, true))]);
+  const eventIds = rows.map((event) => event.id);
+  const [mainBouts, platformRows] = await Promise.all([loadMainBouts(db, eventIds), loadWatchPlatforms(db, eventIds)]);
+  const mediaById = await loadMedia(db, [...rows.flatMap(eventImageIds), ...platformRows.map((row) => row.mediaId), ...[...mainBouts.values()].flatMap((row) => boutMediaIds(row, true))]);
   return rows.map((event) => {
     const main = mainBouts.get(event.id);
-    return { ...eventCardBase(event, mediaById), venueName: event.venueName, venueCity: event.venueCity, mainBout: main ? toBoutDTO(main, mediaById, true) : null };
+    return { ...eventCardBase(event, mediaById), watchPlatforms: toWatchPlatforms(platformRows, event.id, mediaById, event.streamUrl), venueName: event.venueName, venueCity: event.venueCity, mainBout: main ? toBoutDTO(main, mediaById, true) : null };
   });
 }
 

@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 import type { Db } from "@/db";
 import { bouts, cardSegments, eventGallery, events, submissionTechniques, type Event } from "@/db/schema/events";
+import { loadWatchPlatforms, toWatchPlatforms } from "./watch-platforms";
+import type { WatchPlatformDTO } from "./dto";
 import type { MediaDTO } from "@/features/media/dto";
 import { escapeLike } from "@/features/fighters/query-helpers";
 import { getMediaByIds } from "@/features/media/queries";
@@ -102,6 +104,7 @@ export type EventForEdit = {
   posterMedia: MediaDTO | null;
   /** La galería, en orden. */
   gallery: MediaDTO[];
+  watchPlatforms: WatchPlatformDTO[];
 };
 
 /** El evento (fuera de la papelera) y todas sus imágenes con una sola lectura de medios, para el formulario de edición. */
@@ -114,7 +117,8 @@ export async function getEventForEdit(db: Db, id: string): Promise<EventForEdit 
   if (!event) return null;
 
   const galleryRows = await db.select({ mediaId: eventGallery.mediaId }).from(eventGallery).where(eq(eventGallery.eventId, id)).orderBy(asc(eventGallery.sortOrder));
-  const ids = [event.heroMediaId, event.heroMobileMediaId, event.posterMediaId, ...galleryRows.map((row) => row.mediaId)].filter((mediaId): mediaId is string => mediaId !== null);
+  const platformRows = await loadWatchPlatforms(db, [id]);
+  const ids = [event.heroMediaId, event.heroMobileMediaId, event.posterMediaId, ...platformRows.map((row) => row.mediaId), ...galleryRows.map((row) => row.mediaId)].filter((mediaId): mediaId is string => mediaId !== null);
   const mediaById = await getMediaByIds(db, [...new Set(ids)]);
   const media = (mediaId: string | null) => (mediaId ? (mediaById.get(mediaId) ?? null) : null);
   return {
@@ -123,5 +127,6 @@ export async function getEventForEdit(db: Db, id: string): Promise<EventForEdit 
     heroMobileMedia: media(event.heroMobileMediaId),
     posterMedia: media(event.posterMediaId),
     gallery: galleryRows.flatMap((row) => mediaById.get(row.mediaId) ?? []),
+    watchPlatforms: toWatchPlatforms(platformRows, id, mediaById, event.streamUrl),
   };
 }

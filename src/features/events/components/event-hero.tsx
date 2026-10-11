@@ -8,6 +8,7 @@ import { pickMainBout } from "../main-bout";
 import { eventStatusTag } from "../public-format";
 import { Countdown } from "./countdown";
 import { EventHeroArt } from "./event-hero-art";
+import { WatchEventButton } from "./watch-event-button";
 
 export const EVENT_HERO_ID = "event-hero";
 type EventHeroProps = { event: EventPageDTO; ticketHref?: string; ticketExternal?: boolean; showCountdown: boolean };
@@ -37,9 +38,8 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
           <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:justify-center">
             {ticketHref ? <Button variant="primary" className="order-1 min-w-0 whitespace-nowrap px-4 sm:px-7" asChild><a href={ticketHref} aria-label="Comprar entradas" {...(ticketExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}><span className="min-[400px]:hidden">Entradas</span><span className="hidden min-[400px]:inline">Comprar entradas</span></a></Button> : null}
             <Button variant="ghost" className="order-3 col-span-2 sm:order-2" asChild><SmoothAnchor href="#cartelera">{event.eventStatus === "completed" ? "Ver cartelera y resultados" : "Ver cartelera completa"}</SmoothAnchor></Button>
-            <Button variant="primary" className={`order-2 min-w-0 whitespace-nowrap px-4 sm:order-3 sm:px-7 ${!ticketHref ? "col-span-2" : ""}`} asChild>{event.streamUrl ? <a href={event.streamUrl} aria-label="Dónde ver" target="_blank" rel="noopener noreferrer">{watchLabel}</a> : <SmoothAnchor href="#donde-ver" aria-label="Dónde ver">{watchLabel}</SmoothAnchor>}</Button>
+            <WatchEventButton eventName={event.name} platforms={event.watchPlatforms ?? (event.streamUrl ? [{ name: "Transmisión oficial", url: event.streamUrl, media: null }] : [])} ariaLabel="Dónde ver" className={`order-2 min-w-0 whitespace-nowrap px-4 sm:order-3 sm:px-7 ${!ticketHref ? "col-span-2" : ""}`}>{watchLabel}</WatchEventButton>
           </div>
-          {!event.streamUrl ? <p id="donde-ver" className="mt-4 scroll-mt-28 text-sm text-white/80">Pronto anunciaremos dónde ver este evento.</p> : null}
         </div>
       </div>
     </section>

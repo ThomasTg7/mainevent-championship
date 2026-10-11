@@ -6,6 +6,7 @@ import { EVENT_STATUS_LABELS } from "@/domain/bout-enums";
 import { formatShortDate, formatTime } from "@/lib/format-date";
 import type { EventCardDTO } from "../dto";
 import { boutMeasure } from "../public-format";
+import { WatchEventButton } from "./watch-event-button";
 
 export const EVENT_CARD_SIZES = "(min-width: 1024px) 320px, (min-width: 640px) 40vw, 92vw";
 
@@ -85,6 +86,7 @@ export function EventCard({ event, variant, priority = false }: EventCardProps) 
             ) : null}
           </div>
         ) : null}
+        {event.eventStatus !== "cancelled" ? <div className="relative z-10 mt-2"><WatchEventButton eventName={event.name} platforms={event.watchPlatforms} className="px-5 py-3" /></div> : null}
       </div>
     </article>
   );

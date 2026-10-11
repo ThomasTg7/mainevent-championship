@@ -15,12 +15,15 @@ import type { FormActionState } from "@/lib/form-errors";
 import { adminPath } from "@/lib/site-urls";
 import { EVENT_FIELD_TABS, tabForEventField, type EventFormValues, type EventTab } from "../form-values";
 import { EventDataTab, EventImagesTab, EventPlaceTab, EventTicketsTab } from "./event-tabs";
+import { WatchPlatformsField } from "./watch-platforms-field";
+import type { WatchPlatformDTO } from "../dto";
 
 const TAB_LABELS: Record<EventTab, string> = {
   data: "Datos",
   place: "Horarios y lugar",
   images: "Imágenes",
   tickets: "Entradas",
+  watch: "Dónde ver",
   publication: "Publicación",
 };
 
@@ -33,6 +36,7 @@ type EventFormProps = {
   posterMedia?: MediaDTO | null;
   gallery?: MediaDTO[];
   tiers?: TicketTier[];
+  watchPlatforms?: WatchPlatformDTO[];
   publication: PublicationValue;
   /** Solo al editar: enlace de vista previa (o su generador). */
   previewHref?: () => Promise<string | null>;
@@ -49,6 +53,7 @@ export function EventForm({
   posterMedia = null,
   gallery = [],
   tiers = [],
+  watchPlatforms = [],
   publication: initialPublication,
   previewHref,
   isEdit,
@@ -87,6 +92,7 @@ export function EventForm({
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
       {/* El estado con que se abrió el formulario: el servidor solo aplica el «Estado del evento» si el admin lo cambió. */}
       <input type="hidden" name="eventStatusBefore" value={defaults.eventStatus ?? ""} />
+      <input type="hidden" name="streamUrl" value={defaults.streamUrl ?? ""} />
       <FormFieldsProvider value={{ defaults, errors, idPrefix: "event" }}>
         <Tabs value={tab} onValueChange={(value) => setTab(value as EventTab)}>
           <TabsList variant="line" className="h-auto w-full flex-wrap group-data-horizontal/tabs:h-auto justify-start gap-x-1 gap-y-1.5 pb-2">
@@ -124,6 +130,9 @@ export function EventForm({
                 {errors.publishAt}
               </p>
             ) : null}
+          </TabsContent>
+          <TabsContent value="watch" forceMount className="pt-6" hidden={tab !== "watch"}>
+            <WatchPlatformsField initial={watchPlatforms} error={errors.watchPlatforms} />
           </TabsContent>
         </Tabs>
       </FormFieldsProvider>

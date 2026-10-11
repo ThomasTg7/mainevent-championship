@@ -6,7 +6,7 @@ for (const width of [375, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/eventos/ofl-5");
     const hero = page.locator("#event-hero");
-    await expect(hero.getByRole("link", { name: "Dónde ver" })).toBeVisible();
+    await expect(hero.getByRole("button", { name: "Dónde ver" })).toBeVisible();
     await expect(page.locator(".ofl-header")).toHaveAttribute("inert", "");
     if (width === 1440) {
       const hiddenBar = (await page.locator('[data-slot="event-sticky-bar"]').boundingBox())!;

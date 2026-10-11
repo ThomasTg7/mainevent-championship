@@ -8,7 +8,7 @@ for (const width of [320, 375, 430, 1440]) {
       await page.goto(path);
       const hero = page.locator("#event-hero");
       const tickets = hero.getByRole("link", { name: "Comprar entradas", exact: true });
-      const watch = hero.getByRole("link", { name: "Dónde ver", exact: true });
+      const watch = hero.getByRole("button", { name: "Dónde ver", exact: true });
       await expect(tickets).toBeVisible();
       await expect(watch).toBeVisible();
       const ticketBox = (await tickets.boundingBox())!;
