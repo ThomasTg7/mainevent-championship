@@ -1,3 +1,11 @@
+# OFL
+
+Copia independiente de Guerra Campal. Ver [guía de OFL](docs/OFL.md) para iniciar la aplicación, acceder al panel y restaurar el respaldo.
+
+**Inicio local:** `docker compose up -d` y `pnpm dev --port 3002`. Sitio en http://localhost:3002; panel en http://admin.localhost:3002. Base propia en puerto 5433.
+
+---
+
 # Guerra Campal
 
 Plataforma web de la promotora de MMA **Guerra Campal** (Chile): sitio público estilo UFC (eventos, cartelera y resultados, peleadores, rankings, noticias, entradas) y un panel de administración propio.
