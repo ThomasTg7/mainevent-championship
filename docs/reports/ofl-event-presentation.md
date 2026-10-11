@@ -24,3 +24,7 @@ Fecha: 2026-10-11. Rama: `codex/ofl-redesign`.
 ## Mirar en el navegador
 
 Home; `/eventos/guerra-campal-5`; `/eventos/guerra-campal-1` → abrir los datos de la primera pelea → «Ver la pelea y las tarjetas». Desplazarse fuera de la portada y volver para comprobar el navbar. Sin `streamUrl`, «Dónde ver» muestra el aviso de anuncio pendiente.
+
+## Ajuste posterior: rojo más vivo
+
+Inicio del degradado en `#E52244`; final violeta intacto. Token público compartido por textos, botón de pelea y líneas. Regresión de color primero en rojo y luego en verde. Verificación posterior: 1.198 pruebas unitarias, lint, typecheck y los tres e2e de presentación en verde (375/1440 px). El servidor local sigue activo en puerto 3002 (HTTP 200).

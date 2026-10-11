@@ -37,9 +37,9 @@ test("el enlace de la pelea y el detalle usan degradado vertical OFL", async ({ 
   const bout = page.getByRole("tabpanel").locator("[data-bout]").first();
   await bout.getByRole("button", { name: /Ver datos/ }).click();
   const link = bout.getByRole("link", { name: /Ver la pelea y las tarjetas/ });
-  await expect(link).toHaveCSS("background-image", "linear-gradient(rgb(197, 27, 58), rgb(100, 51, 116))");
+  await expect(link).toHaveCSS("background-image", "linear-gradient(rgb(229, 34, 68), rgb(100, 51, 116))");
   await expect(link).toHaveCSS("color", "rgb(255, 255, 255)");
   await link.click();
-  await expect(page.locator("h1 .ofl-gradient-text")).toHaveCSS("background-image", "linear-gradient(rgb(197, 27, 58), rgb(100, 51, 116))");
+  await expect(page.locator("h1 .ofl-gradient-text")).toHaveCSS("background-image", "linear-gradient(rgb(229, 34, 68), rgb(100, 51, 116))");
   await expect(page.locator(".ofl-header")).not.toHaveAttribute("inert", "");
 });

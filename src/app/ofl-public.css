@@ -1,6 +1,7 @@
 /* OFL's sporting surfaces, distinct from the administration workspace. */
 .ofl-site {
   --radius: 0px;
+  --ofl-gradient-red: #E52244;
 }
 
 .ofl-site a:focus-visible,
@@ -11,14 +12,14 @@
 
 .ofl-header {
   border-top: 3px solid transparent;
-  border-image: linear-gradient(90deg, var(--color-brand), var(--color-brand-violet)) 1;
+  border-image: linear-gradient(90deg, var(--ofl-gradient-red), var(--color-brand-violet)) 1;
 }
 
 /* Shared vertical OFL ink, matching the lightning bolt. */
 .ofl-site .ofl-gradient-text,
 .ofl-site .text-accent-bright:not(svg) {
   color: transparent;
-  background-image: linear-gradient(180deg, var(--color-brand), var(--color-brand-violet));
+  background-image: linear-gradient(180deg, var(--ofl-gradient-red), var(--color-brand-violet));
   background-clip: text;
   -webkit-background-clip: text;
   box-decoration-break: clone;
@@ -29,7 +30,7 @@
 .ofl-site .text-accent-bright svg { color: var(--color-brand); }
 
 .ofl-site .ofl-gradient-button {
-  background-image: linear-gradient(180deg, var(--color-brand), var(--color-brand-violet));
+  background-image: linear-gradient(180deg, var(--ofl-gradient-red), var(--color-brand-violet));
   color: white;
 }
 
@@ -78,7 +79,7 @@
 .ofl-hero-rule {
   height: 3px;
   width: 64px;
-  background: linear-gradient(90deg, var(--color-brand), var(--color-brand-violet));
+  background: linear-gradient(90deg, var(--ofl-gradient-red), var(--color-brand-violet));
 }
 
 .ofl-photo-card {

@@ -1019,3 +1019,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Impacto:** navbar oculto mientras se ve la portada y visible fuera de ella, con controles ocultos fuera del orden de foco; barra fija del evento debajo del navbar en PC para mantener sus botones accesibles. Logo compartido transparente y contenido completo, incluido el rayo; original conservado. Las propuestas de recorte generadas alteraban bordes y se descartaron; el activo final conserva los píxeles originales mediante máscara de luminancia SVG. Sin nuevas dependencias, consultas, cambios de datos o permisos. El lint excluye artefactos locales de revisión `.superpowers/`, que incluían un script CommonJS fuera de la aplicación.
 - **Planes siguientes:** 00–07 conservados como histórico; esta petición actualiza la presentación del spec OFL vigente.
 - **Estado:** implementado; validación registrada en `docs/reports/ofl-event-presentation.md`.
+
+## [OFL] Rojo más vivo en degradados — 2026-10-11
+- **Qué:** inicio rojo de los degradados públicos en `#E52244`, manteniendo el violeta `#643374`. Token local `--ofl-gradient-red` compartido por textos, botón de detalle y líneas de portada/navbar.
+- **Por qué:** el usuario pidió que el rojo del fade fuera más llamativo. El texto blanco sobre el nuevo rojo conserva contraste AA (4,52:1).
+- **Impacto:** ajuste visual del spec OFL; sin cambios en datos, consultas, dependencias o planes funcionales. El rojo base de los controles y el archivo de logo conservan su valor original.
+- **Estado:** aplicado.
