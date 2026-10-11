@@ -112,6 +112,26 @@ test.describe("home con movimiento", () => {
 
     await page.locator("#peleadores").scrollIntoViewIfNeeded();
     await expect(page.locator(".pin-spacer")).toHaveCount(1);
+    const section = page.locator("#peleadores");
+    const range = await section.evaluate((element) => {
+      const spacer = element.parentElement!;
+      const viewport = element.querySelector('[role="group"]')!;
+      const track = element.querySelector("ul")!;
+      return { start: spacer.getBoundingClientRect().top + scrollY, distance: track.scrollWidth - viewport.clientWidth };
+    });
+    expect(range.distance).toBeGreaterThan(0);
+    for (const fraction of [0.15, 0.5, 0.85, 0.3]) {
+      await page.evaluate((y) => window.scrollTo(0, y), range.start + range.distance * fraction);
+      // A pin-spacer alone is insufficient: a transformed ancestor can move the fixed section offscreen.
+      await expect.poll(async () => Math.abs((await section.boundingBox())!.y)).toBeLessThan(2);
+      await expect.poll(() => section.locator("ul").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).m41)).toBeLessThan(-20);
+      expect(await section.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return element.contains(document.elementFromPoint(innerWidth / 2, Math.min(innerHeight - 40, rect.height / 2)));
+      })).toBe(true);
+    }
+    await page.evaluate((y) => window.scrollTo(0, y), range.start + range.distance + 200);
+    await expect.poll(async () => (await section.boundingBox())!.y).toBeLessThan(-100);
   });
 
   test("en pantalla angosta es un carrusel con imán, sin fijar nada", async ({ page }) => {

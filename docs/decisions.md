@@ -1032,6 +1032,14 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Impacto:** ajuste del spec público OFL; sin consultas, datos, dependencias o permisos nuevos. Las etiquetas de ficha y rankings que ya están fuera de la foto conservan su ubicación.
 - **Estado:** aplicado; validación en `docs/reports/ofl-champion-presentation.md`.
 
+## [OFL] Evitar pantalla negra en el scroll de peleadores — 2026-10-11
+
+- **Qué:** la animación de entrada del contenedor de página usa solo opacidad; se retira su transformación vertical. El pin y el movimiento horizontal de las tarjetas mantienen su implementación.
+- **Por qué:** la animación con `transform` y `fill-mode: both` dejaba un bloque contenedor para los hijos `position: fixed`. Al entrar el pin, la sección de peleadores se desplazaba miles de píxeles fuera de la ventana y quedaba un espacio negro.
+- **Verificación:** regresión de navegador reproducida antes de corregir; el e2e recorre varios puntos del pin hacia adelante y atrás, comprueba posición visible, avance horizontal, presencia en el punto central y salida hacia la sección siguiente.
+- **Impacto:** transición compartida del sitio y admin; no afecta consultas, datos, dependencias o la alternativa de carrusel móvil y movimiento reducido.
+- **Estado:** aplicado; validación en `docs/reports/ofl-scroll-pin.md`.
+
 ## [OFL] Nombres y contenido de la promotora — 2026-10-11
 
 - **Qué:** eventos de demostración «OFL 1–5», noticias y sus cuerpos con OFL, enlaces públicos `ofl-*` y ejemplos del panel con Open Fight Latam. Seeds y fixtures actualizados. Script de mantenimiento transaccional `scripts/rebrand-ofl.ts` actualiza eventos, noticias, textos de configuración, biografías y alt de imágenes ya guardados, con auditoría por entidad y valores anteriores/posteriores.
