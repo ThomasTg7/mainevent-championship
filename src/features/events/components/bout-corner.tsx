@@ -1,32 +1,12 @@
 import Link from "next/link";
 import { MediaImage } from "@/components/media/media-image";
 import { pickFighterPhoto } from "@/domain/fighter-photo";
-import { championWord } from "@/domain/rankings";
 import { FighterSilhouette } from "@/features/fighters/components/fighter-silhouette";
 import type { BoutFighterDTO } from "../dto";
 import { VictoryTag } from "./victory-tag";
+import { BoutRankBadge } from "./bout-rank-badge";
 
 export type Side = "red" | "blue";
-
-/** Dorado de la placa de campeón (como el cinturón): texto siempre negro encima. */
-export const CHAMPION_GOLD = "bg-[linear-gradient(135deg,#F4DE8C_0%,#D4AF37_45%,#A8832C_100%)]";
-
-/** La placa sobre la foto: «Campeón»/«Campeona» en dorado o el puesto («#1») en gris. Vacía si no tiene ranking. */
-function RankBadge({ rankLabel, gender }: { rankLabel?: string; gender: "male" | "female" }) {
-  const champion = rankLabel === "C";
-  return (
-    <span className="flex h-6 items-end justify-center sm:h-7">
-      <span
-        data-slot="bout-rank"
-        className={`empty:hidden font-cond font-extrabold uppercase ${
-          champion ? `${CHAMPION_GOLD} px-2.5 py-0.5 text-[11px] tracking-[.12em] text-black shadow-sm sm:text-xs` : "text-[13px] tracking-[.06em] text-neutral-500 sm:text-sm"
-        }`}
-      >
-        {champion ? championWord(gender) : rankLabel}
-      </span>
-    </span>
-  );
-}
 
 /** Foto de la esquina: la de cuerpo si existe (recortada a medio cuerpo), si no la de rostro y si no la silueta. Si ganó, «Victoria» va sobre sus pies. */
 function CornerPhoto({ fighter, side, won }: { fighter: BoutFighterDTO; side: Side; won: boolean }) {
@@ -52,8 +32,8 @@ function CornerPhoto({ fighter, side, won }: { fighter: BoutFighterDTO; side: Si
 /** Columna de la foto: la placa de ranking arriba y la foto. */
 export function CornerFigure({ fighter, side, won, rankLabel, gender }: { fighter: BoutFighterDTO; side: Side; won: boolean; rankLabel?: string; gender: "male" | "female" }) {
   return (
-    <div className={`flex min-w-0 flex-col items-stretch gap-1.5 ${side === "red" ? "[grid-area:rp]" : "[grid-area:bp]"}`}>
-      <RankBadge rankLabel={rankLabel} gender={gender} />
+    <div className={`flex min-w-0 flex-col items-stretch ${side === "red" ? "[grid-area:rp]" : "[grid-area:bp]"}`}>
+      <BoutRankBadge rankLabel={rankLabel} gender={gender} />
       <CornerPhoto fighter={fighter} side={side} won={won} />
     </div>
   );

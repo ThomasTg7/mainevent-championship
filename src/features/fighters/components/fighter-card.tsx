@@ -38,7 +38,7 @@ export function FighterCard({ fighter, priority = false, badge, backdrop, headin
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden border border-border bg-[linear-gradient(170deg,#1c1c1c,#0a0a0a_70%)] transition-opacity duration-300 focus-within:border-brand focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent-bright hover:border-brand">
-      <div className="relative h-[clamp(210px,36vw,340px)] overflow-hidden sm:h-[clamp(240px,26vw,340px)]">
+      <div data-slot="fighter-card-photo" className="relative h-[clamp(210px,36vw,340px)] overflow-hidden sm:h-[clamp(240px,26vw,340px)]">
         <FighterFigure
           fighter={fighter}
           sizes={FIGHTER_CARD_SIZES}
@@ -58,7 +58,7 @@ export function FighterCard({ fighter, priority = false, badge, backdrop, headin
         ) : null}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0c0c0c] to-transparent" />
         {badge ? (
-          <span className="absolute left-3 top-3 z-10 bg-brand px-2 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] text-white">
+          <span data-slot="fighter-card-badge" className="absolute bottom-12 left-3 z-10 bg-brand px-2 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] text-white">
             {badge}
           </span>
         ) : null}

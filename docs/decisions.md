@@ -1025,3 +1025,9 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** el usuario pidió que el rojo del fade fuera más llamativo. El texto blanco sobre el nuevo rojo conserva contraste AA (4,52:1).
 - **Impacto:** ajuste visual del spec OFL; sin cambios en datos, consultas, dependencias o planes funcionales. El rojo base de los controles y el archivo de logo conservan su valor original.
 - **Estado:** aplicado.
+
+## [OFL] Franja de campeón y posición de etiquetas — 2026-10-11
+- **Qué:** campeón/campeona ocupa el ancho completo de la foto de su esquina, pegado arriba, con altura reservada 24 px en móvil y 28 px desde tablet. Letras blancas; dorado oscurecido para conservar contraste. Componente `BoutRankBadge` compartido por cartelera y detalle de pelea. En `FighterCard`, etiqueta abajo a la izquierda, elevada 48 px desde el borde de foto para dejar libre el nombre superpuesto; se aplica al listado y destacados del inicio. «Dónde ver» usa la misma variante primaria roja que «Comprar entradas».
+- **Por qué:** petición del usuario para evitar que las etiquetas tapen rostros y unificar las acciones de portada.
+- **Impacto:** ajuste del spec público OFL; sin consultas, datos, dependencias o permisos nuevos. Las etiquetas de ficha y rankings que ya están fuera de la foto conservan su ubicación.
+- **Estado:** aplicado; validación en `docs/reports/ofl-champion-presentation.md`.

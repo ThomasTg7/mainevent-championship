@@ -36,7 +36,7 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
           <div className="flex flex-wrap justify-center gap-3">
             {ticketHref ? <Button variant="primary" asChild><a href={ticketHref} {...(ticketExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}>Comprar entradas</a></Button> : null}
             <Button variant="ghost" asChild><SmoothAnchor href="#cartelera">{event.eventStatus === "completed" ? "Ver cartelera y resultados" : "Ver cartelera completa"}</SmoothAnchor></Button>
-            <Button variant="ghost" asChild>{event.streamUrl ? <a href={event.streamUrl} target="_blank" rel="noopener noreferrer">Dónde ver</a> : <SmoothAnchor href="#donde-ver">Dónde ver</SmoothAnchor>}</Button>
+            <Button variant="primary" asChild>{event.streamUrl ? <a href={event.streamUrl} target="_blank" rel="noopener noreferrer">Dónde ver</a> : <SmoothAnchor href="#donde-ver">Dónde ver</SmoothAnchor>}</Button>
           </div>
           {!event.streamUrl ? <p id="donde-ver" className="mt-4 scroll-mt-28 text-sm text-white/80">Pronto anunciaremos dónde ver este evento.</p> : null}
         </div>

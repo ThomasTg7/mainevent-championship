@@ -29,6 +29,7 @@ describe("EventHero background lettering", () => {
   it("links Dónde ver to the configured broadcast", () => {
     render(<EventHero event={{ ...event(cover), streamUrl: "https://youtube.com/watch?v=test" }} showCountdown={false} />);
     expect(screen.getByRole("link", { name: "Dónde ver" })).toHaveAttribute("href", "https://youtube.com/watch?v=test");
+    expect(screen.getByRole("link", { name: "Dónde ver" })).toHaveClass("bg-brand", "text-white");
   });
 
   it("provides a broadcast information destination when no stream is announced", () => {

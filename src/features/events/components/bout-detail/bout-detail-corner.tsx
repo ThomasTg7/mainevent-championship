@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { Flag } from "@/components/ui-gc/flag";
-import { championWord } from "@/domain/rankings";
 import { countryName } from "@/domain/units";
 import { FighterName } from "@/features/fighters/components/fighter-name";
 import { FighterFigure } from "@/features/fighters/components/fighter-photo";
 import type { BoutFighterDTO } from "../../dto";
-import { CHAMPION_GOLD } from "../bout-corner";
+import { BoutRankBadge } from "../bout-rank-badge";
 import { VictoryTag } from "../victory-tag";
 
 type BoutDetailCornerProps = {
@@ -26,6 +25,7 @@ export function BoutDetailCorner({ fighter, side, won, rankLabel, gender }: Bout
   return (
     <div data-corner={side} className={`flex min-w-0 flex-col gap-3 ${side === "blue" ? "items-end text-right" : ""}`}>
       <div className="w-full max-w-[260px]">
+        {rankLabel ? <BoutRankBadge rankLabel={rankLabel} gender={gender} /> : null}
         <div data-slot="bout-face" className={`relative aspect-[4/5] w-full overflow-hidden border-b-[6px] bg-gradient-to-b from-neutral-100 to-neutral-200 ${CORNER_COLOR[side]}`}>
           <FighterFigure
             fighter={fighter}
@@ -36,11 +36,6 @@ export function BoutDetailCorner({ fighter, side, won, rankLabel, gender }: Bout
         </div>
       </div>
       <span className="font-cond text-[11px] font-extrabold uppercase tracking-[.14em] text-neutral-500">{CORNER_NAME[side]}</span>
-      {rankLabel ? (
-        <span data-slot="bout-rank" className={rankLabel === "C" ? `w-fit ${CHAMPION_GOLD} px-2.5 py-0.5 font-cond text-xs font-extrabold uppercase tracking-[.12em] text-black shadow-sm` : "font-cond text-sm font-bold text-neutral-500"}>
-          {rankLabel === "C" ? championWord(gender) : rankLabel}
-        </span>
-      ) : null}
       <h2 className="font-display text-[clamp(26px,6.5vw,52px)] uppercase leading-[.95] break-words text-black">
         {fighter.isPublic ? (
           <Link href={`/peleadores/${fighter.slug}`} className="underline-offset-4 outline-none hover:underline focus-visible:underline focus-visible:decoration-brand focus-visible:decoration-[3px]">
