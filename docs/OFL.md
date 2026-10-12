@@ -36,7 +36,28 @@ Las configuraciones originales `.env`, `.env.demo` y `.env.vercel` están preser
 
 Esta copia no incluye una exportación de la base remota de demostración ni del bucket remoto: conserva las configuraciones para localizarlos, pero los datos restaurados y las fotos verificadas son los de la instalación local.
 
-El historial Git se conserva en la rama `codex/ofl-copy`; se retiró `origin`. Para publicar OFL, configurar un repositorio, dominios y servicios propios. Las guías heredadas de despliegue mantienen referencias a Guerra Campal y se deben adaptar antes de utilizarlas.
+El historial Git se conserva en las ramas de OFL; `origin` apunta al repositorio privado `ThomasTg7/ofl`. Las guías heredadas de despliegue mantienen referencias a Guerra Campal; usar los servicios de OFL descritos abajo.
+
+## Publicación de OFL — 12 de octubre de 2026
+
+- Repositorio privado: https://github.com/ThomasTg7/ofl.
+- Proyecto Vercel: `thomas-agv/ofl`, conectado a la rama de producción `codex/ofl-redesign`.
+- Sitio: https://openfightlatam.vercel.app.
+- Panel: https://openfightlatam-admin.vercel.app.
+- Postgres independiente: Neon `ofl-db`, plan gratuito, región São Paulo. La aplicación sigue usando Postgres estándar mediante `DATABASE_URL`, sin SDK del proveedor.
+- Imágenes: bucket R2 `ofl`, clase Standard. URL temporal: https://pub-35e7283a3f644cebb82fe5939db52629.r2.dev.
+
+La base remota conserva el contenido de la instalación OFL: 13 peleadores, 5 eventos, 10 noticias y 44 registros de medios. No se copiaron las cuentas, sesiones, auditorías ni mensajes privados de la instalación local. El administrador de producción tiene credenciales propias, guardadas únicamente en `.superpowers/deploy/admin-access.txt`, excluido de Git y Vercel.
+
+Se prepararon 78 objetos de medios activos (originales y variantes) y los tres archivos del modelo `Xenova/modnet` usado para quitar fondo: 81 objetos, 52.943.256 bytes (aproximadamente 53 MB). Sumando los 240,99 MB observados en los otros buckets de la cuenta, el almacenamiento queda alrededor de 294 MB, por debajo de los 10 GB incluidos. Esta cifra corresponde al contenido inicial, no impone un límite automático a futuras cargas.
+
+El token `ofl-vercel` tiene permiso Object Read & Write únicamente sobre `ofl`. Las credenciales S3, `BETTER_AUTH_SECRET` y `CRON_SECRET` están en las variables sensibles de producción de Vercel. CORS permite GET, HEAD y PUT desde los dos orígenes de OFL, con `Content-Type` e `If-None-Match`; las variantes se almacenan con caché inmutable.
+
+Vercel usa Node 22, `pnpm install --frozen-lockfile` y `pnpm vercel-build` (migraciones antes del build). `.vercelignore` excluye variables locales, respaldos, almacenamiento local, logs y archivos privados de trabajo del paquete de despliegue.
+
+El correo permanece en modo consola, Google y analítica sin configurar. Los formularios guardan las solicitudes en el panel; todavía no se envían avisos ni correos de recuperación. Antes de un lanzamiento con dominio propio, configurar el correo y conectar un dominio de medios a R2: `r2.dev` tiene límites de tráfico y Cloudflare lo reserva para uso de desarrollo. Actualizar `SITE_URL`, `ADMIN_URL`, `S3_PUBLIC_URL`, `NEXT_PUBLIC_MODEL_BASE_URL` y CORS al cambiar los dominios.
+
+Para desplegar cambios, hacer commit y push a `codex/ofl-redesign`; Vercel construye la rama automáticamente. No ejecutar el seed en la base remota.
 
 ## Cambiar la promotora
 

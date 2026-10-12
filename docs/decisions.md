@@ -1081,3 +1081,10 @@ Verificado sin cambios: la caché pública nunca sirve un borrador, uno en la pa
 - **Por qué:** corrección expresa del usuario: conservar el dorado anterior con la estructura nueva, y mostrar la marca en blanco.
 - **Impacto:** sustituye la elección de dorado oscuro de la decisión anterior; solo presentación, sin cambios funcionales, consultas, dependencias o permisos.
 - **Estado:** aplicado.
+
+## [OFL] Servicios independientes para publicar en Vercel y R2 — 2026-10-12
+
+- **Qué:** repositorio privado `ThomasTg7/ofl`, proyecto Vercel `thomas-agv/ofl` conectado a `codex/ofl-redesign`, Postgres independiente `ofl-db` en Neon mediante el driver estándar existente y bucket R2 `ofl` con token limitado a sus objetos. Trasladar el contenido OFL y sus medios activos; excluir cuentas y datos privados locales, y crear acceso administrativo propio. Añadir `.vercelignore` para excluir secretos, respaldos, medios locales y logs del paquete de publicación.
+- **Por qué:** solicitud expresa del usuario de publicar el proyecto en GitHub y Vercel, alojar sus archivos en Cloudflare y mantenerse bajo los 10 GB incluidos. La base local no es accesible desde Vercel. El contenido preparado ocupa aproximadamente 53 MB; la cuenta R2 observada queda alrededor de 294 MB incluyendo los otros proyectos.
+- **Impacto:** no cambia el código de aplicación, consultas, esquema, dependencias ni reglas de acceso. Node 22 y `pnpm vercel-build` conservan las migraciones durante el build. Se usan alias `*.vercel.app` y una URL `r2.dev` hasta disponer del dominio propio; esta última tiene límites de tráfico y deberá reemplazarse por un dominio de medios para el lanzamiento. Correo en consola, Google y analítica pendientes de configuración. El límite de 10 GB se verifica para esta carga inicial, no para futuras cargas del panel. Operación adicional autorizada por el usuario; no modifica los planes funcionales siguientes.
+- **Estado:** servicios configurados; publicación y comprobación final a cargo del despliegue de esta tarea. Detalles en `docs/OFL.md`.
