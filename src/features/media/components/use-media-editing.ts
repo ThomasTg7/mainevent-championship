@@ -102,9 +102,20 @@ export function useMediaEditing(kind: MediaKind, onSaved: (media: MediaDTO) => v
         setPhase({ name: "busy" });
         const edit = await getMediaEditAction(media.id);
         if ("error" in edit) throw new Error(edit.error);
-        setSession({ mediaId: media.id, src: media.originalUrl, natural: { w: media.width, h: media.height }, initial: edit.data });
+        let original: Blob;
+        try {
+          // Previously rendered non-CORS images can leave an incompatible browser cache entry.
+          const response = await fetch(media.originalUrl, { cache: "reload" });
+          if (!response.ok) throw new Error("La descarga de la imagen falló");
+          original = await response.blob();
+        } catch {
+          throw new Error("No se pudo cargar la imagen. Vuelve a intentarlo.");
+        }
+        releaseObjectUrl();
+        objectUrl.current = URL.createObjectURL(original);
+        setSession({ mediaId: media.id, src: objectUrl.current, natural: { w: media.width, h: media.height }, initial: edit.data });
       }),
-    [run],
+    [releaseObjectUrl, run],
   );
 
   const save = useCallback(

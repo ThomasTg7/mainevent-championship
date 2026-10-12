@@ -51,7 +51,9 @@ La base remota conserva el contenido de la instalación OFL: 13 peleadores, 5 ev
 
 Se prepararon 78 objetos de medios activos (originales y variantes) y los tres archivos del modelo `Xenova/modnet` usado para quitar fondo: 81 objetos, 52.943.256 bytes (aproximadamente 53 MB). Sumando los 240,99 MB observados en los otros buckets de la cuenta, el almacenamiento queda alrededor de 294 MB, por debajo de los 10 GB incluidos. Esta cifra corresponde al contenido inicial, no impone un límite automático a futuras cargas.
 
-El token `ofl-vercel` tiene permiso Object Read & Write únicamente sobre `ofl`. Las credenciales S3, `BETTER_AUTH_SECRET` y `CRON_SECRET` están en las variables sensibles de producción de Vercel. CORS permite GET, HEAD y PUT desde los dos orígenes de OFL, con `Content-Type` e `If-None-Match`; las variantes se almacenan con caché inmutable.
+El token `ofl-vercel` tiene permiso Object Read & Write únicamente sobre `ofl`. Las credenciales S3, `BETTER_AUTH_SECRET` y `CRON_SECRET` están en las variables sensibles de producción de Vercel. CORS permite GET, HEAD y PUT desde los dos orígenes de OFL, con `Content-Type` e `If-None-Match`; las variantes se almacenan con caché inmutable y los originales migrados con `no-store`.
+
+Al reeditar, el panel descarga el original con CORS y `cache: reload`, y abre una URL local de sus bytes. Esto evita reutilizar una respuesta que el navegador hubiera guardado al mostrar la imagen sin CORS; las vistas previas y quitar fondo usan esos mismos bytes. La URL local se libera al guardar, cancelar o desmontar el campo.
 
 Vercel usa Node 22, `pnpm install --frozen-lockfile` y `pnpm vercel-build` (migraciones antes del build). `.vercelignore` excluye variables locales, respaldos, almacenamiento local, logs y archivos privados de trabajo del paquete de despliegue.
 
