@@ -8,12 +8,14 @@ Basado en la plataforma de Open Fight Latam / Guerra Campal (Next.js · TypeScri
 
 **Necesitas:** [Node 22](https://nodejs.org), [pnpm](https://pnpm.io/installation) (`npm install -g pnpm`), [Docker Desktop](https://www.docker.com/products/docker-desktop/) abierto, y Git.
 
-1. Clona el repositorio y entra a la carpeta:
+1. Clona la rama `mainevent-championship` y entra a la carpeta:
 
    ```bash
-   git clone https://github.com/ThomasTg7/mainevent-championship.git
+   git clone --branch mainevent-championship https://github.com/ThomasTg7/ofl.git mainevent-championship
    cd mainevent-championship
    ```
+
+   *¿Quieres un repositorio propio?* Crea uno vacío en GitHub (por ejemplo `mainevent-championship`) y, dentro de esta carpeta, ejecuta `git remote set-url origin https://github.com/ThomasTg7/mainevent-championship.git` y `git push -u origin mainevent-championship:main`.
 
 2. Crea tu archivo de configuración. Luego abre `.env` y cambia `BETTER_AUTH_SECRET` por cualquier texto largo (32+ caracteres):
 
