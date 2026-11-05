@@ -53,7 +53,7 @@ async function scenario(pairs = 2) {
       const red = await newFighter(`R${index}`);
       const blue = await newFighter(`B${index}`);
       fighters.push(red, blue);
-      list.push((await addBout(db, segment, { redFighterId: red, blueFighterId: blue, divisionId: ligero }, "admin-1")).id);
+      list.push((await addBout(db, segment, { redFighterId: red, blueFighterId: blue, divisionId: ligero, roundSeconds: "300" }, "admin-1")).id);
     }
   }
   return { eventId: event.id, main, undercard, fighters };

@@ -45,7 +45,7 @@ export async function Footer() {
           <div className="flex flex-col gap-5">
             <Logo />
             <p className="font-cond text-xl font-bold text-white">{BRAND.name}</p>
-            <a href={BRAND.instagramUrl} target="_blank" rel="noopener noreferrer" className="ofl-nav-link w-fit font-cond font-semibold text-accent-bright">Instagram de OFL</a>
+            {BRAND.instagramUrl ? <a href={BRAND.instagramUrl} target="_blank" rel="noopener noreferrer" className="ofl-nav-link w-fit font-cond font-semibold text-accent-bright">Instagram de {BRAND.name}</a> : null}
             {footer.tagline ? <p className="max-w-xs text-muted-foreground">{footer.tagline}</p> : null}
             {networks.length > 0 ? (
               <nav aria-label="Redes sociales">

@@ -1,11 +1,14 @@
-import type { BoutLevel } from "@/domain/bout-enums";
+import { BOUT_LEVEL_SLUGS, type BoutLevel } from "@/domain/bout-enums";
 
-/** `?nivel=amateur` es el ranking amateur; cualquier otro valor (o ninguno) es el profesional. */
-export function parseRankingLevel(value: string | string[] | undefined): BoutLevel {
-  return value === "amateur" ? "amateur" : "pro";
+/**
+ * `?disciplina=kickboxing` es el ranking de Kickboxing; cualquier otro valor (o ninguno) es el de Muay Thai. El antiguo
+ * `?nivel=amateur` sigue llevando a Kickboxing para no romper enlaces guardados.
+ */
+export function parseRankingLevel(discipline: string | string[] | undefined, legacyLevel?: string | string[]): BoutLevel {
+  return discipline === BOUT_LEVEL_SLUGS.amateur || legacyLevel === "amateur" ? "amateur" : "pro";
 }
 
-/** Cada nivel es una página distinta (otro contenido): la URL del amateur lleva su parámetro. */
+/** Cada disciplina es una página distinta (otro contenido): la URL de Kickboxing lleva su parámetro. */
 export function rankingsHref(level: BoutLevel): string {
-  return level === "amateur" ? "/rankings?nivel=amateur" : "/rankings";
+  return level === "amateur" ? `/rankings?disciplina=${BOUT_LEVEL_SLUGS.amateur}` : "/rankings";
 }

@@ -140,7 +140,7 @@ export function FighterFilters({ filters, divisions, countries }: FighterFilters
       </label>
       {/* Sin JavaScript no hay cambio automático: el botón aplica los filtros. Con JavaScript queda oculto. */}
       <noscript>
-        <button type="submit" className="col-span-2 h-11 bg-brand px-6 font-cond font-extrabold uppercase tracking-[.08em] text-white">
+        <button type="submit" className="col-span-2 h-11 bg-brand px-6 font-cond font-extrabold uppercase tracking-[.08em] text-on-brand">
           Filtrar
         </button>
       </noscript>

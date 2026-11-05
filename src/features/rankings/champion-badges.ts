@@ -1,3 +1,4 @@
+import { BOUT_LEVEL_LABELS } from "@/domain/bout-enums";
 import { and, eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import { divisions } from "@/db/schema/divisions";
@@ -21,7 +22,7 @@ export async function getChampionBadges(db: Db): Promise<Record<string, string>>
 
   const badges: Record<string, string> = {};
   for (const row of rows.toSorted((a, b) => (a.level === b.level ? 0 : a.level === "pro" ? 1 : -1))) {
-    badges[row.fighterId] = row.level === "pro" ? championWord(row.gender) : `${championWord(row.gender)} amateur`;
+    badges[row.fighterId] = `${championWord(row.gender)} ${BOUT_LEVEL_LABELS[row.level]}`;
   }
   return badges;
 }

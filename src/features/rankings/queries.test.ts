@@ -63,22 +63,22 @@ describe("rankings of the seed", () => {
   it("gives the three expected tags to a fighter who is amateur champion, ranked in the division and in P4P", async () => {
     const cortes = await fighterIdBySlug(db, "valentina-cortes");
     expect(await getFighterRankingTags(db, cortes)).toEqual([
-      { label: "Campeona amateur · Peso Paja fem.", isTitle: true },
-      { label: "#1 Peso Paja fem.", isTitle: false },
-      { label: "#5 P4P", isTitle: false },
+      { label: "Campeona Kickboxing · Peso Paja fem.", isTitle: true },
+      { label: "#1 Peso Paja fem. · Muay Thai", isTitle: false },
+      { label: "#5 P4P · Muay Thai", isTitle: false },
     ]);
   });
 
   it("tags a champion and a P4P leader", async () => {
     const perez = await fighterIdBySlug(db, "matias-perez");
     expect(await getFighterRankingTags(db, perez)).toEqual([
-      { label: "Campeón pro · Peso Ligero", isTitle: true },
-      { label: "#1 P4P", isTitle: false },
+      { label: "Campeón Muay Thai · Peso Ligero", isTitle: true },
+      { label: "#1 P4P · Muay Thai", isTitle: false },
     ]);
   });
 
   it("tags only the division for a ranked fighter and nothing for a retired one", async () => {
-    expect(await getFighterRankingTags(db, await fighterIdBySlug(db, "joaquin-nunez"))).toEqual([{ label: "#2 Peso Wélter", isTitle: false }]);
+    expect(await getFighterRankingTags(db, await fighterIdBySlug(db, "joaquin-nunez"))).toEqual([{ label: "#2 Peso Wélter · Muay Thai", isTitle: false }]);
     expect(await getFighterRankingTags(db, await fighterIdBySlug(db, "nicolas-ibarra"))).toEqual([]);
   });
 
@@ -97,9 +97,9 @@ describe("rankings of the seed", () => {
 
   it("badges each visible champion for the fighter list, «Campeona» for women and pro before amateur", async () => {
     const badges = await getChampionBadges(db);
-    expect(badges[await fighterIdBySlug(db, "matias-perez")]).toBe("Campeón");
-    expect(badges[await fighterIdBySlug(db, "camila-rojas")]).toBe("Campeona");
-    expect(badges[await fighterIdBySlug(db, "valentina-cortes")]).toBe("Campeona amateur");
+    expect(badges[await fighterIdBySlug(db, "matias-perez")]).toBe("Campeón Muay Thai");
+    expect(badges[await fighterIdBySlug(db, "camila-rojas")]).toBe("Campeona Muay Thai");
+    expect(badges[await fighterIdBySlug(db, "valentina-cortes")]).toBe("Campeona Kickboxing");
     expect(badges[await fighterIdBySlug(db, "diego-soto")]).toBeUndefined();
   });
 
@@ -115,11 +115,11 @@ describe("rankings of the seed", () => {
     expect(cards.length).toBeGreaterThan(0);
     expect(cards.every((card) => card.champion !== null && card.entries.length === 0 && card.division !== null)).toBe(true);
     expect(cards.some((card) => card.champion?.name === "Matías Pérez")).toBe(true);
-    expect(await getFighterRankingTags(db, perez)).toEqual([{ label: "Campeón pro · Peso Ligero", isTitle: true }]);
+    expect(await getFighterRankingTags(db, perez)).toEqual([{ label: "Campeón Muay Thai · Peso Ligero", isTitle: true }]);
     const labels = await getBoutRankLabels(db, boutIds);
     expect(labels.get(perez)).toBe("C");
     expect(labels.has(soto)).toBe(false);
-    expect((await getChampionBadges(db))[perez]).toBe("Campeón");
+    expect((await getChampionBadges(db))[perez]).toBe("Campeón Muay Thai");
     // El amateur sigue completo a la vista.
     expect((await getPublicRankings(db, "amateur")).cards).toHaveLength(1);
 
@@ -198,7 +198,7 @@ describe("movement and visibility", () => {
 
     const card = (await getPublicRankings(db, "pro")).cards.find((candidate) => candidate.division?.id === welter);
     expect(card?.entries.map((entry) => [entry.position, entry.fighter.id])).toEqual([[1, stays]]);
-    expect(await getFighterRankingTags(db, stays)).toEqual([{ label: "#1 Peso Wélter", isTitle: false }]);
+    expect(await getFighterRankingTags(db, stays)).toEqual([{ label: "#1 Peso Wélter · Muay Thai", isTitle: false }]);
 
     const event = await insertEvent(db);
     const segmentId = await insertSegment(db, event.id);

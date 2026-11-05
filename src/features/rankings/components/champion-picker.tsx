@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Flag } from "@/components/ui-gc/flag";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { BoutLevel } from "@/domain/bout-enums";
+import { BOUT_LEVEL_LABELS, type BoutLevel } from "@/domain/bout-enums";
 import { FighterPicker, type PickedFighter } from "@/features/events/components/fighter-picker";
 import { searchEligibleFightersAction, vacateTitleAction } from "../actions";
 import type { EditorFighter } from "../dto";
@@ -54,7 +54,7 @@ export function ChampionPicker({ level, divisionId, divisionLabel, champion }: C
   return (
     <section aria-labelledby="champion-title" className="flex flex-col gap-3 border border-border bg-card p-3">
       <h2 id="champion-title" className="text-lg font-semibold">
-        Campeón {level === "pro" ? "pro" : "amateur"}
+        Campeón de {BOUT_LEVEL_LABELS[level]}
       </h2>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         {champion ? (
@@ -87,7 +87,7 @@ export function ChampionPicker({ level, divisionId, divisionLabel, champion }: C
           busyIds={champion ? [champion.id] : []}
           busyLabel="Ya es el campeón"
           search={search}
-          emptyText="Ningún peleador elegible coincide: debe estar activo, publicado, del género de la división y con peleas (o récord) del nivel."
+          emptyText="Ningún peleador elegible coincide: debe estar activo, publicado, del género de la división y con peleas (o récord) de la disciplina."
         />
       ) : null}
 

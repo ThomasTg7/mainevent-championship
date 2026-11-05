@@ -35,10 +35,10 @@ export function DontMissRail({ posts }: { posts: PostCardDTO[] }) {
             // Con una sola tarjeta no hay nada que recorrer.
             posts.length > 1 ? (
               <div className="flex gap-2">
-                <button type="button" aria-label="Anterior" onClick={() => scrollByCard(-1)} className="grid size-[46px] place-items-center border-2 border-border transition-opacity hover:border-brand hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-accent-bright">
+                <button type="button" aria-label="Anterior" onClick={() => scrollByCard(-1)} className="grid size-[46px] place-items-center border-2 border-border transition-opacity hover:border-brand hover:bg-brand hover:text-on-brand focus-visible:outline-2 focus-visible:outline-accent-bright">
                   <span aria-hidden>←</span>
                 </button>
-                <button type="button" aria-label="Siguiente" onClick={() => scrollByCard(1)} className="grid size-[46px] place-items-center border-2 border-border transition-opacity hover:border-brand hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-accent-bright">
+                <button type="button" aria-label="Siguiente" onClick={() => scrollByCard(1)} className="grid size-[46px] place-items-center border-2 border-border transition-opacity hover:border-brand hover:bg-brand hover:text-on-brand focus-visible:outline-2 focus-visible:outline-accent-bright">
                   <span aria-hidden>→</span>
                 </button>
               </div>

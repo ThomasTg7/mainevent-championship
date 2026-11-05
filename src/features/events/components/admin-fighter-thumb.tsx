@@ -9,7 +9,7 @@ import type { AdminBoutFighter } from "../admin-card-queries";
 export function AdminFighterThumb({ fighter, className }: { fighter: Pick<AdminBoutFighter, "headshotMedia" | "bodyMedia">; className?: string }) {
   return (
     <div className={cn("shrink-0 overflow-hidden bg-muted", className)}>
-      <FighterFace fighter={fighter} sizes="64px" silhouetteClassName="size-full text-black drop-shadow-[0_0_1px_rgba(197,155,229,.6)]" />
+      <FighterFace fighter={fighter} sizes="64px" silhouetteClassName="size-full text-black drop-shadow-[0_0_1px_rgba(255,214,10,.6)]" />
     </div>
   );
 }

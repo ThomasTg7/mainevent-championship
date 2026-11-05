@@ -9,7 +9,7 @@ type TagProps = {
 };
 
 const toneClasses: Record<TagTone, string> = {
-  brand: "bg-brand text-white",
+  brand: "bg-brand text-on-brand",
   dark: "bg-black text-accent-bright",
   red: "bg-red text-white",
   outline: "border border-white/40 text-white",

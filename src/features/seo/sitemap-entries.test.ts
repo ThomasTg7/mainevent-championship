@@ -72,14 +72,14 @@ describe("getSitemapEntries", () => {
     const [row] = await db.select({ newest: max(rankingVersions.createdAt) }).from(rankingVersions).where(eq(rankingVersions.level, "pro"));
     expect(row?.newest).toBeInstanceOf(Date);
     expect(all.get(`${SITE}/rankings`)?.lastModified).toEqual(row!.newest);
-    expect(all.has(`${SITE}/rankings?nivel=amateur`)).toBe(true);
+    expect(all.has(`${SITE}/rankings?disciplina=kickboxing`)).toBe(true);
   });
 
   it("keeps a ranking level with hidden positions while it still shows its champions", async () => {
     await setRankingVisibility(db, "amateur", false, "admin-1");
     await setRankingVisibility(db, "pro", false, "admin-1");
     const hidden = await urls();
-    expect(hidden).toContain(`${SITE}/rankings?nivel=amateur`);
+    expect(hidden).toContain(`${SITE}/rankings?disciplina=kickboxing`);
     expect(hidden).toContain(`${SITE}/rankings`);
     await setRankingVisibility(db, "amateur", true, "admin-1");
     await setRankingVisibility(db, "pro", true, "admin-1");

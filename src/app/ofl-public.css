@@ -1,7 +1,9 @@
-/* OFL's sporting surfaces, distinct from the administration workspace. */
+/* Mainevent Championship sporting surfaces, distinct from the administration workspace. */
 .ofl-site {
   --radius: 0px;
-  --ofl-gradient-red: #E52244;
+  /* Vertical «fire» ink: logo yellow into poster orange. */
+  --brand-gradient-from: #FFF04D;
+  --brand-gradient-to: var(--color-brand-orange);
 }
 
 .ofl-site a:focus-visible,
@@ -12,14 +14,14 @@
 
 .ofl-header {
   border-top: 3px solid transparent;
-  border-image: linear-gradient(90deg, var(--ofl-gradient-red), var(--color-brand-violet)) 1;
+  border-image: linear-gradient(90deg, var(--color-brand), var(--color-brand-orange)) 1;
 }
 
-/* Shared vertical OFL ink, matching the lightning bolt. */
+/* Shared vertical brand ink, yellow into orange like the poster lettering. */
 .ofl-site .ofl-gradient-text,
 .ofl-site .text-accent-bright:not(svg) {
   color: transparent;
-  background-image: linear-gradient(180deg, var(--ofl-gradient-red), var(--color-brand-violet));
+  background-image: linear-gradient(180deg, var(--brand-gradient-from), var(--brand-gradient-to));
   background-clip: text;
   -webkit-background-clip: text;
   box-decoration-break: clone;
@@ -30,8 +32,8 @@
 .ofl-site .text-accent-bright svg { color: var(--color-brand); }
 
 .ofl-site .ofl-gradient-button {
-  background-image: linear-gradient(180deg, var(--ofl-gradient-red), var(--color-brand-violet));
-  color: white;
+  background-image: linear-gradient(180deg, var(--brand-gradient-from), var(--brand-gradient-to));
+  color: var(--color-on-brand);
 }
 
 @media (forced-colors: active) {
@@ -73,13 +75,13 @@
 }
 
 .ofl-hero-pulse {
-  background: radial-gradient(ellipse at 75% 40%, rgba(100,51,116,.28), transparent 64%);
+  background: radial-gradient(ellipse at 50% 38%, rgba(255,170,20,.22), transparent 62%);
 }
 
 .ofl-hero-rule {
   height: 3px;
   width: 64px;
-  background: linear-gradient(90deg, var(--ofl-gradient-red), var(--color-brand-violet));
+  background: linear-gradient(90deg, var(--color-brand), var(--color-brand-orange));
 }
 
 .ofl-photo-card {
@@ -102,15 +104,21 @@
 
 .ofl-editorial a:focus-visible,
 .ofl-editorial button:focus-visible {
-  outline-color: var(--color-brand-violet);
+  outline-color: var(--color-brand-ink);
 }
 
 .ofl-editorial [data-slot="post-card-meta"] {
-  color: var(--color-brand-press);
+  color: var(--color-brand-ink);
+}
+
+/* Brand ink on white surfaces: yellow would not be readable there. */
+.ofl-site .ofl-editorial .ofl-gradient-text,
+.ofl-site .ofl-editorial .text-accent-bright:not(svg) {
+  background-image: linear-gradient(180deg, #A35A00, #6E3B00);
 }
 
 .ofl-editorial article {
-  background: #f5f3f6;
+  background: #f6f4ef;
 }
 
 .ofl-editorial article h3,
@@ -124,5 +132,5 @@
 }
 
 .ofl-editorial [data-slot="post-card-body"] {
-  background: #f5f3f6;
+  background: #f6f4ef;
 }

@@ -34,7 +34,7 @@ export function AdminPasswordLinkEmail({ url, kind }: AdminPasswordLinkEmailProp
           <Text>{copy.body}</Text>
           <Button
             href={url}
-            style={{ backgroundColor: BRAND.colors.primary, color: "#ffffff", padding: "12px 20px", fontWeight: 700 }}
+            style={{ backgroundColor: BRAND.colors.primary, color: BRAND.colors.ink, padding: "12px 20px", fontWeight: 700 }}
           >
             {copy.action}
           </Button>

@@ -4,18 +4,19 @@ import { BRAND } from "../src/domain/brand";
 import { signInAsAdmin } from "./fixtures/admin";
 
 for (const width of [375, 1440]) {
-  test(`OFL mantiene identidad, enlaces y controles accesibles a ${width} px`, async ({ page }) => {
+  test(`Mainevent mantiene identidad, enlaces y controles accesibles a ${width} px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
     await expect(page.locator(".ofl-header")).toHaveAttribute("inert", "");
     await expect(page.locator(".ofl-header [role=img]")).toHaveAttribute("aria-label", BRAND.name);
-    await expect(page.getByRole("link", { name: "Instagram de OFL" })).toHaveAttribute("href", BRAND.instagramUrl);
+    // Sin perfil confirmado no se inventa un enlace a Instagram.
+    await expect(page.getByRole("link", { name: /^Instagram de / })).toHaveCount(0);
     await expect(page.locator('[data-slot="intro-loader"]')).toHaveCount(0);
     await expect(page.locator(".ofl-page-enter")).toHaveCSS("animation-name", "none");
     const tickets = page.getByRole("link", { name: "Comprar entradas" }).first();
-    await expect(tickets).toHaveCSS("background-color", "rgb(197, 27, 58)");
-    await expect(tickets).toHaveCSS("color", "rgb(255, 255, 255)");
+    await expect(tickets).toHaveCSS("background-color", "rgb(255, 229, 0)");
+    await expect(tickets).toHaveCSS("color", "rgb(0, 0, 0)");
     await page.screenshot({ path: `test-results/ofl-public-${width}.png`, fullPage: true });
 
     await signInAsAdmin(page);
@@ -29,7 +30,7 @@ for (const width of [375, 1440]) {
       await page.getByRole("button", { name: "Mostrar u ocultar menú" }).click();
       const menu = page.getByRole("dialog");
       await expect(menu.getByRole("img", { name: BRAND.name })).toBeVisible();
-      await expect(menu.getByRole("link", { name: "Inicio", exact: true })).toHaveCSS("background-color", "rgb(40, 26, 50)");
+      await expect(menu.getByRole("link", { name: "Inicio", exact: true })).toHaveCSS("background-color", "rgb(42, 34, 8)");
       await menu.getByRole("link", { name: "Peleadores", exact: true }).click();
       await expect(page.getByRole("heading", { name: "Peleadores", level: 1 })).toBeVisible();
       await expect(menu).toHaveCount(0);

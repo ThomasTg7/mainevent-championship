@@ -10,7 +10,7 @@ import { SectionTitle } from "./section-title";
 
 const RESULT_LABEL = { win: "Victoria", loss: "Derrota", draw: "Empate", no_contest: "Sin resultado" } as const;
 const RESULT_CLASS = {
-  win: "bg-brand text-white",
+  win: "bg-brand text-on-brand",
   loss: "bg-neutral-700 text-white",
   draw: "bg-neutral-800 text-neutral-200",
   no_contest: "bg-neutral-800 text-neutral-200",
@@ -36,7 +36,7 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
       <div className="mb-10 flex flex-col items-center gap-6 text-center">
         <SectionTitle id="fighter-history-heading">Historial de peleas</SectionTitle>
         {showFilter ? (
-          <div role="group" aria-label="Filtrar por nivel" className="flex border border-border">
+          <div role="group" aria-label="Filtrar por disciplina" className="flex border border-border">
             {(["all", "pro", "amateur"] as const).map((option) => (
               <button
                 key={option}
@@ -44,7 +44,7 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
                 aria-pressed={filter === option}
                 onClick={() => setFilter(option)}
                 className={`min-h-11 px-4 font-cond text-sm font-extrabold uppercase tracking-[.1em] transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright ${
-                  filter === option ? "bg-brand text-white" : "text-muted-foreground hover:text-white"
+                  filter === option ? "bg-brand text-on-brand" : "text-muted-foreground hover:text-white"
                 }`}
               >
                 {option === "all" ? "Todas" : BOUT_LEVEL_LABELS[option]}
@@ -63,7 +63,7 @@ export function FightHistory({ rows }: { rows: FightHistoryRow[] }) {
                 <FighterFace
                   fighter={row.opponent}
                   sizes="64px"
-                  silhouetteClassName="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(197,155,229,.55)]"
+                  silhouetteClassName="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,214,10,.55)]"
                 />
               </div>
               <span className={`w-fit justify-self-start px-2.5 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] sm:justify-self-auto ${RESULT_CLASS[row.fighterResult]}`}>

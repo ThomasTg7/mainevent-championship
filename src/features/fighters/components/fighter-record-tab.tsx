@@ -1,11 +1,12 @@
 "use client";
+import { BOUT_LEVEL_LABELS } from "@/domain/bout-enums";
 import { BRAND } from "@/domain/brand";
 
 import { TextField } from "@/components/admin/form-fields";
 
 const GROUPS = [
-  { title: "Profesional", prefix: "pro" },
-  { title: "Amateur", prefix: "am" },
+  { title: BOUT_LEVEL_LABELS.pro, prefix: "pro" },
+  { title: BOUT_LEVEL_LABELS.amateur, prefix: "am" },
 ] as const;
 
 const COUNTERS = [

@@ -62,7 +62,7 @@ export function BoutResultSummary({ bout }: { bout: BoutDTO }) {
       {result.bonuses.length > 0 ? (
         <ul aria-label="Bonos" className="flex flex-wrap justify-center gap-2">
           {result.bonuses.map((bonus) => (
-            <li key={bonus} className="bg-brand px-3 py-1 font-cond text-xs font-extrabold uppercase tracking-[.12em] text-white">
+            <li key={bonus} className="bg-brand px-3 py-1 font-cond text-xs font-extrabold uppercase tracking-[.12em] text-on-brand">
               ★ {BONUS_LABELS[bonus]}
             </li>
           ))}
@@ -73,7 +73,7 @@ export function BoutResultSummary({ bout }: { bout: BoutDTO }) {
           href={result.videoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mx-auto inline-flex min-h-11 items-center gap-2 border-2 border-brand px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white hover:bg-brand hover:text-white"
+          className="mx-auto inline-flex min-h-11 items-center gap-2 border-2 border-brand px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white hover:bg-brand hover:text-on-brand"
         >
           Ver la pelea <ExternalLink aria-hidden className="size-4" />
         </a>

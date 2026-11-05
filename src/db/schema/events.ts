@@ -135,6 +135,8 @@ export const bouts = pgTable(
     scheduledRounds: integer("scheduled_rounds").notNull().default(3),
     roundSeconds: integer("round_seconds").notNull().default(300),
     isTitleFight: boolean("is_title_fight").notNull().default(false),
+    // Rótulo del afiche («WMO Continental Title Bout»): un título de otro organismo o un lema; no cambia campeones.
+    posterTitle: text("poster_title"),
     // En una pelea por el título, la esquina del campeón (el retador es la otra); por defecto la roja.
     championCorner: boutCorner("champion_corner").notNull().default("red"),
     boutStatus: boutStatus("bout_status").notNull().default("scheduled"),

@@ -34,6 +34,7 @@ type Draft = {
   rounds: "3" | "5";
   roundMinutes: string;
   isTitleFight: boolean;
+  posterTitle: string;
   championCorner: BoutCorner;
 };
 
@@ -41,7 +42,7 @@ const fullName = (fighter: AdminBout["red"]) => (fighter.nickname ? `${fighter.f
 
 function initialDraft(target: NonNullable<BoutDialogTarget>): Draft {
   if (target.mode === "add") {
-    return { red: null, blue: null, measure: "division", divisionId: "", catchweightKg: "", level: "pro", rounds: "3", roundMinutes: String(DEFAULT_ROUND_SECONDS / 60), isTitleFight: false, championCorner: "red" };
+    return { red: null, blue: null, measure: "division", divisionId: "", catchweightKg: "", level: "pro", rounds: "3", roundMinutes: String(DEFAULT_ROUND_SECONDS / 60), isTitleFight: false, posterTitle: "", championCorner: "red" };
   }
   const { bout } = target;
   return {
@@ -54,11 +55,12 @@ function initialDraft(target: NonNullable<BoutDialogTarget>): Draft {
     rounds: bout.scheduledRounds === 5 ? "5" : "3",
     roundMinutes: String(bout.roundSeconds / 60),
     isTitleFight: bout.isTitleFight,
+    posterTitle: bout.posterTitle ?? "",
     championCorner: bout.championCorner,
   };
 }
 
-/** Diálogo para agregar o editar una pelea: esquinas, división o peso pactado, nivel, rounds y si es por el título. */
+/** Diálogo para agregar o editar una pelea: esquinas, división o peso pactado, disciplina, rounds, rótulo del afiche y si es por el título. */
 export function BoutDialog({ target, divisions, fighterIdsInCard, onClose }: BoutDialogProps) {
   // Se remonta al abrir (por la `key` del contenido) para que el borrador parta desde la pelea elegida.
   return (
@@ -100,6 +102,7 @@ function BoutForm({ target, divisions, fighterIdsInCard, onClose }: { target: No
       scheduledRounds: draft.rounds,
       roundSeconds: Math.round(Number(draft.roundMinutes) * 60),
       isTitleFight: draft.isTitleFight,
+      posterTitle: draft.posterTitle,
       championCorner: draft.championCorner,
     };
     startTransition(async () => {
@@ -130,7 +133,7 @@ function BoutForm({ target, divisions, fighterIdsInCard, onClose }: { target: No
         <div className="grid grid-cols-2 gap-2">
           {(["division", "catchweight"] as const).map((measure) => (
             <label key={measure} className="flex min-h-11 cursor-pointer items-center gap-2 border border-border px-3 has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-              <input type="radio" name="measure" value={measure} checked={draft.measure === measure} onChange={() => change({ measure })} className="size-4 accent-[#C51B3A]" />
+              <input type="radio" name="measure" value={measure} checked={draft.measure === measure} onChange={() => change({ measure })} className="size-4 accent-[#FFE500]" />
               {measure === "division" ? "División" : "Peso pactado"}
             </label>
           ))}
@@ -155,7 +158,7 @@ function BoutForm({ target, divisions, fighterIdsInCard, onClose }: { target: No
       </fieldset>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <FormField id="bout-level" label="Nivel" error={errors.level}>
+        <FormField id="bout-level" label="Disciplina" error={errors.level}>
           <NativeSelect id="bout-level" value={draft.level} onChange={(event) => change({ level: event.target.value as BoutLevel })}>
             {BOUT_LEVELS.map((level) => (
               <option key={level} value={level}>
@@ -181,8 +184,12 @@ function BoutForm({ target, divisions, fighterIdsInCard, onClose }: { target: No
         </FormField>
       </div>
 
+      <FormField id="bout-poster-title" label="Rótulo del afiche (opcional)" error={errors.posterTitle} hint="Se muestra sobre la pelea, como en el afiche. Ej.: WMO Continental Title Bout.">
+        <Input id="bout-poster-title" value={draft.posterTitle} maxLength={80} onChange={(event) => change({ posterTitle: event.target.value })} autoComplete="off" aria-invalid={errors.posterTitle ? true : undefined} />
+      </FormField>
+
       <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
-        <input type="checkbox" checked={draft.isTitleFight} onChange={(event) => change({ isTitleFight: event.target.checked })} className="size-5 accent-[#C51B3A]" />
+        <input type="checkbox" checked={draft.isTitleFight} onChange={(event) => change({ isTitleFight: event.target.checked })} className="size-5 accent-[#FFE500]" />
         <span>
           <span className="font-medium">Pelea por el título</span>
           <span className="block text-xs text-muted-foreground">Si gana el retador, el panel sugerirá el cambio de campeón.</span>

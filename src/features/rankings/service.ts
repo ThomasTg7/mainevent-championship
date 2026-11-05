@@ -5,7 +5,7 @@ import { events } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import { dismissedSuggestions, rankingEntries, rankingLevels, rankingVersions, titles } from "@/db/schema/rankings";
 import type { Executor } from "@/db/types";
-import type { BoutLevel } from "@/domain/bout-enums";
+import { BOUT_LEVEL_LABELS, type BoutLevel } from "@/domain/bout-enums";
 import { P4P_SLOTS, rankingScopeKey, validateRanking, type RankingScope } from "@/domain/rankings";
 import { logAudit } from "@/features/audit/log";
 import { divisionTitle } from "@/features/fighters/labels";
@@ -16,7 +16,7 @@ import { getCurrentRanking } from "./versions";
 
 const DIVISION_NOT_FOUND = "No se encontró la división";
 const STALE_DRAFT = "Otra persona guardó este ranking mientras lo editabas. Recarga la página para ver la versión nueva y vuelve a aplicar tus cambios.";
-const LEVEL_LABEL: Record<BoutLevel, string> = { pro: "pro", amateur: "amateur" };
+const LEVEL_LABEL: Record<BoutLevel, string> = BOUT_LEVEL_LABELS;
 
 type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 type ScopeContext = { slots: number; gender: "male" | "female" | null; label: string; championId: string | null };
@@ -123,7 +123,7 @@ export async function setChampion(db: Db, level: BoutLevel, divisionId: string, 
     const context = await loadScope(tx, scope);
     const eligible = await eligibleAmong(tx, scope, context.gender, [fighterId]);
     if (!eligible.has(fighterId)) {
-      throw new UserFacingError("Ese peleador no puede ser campeón: debe estar activo, publicado, ser del género de la división y tener peleas del nivel");
+      throw new UserFacingError("Ese peleador no puede ser campeón: debe estar activo, publicado, ser del género de la división y tener peleas de la disciplina");
     }
     if (context.championId === fighterId) return { affectedFighterIds: [] };
 

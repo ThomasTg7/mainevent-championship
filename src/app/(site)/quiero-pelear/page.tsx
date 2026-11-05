@@ -17,7 +17,7 @@ export default function QuieroPelearPage() {
     <PageShell>
       <PageHeader title="Quiero pelear" className="mb-10">
         <p className="mt-6 max-w-prose text-lg text-white/90">
-          ¿Entrenas MMA y quieres subir al ring de {BRAND.name}? Cuéntanos de ti. Revisamos cada postulación y te escribimos si tu perfil encaja con una próxima velada.
+          ¿Entrenas Muay Thai o Kickboxing y quieres subir al ring de {BRAND.name}? Cuéntanos de ti. Revisamos cada postulación y te escribimos si tu perfil encaja con una próxima velada.
         </p>
       </PageHeader>
       <div className="max-w-[760px]">

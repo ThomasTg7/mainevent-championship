@@ -1,0 +1,269 @@
+/*
+ * Mainevent Championship poster language: gold dust, embers, stars and a light sweep, as in the event posters.
+ * Decorative layers only animate transform and opacity, and stand still with «reduce motion».
+ */
+
+/* Gold dust: two layers of bokeh dots drifting at different speeds (parallax). */
+.mec-gold-dust {
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.mec-gold-dust::before,
+.mec-gold-dust::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+  will-change: transform, opacity;
+}
+
+.mec-gold-dust::before {
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255, 214, 10, .9) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 34% 62%, rgba(255, 170, 30, .8) 0 1px, transparent 2px),
+    radial-gradient(circle at 58% 28%, rgba(255, 236, 140, .9) 0 1.2px, transparent 2.2px),
+    radial-gradient(circle at 78% 74%, rgba(255, 196, 40, .85) 0 1.6px, transparent 2.6px),
+    radial-gradient(circle at 90% 40%, rgba(255, 229, 0, .7) 0 1px, transparent 2px),
+    radial-gradient(circle at 46% 88%, rgba(255, 150, 20, .75) 0 1.3px, transparent 2.3px),
+    radial-gradient(circle at 6% 82%, rgba(255, 236, 140, .8) 0 1px, transparent 2px);
+  background-size: 260px 260px;
+  animation: mec-dust-drift 26s linear infinite, mec-twinkle 3.8s ease-in-out infinite alternate;
+}
+
+.mec-gold-dust::after {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255, 200, 60, .35) 0 5px, transparent 9px),
+    radial-gradient(circle at 70% 60%, rgba(255, 160, 30, .3) 0 7px, transparent 12px),
+    radial-gradient(circle at 45% 15%, rgba(255, 229, 0, .28) 0 4px, transparent 8px),
+    radial-gradient(circle at 85% 90%, rgba(255, 236, 140, .3) 0 6px, transparent 10px);
+  background-size: 520px 520px;
+  filter: blur(1px);
+  animation: mec-dust-drift-slow 48s linear infinite, mec-twinkle 6s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes mec-dust-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-260px, -260px, 0); }
+}
+
+@keyframes mec-dust-drift-slow {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(260px, -520px, 0); }
+}
+
+@keyframes mec-twinkle {
+  from { opacity: .45; }
+  to { opacity: 1; }
+}
+
+/* Embers: sparks rising from the bottom of the stage. Positions come inline from the component. */
+.mec-ember {
+  position: absolute;
+  bottom: -10px;
+  width: var(--size, 3px);
+  height: var(--size, 3px);
+  border-radius: 999px;
+  background: radial-gradient(circle, #fff6c2 0%, #FFD60A 40%, rgba(255, 138, 0, 0) 75%);
+  box-shadow: 0 0 8px 2px rgba(255, 170, 20, .55);
+  opacity: 0;
+  animation: mec-ember-rise var(--duration, 9s) linear var(--delay, 0s) infinite;
+}
+
+@keyframes mec-ember-rise {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0; }
+  10% { opacity: .95; }
+  70% { opacity: .7; }
+  100% { transform: translate3d(var(--sway, 30px), -78vh, 0) scale(.4); opacity: 0; }
+}
+
+/* Light sweep across a surface, like light over the gold lettering. */
+.mec-light-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.mec-light-sweep::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 28%;
+  background: linear-gradient(100deg, transparent, rgba(255, 229, 120, .14), transparent);
+  transform: translateX(-120%) skewX(-12deg);
+  animation: mec-sweep 7s ease-in-out 1.2s infinite;
+}
+
+@keyframes mec-sweep {
+  0% { transform: translateX(-120%) skewX(-12deg); }
+  45%, 100% { transform: translateX(480%) skewX(-12deg); }
+}
+
+/* The oversized «MAIN» of the posters, in gold ink. */
+.mec-main-watermark {
+  color: transparent;
+  background-image: linear-gradient(180deg, #FFF2A8 0%, #E8B53A 35%, #8C5A0B 70%, #E8B53A 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  opacity: .16;
+}
+
+/* Twinkling stars (the logo's three stars). */
+.mec-star {
+  animation: mec-star-twinkle 2.6s ease-in-out infinite alternate;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.mec-star:nth-of-type(2) { animation-delay: .7s; }
+.mec-star:nth-of-type(3) { animation-delay: 1.4s; }
+
+@keyframes mec-star-twinkle {
+  from { opacity: .55; transform: scale(.86) rotate(-6deg); }
+  to { opacity: 1; transform: scale(1.08) rotate(4deg); }
+}
+
+/* Fight card as a poster: black stage, gold dust, gold rule and a lift on hover. */
+.mec-bout-poster {
+  background:
+    radial-gradient(ellipse 70% 90% at 50% 0%, rgba(255, 176, 30, .16), transparent 60%),
+    linear-gradient(180deg, #0d0b06, #000 70%);
+  transition: transform 320ms var(--ease-ofl), box-shadow 320ms var(--ease-ofl);
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, .7);
+}
+
+.mec-bout-poster::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(circle at 8% 22%, rgba(255, 214, 10, .55) 0 1px, transparent 2px),
+    radial-gradient(circle at 92% 30%, rgba(255, 170, 30, .5) 0 1.2px, transparent 2.2px),
+    radial-gradient(circle at 70% 85%, rgba(255, 236, 140, .45) 0 1px, transparent 2px),
+    radial-gradient(circle at 30% 70%, rgba(255, 196, 40, .4) 0 1px, transparent 2px);
+  background-size: 180px 140px;
+  opacity: .7;
+  transition: opacity 320ms var(--ease-ofl);
+}
+
+.mec-bout-poster::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--color-brand), var(--color-brand-orange), transparent);
+  transform: scaleX(.35);
+  transition: transform 420ms var(--ease-ofl);
+}
+
+.mec-bout-poster:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 50px -22px rgba(255, 170, 20, .45);
+}
+
+.mec-bout-poster:hover::before { opacity: 1; }
+.mec-bout-poster:hover::after,
+.mec-bout-poster[data-open="true"]::after { transform: scaleX(1); }
+
+/* Poster title with gold rules on both sides: «— WMO CONTINENTAL TITLE BOUT —». */
+.mec-poster-title {
+  display: inline-flex;
+  align-items: center;
+  gap: .6em;
+}
+
+.mec-poster-title::before,
+.mec-poster-title::after {
+  content: "";
+  width: 1.6em;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-brand-gold));
+}
+
+.mec-poster-title::after { transform: scaleX(-1); }
+
+/* Hero entrance: names slide in from their corners like a face-off. */
+@keyframes mec-faceoff-red {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mec-faceoff-blue {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mec-pop {
+  from { opacity: 0; transform: scale(.6); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mec-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+.mec-enter-red { animation: mec-faceoff-red 700ms var(--ease-ofl) both; }
+.mec-enter-blue { animation: mec-faceoff-blue 700ms var(--ease-ofl) both; }
+.mec-enter-vs { animation: mec-pop 520ms var(--ease-ofl) 380ms both; }
+.mec-enter-rise { animation: mec-rise 600ms var(--ease-ofl) 520ms both; }
+
+/* Shine across the main call to action (inside the button: it clips and isolates its layers). */
+.mec-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 45%;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .75), transparent);
+  transform: translateX(-130%) skewX(-18deg);
+  animation: mec-shine 3.4s ease-in-out 1.4s infinite;
+  pointer-events: none;
+}
+
+@keyframes mec-shine {
+  0% { transform: translateX(-130%) skewX(-18deg); }
+  40%, 100% { transform: translateX(330%) skewX(-18deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mec-gold-dust::before,
+  .mec-gold-dust::after,
+  .mec-light-sweep::before,
+  .mec-star,
+  .mec-glow::after,
+  .mec-enter-red,
+  .mec-enter-blue,
+  .mec-enter-vs,
+  .mec-enter-rise { animation: none; }
+
+  .mec-ember { display: none; }
+  .mec-bout-poster,
+  .mec-bout-poster::after { transition: none; }
+  .mec-bout-poster:hover { transform: none; }
+}
+
+@media (forced-colors: active) {
+  .mec-main-watermark { display: none; }
+}
+
+/* Official poster: slight 3D tilt on hover. */
+.mec-poster-frame { perspective: 1200px; }
+
+.mec-poster-card {
+  transform: rotateY(-8deg) rotateX(3deg);
+  transition: transform 600ms var(--ease-ofl);
+}
+
+.mec-poster-frame:hover .mec-poster-card { transform: rotateY(0deg) rotateX(0deg) scale(1.02); }
+
+@media (prefers-reduced-motion: reduce) {
+  .mec-poster-card,
+  .mec-poster-frame:hover .mec-poster-card { transform: none; transition: none; }
+}

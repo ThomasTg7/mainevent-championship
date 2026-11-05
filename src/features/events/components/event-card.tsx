@@ -25,7 +25,7 @@ function Poster({ event, priority }: { event: EventCardDTO; priority: boolean })
         <MediaImage media={image} sizes={EVENT_CARD_SIZES} priority={priority} className="absolute inset-0 size-full object-cover transition-transform duration-700 ease-ofl motion-safe:group-hover:scale-105" />
       ) : (
         <div aria-hidden className="absolute inset-0 grid place-items-center">
-          <span className="font-display text-[clamp(120px,22vw,220px)] leading-none text-transparent [-webkit-text-stroke:2px_rgba(197,155,229,.45)]">{event.number ?? BRAND.shortName}</span>
+          <span className="font-display text-[clamp(120px,22vw,220px)] leading-none text-transparent [-webkit-text-stroke:2px_rgba(255,214,10,.45)]">{event.number ?? BRAND.shortName}</span>
         </div>
       )}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
@@ -79,7 +79,7 @@ export function EventCard({ event, variant, priority = false }: EventCardProps) 
                 href={event.ticketUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative z-10 bg-brand px-5 py-3 font-cond text-sm font-extrabold uppercase tracking-[.08em] text-white transition-transform hover:-translate-y-0.5 hover:bg-brand-hover"
+                className="relative z-10 bg-brand px-5 py-3 font-cond text-sm font-extrabold uppercase tracking-[.08em] text-on-brand transition-transform hover:-translate-y-0.5 hover:bg-brand-hover"
               >
                 Entradas
               </a>

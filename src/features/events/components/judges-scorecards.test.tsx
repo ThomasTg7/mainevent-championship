@@ -30,6 +30,7 @@ function boutWith(result: Partial<BoutResultDTO>, scorecards: Scorecard[]): Bout
     scheduledRounds: 3,
     roundSeconds: 300,
     isTitleFight: false,
+    posterTitle: null,
     status: "completed",
     cancelReason: null,
     division: { name: "Ligero", slug: "peso-ligero", gender: "male" },

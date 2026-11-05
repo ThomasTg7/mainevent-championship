@@ -4,10 +4,10 @@ import { Eye, EyeOff } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { BoutLevel } from "@/domain/bout-enums";
+import { BOUT_LEVEL_LABELS, type BoutLevel } from "@/domain/bout-enums";
 import { setRankingVisibilityAction } from "../actions";
 
-const LEVEL_NAME: Record<BoutLevel, string> = { pro: "pro", amateur: "amateur" };
+const LEVEL_NAME: Record<BoutLevel, string> = BOUT_LEVEL_LABELS;
 
 /**
  * ¿El público ve los puestos de este nivel? Ocultos, se siguen armando en el panel y el sitio muestra solo a los

@@ -13,7 +13,7 @@ const COLUMN_FACADE_CLASS: Record<EmbedProvider, string> = {
 };
 
 const PLAY_BADGE_CLASS =
-  "flex size-16 items-center justify-center bg-brand text-white shadow-lg transition-transform duration-200 motion-safe:group-hover:scale-110 sm:size-20";
+  "flex size-16 items-center justify-center bg-brand text-on-brand shadow-lg transition-transform duration-200 motion-safe:group-hover:scale-110 sm:size-20";
 
 /** YouTube: la imagen fija del video y un «play» grande; al tocarlo, el video empieza ahí mismo. */
 function YouTubePoster({ embed, onPlay }: { embed: Embed; onPlay: () => void }) {
@@ -50,7 +50,7 @@ function NetworkCard({ embed, onPlay }: { embed: Embed; onPlay: () => void }) {
       <button
         type="button"
         onClick={onPlay}
-        className="inline-flex min-h-12 items-center gap-2 bg-brand px-6 font-cond text-base font-extrabold tracking-[0.08em] text-white uppercase transition-opacity hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="inline-flex min-h-12 items-center gap-2 bg-brand px-6 font-cond text-base font-extrabold tracking-[0.08em] text-on-brand uppercase transition-opacity hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <Play aria-hidden className="size-4 fill-current" /> Ver en {name}
       </button>

@@ -73,10 +73,10 @@ export function PhotoGallery({ media, title }: PhotoGalleryProps) {
               <MediaImage media={current} sizes="96vw" className="max-h-[78dvh] w-auto max-w-full object-contain" />
               {media.length > 1 ? (
                 <>
-                  <button type="button" onClick={() => step(-1)} aria-label="Foto anterior" className="absolute left-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center bg-black/70 text-white hover:bg-brand hover:text-white">
+                  <button type="button" onClick={() => step(-1)} aria-label="Foto anterior" className="absolute left-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center bg-black/70 text-white hover:bg-brand hover:text-on-brand">
                     <ChevronLeft aria-hidden />
                   </button>
-                  <button type="button" onClick={() => step(1)} aria-label="Foto siguiente" className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center bg-black/70 text-white hover:bg-brand hover:text-white">
+                  <button type="button" onClick={() => step(1)} aria-label="Foto siguiente" className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 place-items-center bg-black/70 text-white hover:bg-brand hover:text-on-brand">
                     <ChevronRight aria-hidden />
                   </button>
                 </>

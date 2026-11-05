@@ -20,22 +20,19 @@ describe("boutMeasure", () => {
 describe("boutBillingLabel", () => {
   const base = { catchweightKg: null, division: { name: "Ligero", gender: "male" as const }, isTitleFight: false, level: "pro" as const };
 
-  it("names the weight class", () => {
-    expect(boutBillingLabel(base)).toBe("Peso Ligero");
+  it("names the discipline and the weight class", () => {
+    expect(boutBillingLabel(base)).toBe("Muay Thai · Peso Ligero");
+    expect(boutBillingLabel({ ...base, level: "amateur" })).toBe("Kickboxing · Peso Ligero");
   });
 
   it("announces a title fight before the weight class", () => {
-    expect(boutBillingLabel({ ...base, isTitleFight: true })).toBe("Pelea por el título – Peso Ligero");
+    expect(boutBillingLabel({ ...base, isTitleFight: true })).toBe("Muay Thai · Pelea por el título – Peso Ligero");
   });
 
-  it("marks an amateur bout", () => {
-    expect(boutBillingLabel({ ...base, level: "amateur" })).toBe("Peso Ligero · Amateur");
-  });
-
-  it("still says it is a title fight without a weight class", () => {
-    expect(boutBillingLabel({ ...base, division: null, isTitleFight: true })).toBe("Pelea por el título");
-    expect(boutBillingLabel({ ...base, division: null })).toBe("");
-    expect(boutBillingLabel({ ...base, division: null, level: "amateur" })).toBe("Amateur");
+  it("still names the discipline without a weight class", () => {
+    expect(boutBillingLabel({ ...base, division: null, isTitleFight: true })).toBe("Muay Thai · Pelea por el título");
+    expect(boutBillingLabel({ ...base, division: null })).toBe("Muay Thai");
+    expect(boutBillingLabel({ ...base, division: null, level: "amateur" })).toBe("Kickboxing");
   });
 });
 

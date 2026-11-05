@@ -10,7 +10,7 @@ type ShareButtonsProps = {
 };
 
 const BUTTON_CLASS =
-  "inline-flex min-h-11 items-center gap-2 border border-white/30 px-4 font-cond text-sm font-extrabold uppercase tracking-[.08em] text-white transition-opacity hover:border-brand hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright";
+  "inline-flex min-h-11 items-center gap-2 border border-white/30 px-4 font-cond text-sm font-extrabold uppercase tracking-[.08em] text-white transition-opacity hover:border-brand hover:bg-brand hover:text-on-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright";
 
 const COPIED_MESSAGE_MS = 2500;
 

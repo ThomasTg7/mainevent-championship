@@ -13,7 +13,7 @@ export function TopNews({ posts }: { posts: PostCardDTO[] }) {
       <ol>
         {posts.map((post, index) => (
           <li key={post.id} className="group relative grid grid-cols-[38px_1fr] items-start gap-3.5 border-b border-neutral-300 py-4 last:border-b-0">
-            <span aria-hidden className="grid size-[38px] place-items-center bg-brand font-display text-xl text-white transition-transform duration-300 ease-ofl group-hover:-rotate-[8deg] group-hover:scale-110">
+            <span aria-hidden className="grid size-[38px] place-items-center bg-brand font-display text-xl text-on-brand transition-transform duration-300 ease-ofl group-hover:-rotate-[8deg] group-hover:scale-110">
               {index + 1}
             </span>
             <div>

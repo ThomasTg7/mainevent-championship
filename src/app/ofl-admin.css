@@ -1,10 +1,10 @@
-/* A quiet workspace using OFL identity without decorative motion on data. */
+/* A quiet workspace using the Mainevent identity without decorative motion on data. */
 .ofl-admin,
 body:has(.ofl-admin) {
   --radius: .5rem;
   --sidebar: #000;
-  --sidebar-accent: #281a32;
-  background: #0d0b10;
+  --sidebar-accent: #2a2208;
+  background: #0c0b08;
 }
 
 body:has(.ofl-admin) [data-slot="sidebar-menu-button"] {
@@ -19,7 +19,7 @@ body:has(.ofl-admin) [data-slot="sidebar-menu-button"]:hover {
 
 body:has(.ofl-admin) [data-slot="sidebar-menu-button"][data-active="true"] {
   color: var(--color-accent-bright);
-  background: #281a32;
+  background: #2a2208;
   border-left: 2px solid var(--color-accent-bright);
 }
 
@@ -27,13 +27,13 @@ body:has(.ofl-admin) [data-slot="input"],
 body:has(.ofl-admin) [data-slot="textarea"],
 body:has(.ofl-admin) [data-slot="select-trigger"],
 body:has(.ofl-admin) [data-slot="native-select"] {
-  background: #151218;
+  background: #13110c;
   min-height: 44px;
 }
 
 body:has(.ofl-admin) [data-slot="card"] {
-  background: #151218;
-  border-color: #39313f;
+  background: #13110c;
+  border-color: #3b3322;
 }
 
 body:has(.ofl-admin) [data-slot="button"] {
@@ -48,8 +48,8 @@ body:has(.ofl-admin) [data-slot="sidebar-trigger"] {
 
 body:has(.ofl-admin) [data-slot="table-head"] {
   font-size: .75rem;
-  color: #c7bfce;
-  background: #17121c;
+  color: #d6cdb6;
+  background: #18150d;
 }
 
 body:has(.ofl-admin) [data-slot="dialog-content"],
@@ -58,13 +58,13 @@ body:has(.ofl-admin) [data-slot="popover-content"] {
 }
 
 .ofl-admin-toolbar {
-  background: #100c14;
-  border-bottom: 1px solid #39313f;
+  background: #0f0d08;
+  border-bottom: 1px solid #3b3322;
 }
 
 .ofl-admin-section {
-  border: 1px solid #39313f;
-  background: #151218;
+  border: 1px solid #3b3322;
+  background: #13110c;
   border-radius: 8px;
 }
 

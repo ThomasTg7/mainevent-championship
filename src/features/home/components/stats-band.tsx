@@ -1,5 +1,6 @@
 "use client";
 import { BRAND } from "@/domain/brand";
+import { PosterStage } from "@/components/brand/poster-stage";
 
 import { useEffect, useRef } from "react";
 import { useCountUp } from "@/hooks/use-count-up";
@@ -61,13 +62,14 @@ export function StatsBand({ stats }: { stats: HomeStats }) {
   useSlideOnScroll(sectionRef, bigLineRef);
 
   return (
-    <section ref={sectionRef} aria-label={`${BRAND.name} en cifras`} className="relative overflow-hidden border-y border-border bg-surface py-[72px] text-white">
+    <section ref={sectionRef} aria-label={`${BRAND.name} en cifras`} className="relative isolate overflow-hidden border-y border-border bg-surface py-[72px] text-white">
+      <PosterStage embers={false} sweep={false} className="-z-10 opacity-60" />
       <div
         ref={bigLineRef}
         aria-hidden
         className="pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 whitespace-nowrap font-display text-[16vw] leading-[.8] text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,.06)]"
       >
-        OFL · OFL · OFL
+        {`${BRAND.shortName} · ${BRAND.shortName} · ${BRAND.shortName}`}
       </div>
       <div className="relative mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)]">
         <dl ref={listRef} data-reveal className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">

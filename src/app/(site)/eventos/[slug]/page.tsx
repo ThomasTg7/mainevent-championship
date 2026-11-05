@@ -9,6 +9,7 @@ import { eventJsonLd } from "@/domain/seo";
 import { getCachedPublicEvent } from "@/features/events/cached-queries";
 import { EVENT_HERO_ID, EventHero } from "@/features/events/components/event-hero";
 import { EventGallery } from "@/features/events/components/event-gallery";
+import { EventPoster } from "@/features/events/components/event-poster";
 import { EventSchedule } from "@/features/events/components/event-schedule";
 import { EventStickyBar } from "@/features/events/components/event-sticky-bar";
 import { EventVideo } from "@/features/events/components/event-video";
@@ -129,7 +130,9 @@ export default async function EventPage({ params, searchParams }: PageProps<"/ev
         </div>
       </section>
 
-      <section aria-labelledby="venue-title" className="bg-black py-[clamp(56px,8vw,110px)]">
+      <EventPoster event={event} />
+
+      <section aria-labelledby="venue-title" className="border-t border-border bg-black py-[clamp(56px,8vw,110px)]">
         <div className="mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)]">
           <p id="venue-title" className="mb-8 flex items-center gap-2.5 font-cond text-[13px] font-extrabold uppercase tracking-[.2em] ofl-gradient-text before:block before:h-[3px] before:w-7 before:bg-brand">
             El lugar

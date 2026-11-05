@@ -102,7 +102,7 @@ export function RankingEditor({ scope, initial, baseVersionId, suggestions, cham
             busyIds={[...draft.map((fighter) => fighter.id), ...(championId ? [championId] : [])]}
             busyLabel="Ya está en el ranking o es el campeón"
             search={search}
-            emptyText="Ningún peleador elegible coincide: debe estar activo, publicado, del género de la división y con peleas (o récord) del nivel."
+            emptyText="Ningún peleador elegible coincide: debe estar activo, publicado, del género de la división y con peleas (o récord) de la disciplina."
           />
         )}
       </section>

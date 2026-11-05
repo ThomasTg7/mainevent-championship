@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPage } from "@/components/admin/admin-page";
 import { db } from "@/db";
-import type { BoutLevel } from "@/domain/bout-enums";
+import { BOUT_LEVEL_LABELS, type BoutLevel } from "@/domain/bout-enums";
 import { listScopeOverview } from "@/features/rankings/admin-queries";
 import { RankingScopeList } from "@/features/rankings/components/ranking-scope-list";
 import { RankingVisibility } from "@/features/rankings/components/ranking-visibility";
@@ -15,8 +15,8 @@ import { adminPath } from "@/lib/site-urls";
 export const metadata: Metadata = { title: "Rankings y títulos" };
 
 const LEVELS: { level: BoutLevel; label: string }[] = [
-  { level: "pro", label: "Pro" },
-  { level: "amateur", label: "Amateur" },
+  { level: "pro", label: BOUT_LEVEL_LABELS.pro },
+  { level: "amateur", label: BOUT_LEVEL_LABELS.amateur },
 ];
 
 export default async function AdminRankingsPage({ searchParams }: PageProps<"/admin/rankings">) {
@@ -31,8 +31,8 @@ export default async function AdminRankingsPage({ searchParams }: PageProps<"/ad
         Cada vez que guardas un ranking se crea una versión nueva: el sitio muestra la última y las flechas ▲▼ comparan con la anterior. Elige un ranking para ordenarlo
         y coronar al campeón.
       </p>
-      {/* Pestañas como enlaces: el nivel va en la URL y «Atrás» desde el editor vuelve a la misma pestaña. */}
-      <nav aria-label="Nivel" className="flex gap-2">
+      {/* Pestañas como enlaces: la disciplina va en la URL y «Atrás» desde el editor vuelve a la misma pestaña. */}
+      <nav aria-label="Disciplina" className="flex gap-2">
         {LEVELS.map((option) => (
           <Link
             key={option.level}

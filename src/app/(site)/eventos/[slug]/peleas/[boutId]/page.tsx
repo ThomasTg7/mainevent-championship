@@ -1,3 +1,4 @@
+import { BOUT_LEVEL_LABELS } from "@/domain/bout-enums";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -70,7 +71,7 @@ export default async function BoutPage({ params }: PageProps<"/eventos/[slug]/pe
           <p className="mt-3 flex flex-wrap gap-x-3 font-cond text-sm font-semibold uppercase tracking-[.1em] text-white/80">
             {measure ? <span>{measure}</span> : null}
             <span>{roundsLabel(bout)}</span>
-            {bout.level === "amateur" ? <span>Amateur</span> : null}
+            <span>{BOUT_LEVEL_LABELS[bout.level]}</span>
             {bout.isTitleFight ? <span className="ofl-gradient-text">★ Pelea por el título</span> : null}
           </p>
         </div>

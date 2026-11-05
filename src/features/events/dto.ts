@@ -49,6 +49,8 @@ export type BoutDTO = {
   scheduledRounds: number;
   roundSeconds: number;
   isTitleFight: boolean;
+  /** Rótulo del afiche («WMO Continental Title Bout»), si tiene. */
+  posterTitle: string | null;
   status: BoutStatus;
   cancelReason: string | null;
   division: { name: string; slug: string; gender: "male" | "female" } | null;

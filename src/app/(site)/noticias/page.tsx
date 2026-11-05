@@ -42,7 +42,7 @@ export default async function NoticiasPage({ searchParams }: PageProps<"/noticia
 
       {categories.length > 0 ? (
         <nav aria-label="Categorías de noticias" className="mb-10 flex flex-wrap gap-2">
-          <Link href="/noticias" aria-current={active ? undefined : "page"} className={`${FILTER_CLASS} ${active ? "border-white/30 text-white hover:border-brand" : "border-brand bg-brand text-white"}`}>
+          <Link href="/noticias" aria-current={active ? undefined : "page"} className={`${FILTER_CLASS} ${active ? "border-white/30 text-on-brand hover:border-brand" : "border-brand bg-brand text-on-brand"}`}>
             Todas
           </Link>
           {categories.map((category) => (
@@ -50,7 +50,7 @@ export default async function NoticiasPage({ searchParams }: PageProps<"/noticia
               key={category.id}
               href={postsListHref(category.slug, 1)}
               aria-current={active?.id === category.id ? "page" : undefined}
-              className={`${FILTER_CLASS} ${active?.id === category.id ? "border-brand bg-brand text-white" : "border-white/30 text-white hover:border-brand"}`}
+              className={`${FILTER_CLASS} ${active?.id === category.id ? "border-brand bg-brand text-on-brand" : "border-white/30 text-on-brand hover:border-brand"}`}
             >
               {category.name}
             </Link>

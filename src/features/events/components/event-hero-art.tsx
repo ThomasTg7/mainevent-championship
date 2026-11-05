@@ -1,4 +1,5 @@
 import { BrandMark } from "@/components/brand/brand-mark";
+import { PosterStage } from "@/components/brand/poster-stage";
 import type { CSSProperties } from "react";
 import { BRAND } from "@/domain/brand";
 import { FighterFigure } from "@/features/fighters/components/fighter-photo";
@@ -33,7 +34,7 @@ function HeroPicture({ desktop, mobile }: { desktop: MediaDTO | null; mobile: Me
 
 function FaceOffFighter({ fighter, side }: { fighter: BoutFighterDTO; side: "red" | "blue" }) {
   return (
-    <div className={`pointer-events-none absolute bottom-0 z-[2] h-[95%] w-[58%] lg:h-[88%] ${side === "red" ? "left-[-5%]" : "right-[-5%]"}`}>
+    <div className={`pointer-events-none absolute bottom-0 z-[2] h-[95%] w-[58%] lg:h-[88%] ${side === "red" ? "left-[-5%] mec-enter-red" : "right-[-5%] mec-enter-blue"}`}>
       <HeroParallax className="absolute inset-0">
         <FighterFigure fighter={fighter} sizes="(min-width: 1024px) 36vw, 58vw" priority={side === "red"}
           imageClassName={side === "blue" ? "-scale-x-100" : undefined}
@@ -43,16 +44,17 @@ function FaceOffFighter({ fighter, side }: { fighter: BoutFighterDTO; side: "red
   );
 }
 
-/** Uploaded covers keep priority; the OFL motif is only the fallback stage. */
+/** Uploaded covers keep priority; the poster stage (gold dust, «MAIN», crest and the face-off) is the fallback. */
 export function EventHeroArt({ event, main }: { event: EventPageDTO; main: BoutDTO | null }) {
   return (
     <div className="absolute inset-0 isolate overflow-hidden">
       <div aria-hidden className="ofl-hero-pulse absolute inset-0" />
+      <PosterStage className="z-[1]" />
       {event.heroMedia || event.heroMobileMedia ? <HeroPicture desktop={event.heroMedia} mobile={event.heroMobileMedia} /> : null}
       {!event.heroMedia ? (
         <div className={event.heroMobileMedia ? "hidden md:block" : undefined}>
-          <div data-slot="hero-watermark" aria-hidden className="absolute inset-x-0 top-[10%] text-center font-display text-[50vw] leading-none text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,.08)] lg:text-[33vw]">{BRAND.shortName}</div>
-          <BrandMark className="absolute left-1/2 top-0 h-full -translate-x-1/2 opacity-70" />
+          <div data-slot="hero-watermark" aria-hidden className="mec-main-watermark absolute inset-x-0 top-[6%] text-center font-display text-[46vw] italic leading-none tracking-[-.02em] lg:text-[30vw]">{BRAND.shortName}</div>
+          <BrandMark className="absolute left-1/2 top-[4%] h-[62%] -translate-x-1/2 opacity-25" />
           {main ? <><FaceOffFighter fighter={main.red} side="red" /><FaceOffFighter fighter={main.blue} side="blue" /></> : null}
         </div>
       ) : null}

@@ -1,24 +1,15 @@
-import { db, type Db } from "@/db";
-import { seedDivisions } from "@/features/divisions/seed";
-import { seedEvents } from "@/features/events/seed";
-import { seedRankings } from "@/features/rankings/seed";
-import { seedFighters } from "@/features/fighters/seed";
-import { seedPosts } from "@/features/posts/seed";
-import { seedSponsors } from "@/features/sponsors/seed";
+import path from "node:path";
+import { db } from "@/db";
+import { seedMainevent } from "@/features/demo/mainevent-seed";
+import { getStorage } from "@/lib/storage";
 
-export async function seed(db: Db): Promise<void> {
-  await seedDivisions(db);
-  await seedFighters(db);
-  await seedEvents(db);
-  await seedPosts(db);
-  await seedRankings(db);
-  await seedSponsors(db);
-  // Cada plan agrega aquí su propio seedX(db).
-}
-
-seed(db)
+/**
+ * Demo de Mainevent Championship (solo desarrollo). Los seeds genéricos de `src/features/*\/seed.ts` siguen siendo los
+ * datos de las pruebas e2e (`e2e/global-setup.ts`).
+ */
+seedMainevent(db, { storage: getStorage(), assetsDir: path.join(process.cwd(), "scripts/demo-assets") })
   .then(() => {
-    console.info("Seed completado");
+    console.info("Seed de Mainevent completado");
     process.exit(0);
   })
   .catch((error) => {

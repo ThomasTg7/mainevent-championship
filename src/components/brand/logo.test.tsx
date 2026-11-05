@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { Logo } from "./logo";
 
 describe("Logo", () => {
-  it("is announced as a single image named Open Fight Latam", () => {
+  it("is announced as a single image named Mainevent Championship", () => {
     render(<Logo />);
 
-    expect(screen.getByRole("img", { name: "Open Fight Latam" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Mainevent Championship" })).toBeInTheDocument();
   });
 });

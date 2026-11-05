@@ -45,20 +45,20 @@ export function FighterCard({ fighter, priority = false, badge, backdrop, headin
           priority={priority}
           bodyFit="object-contain"
           imageClassName="absolute inset-0 transition-transform duration-700 ease-ofl motion-safe:group-hover:scale-105"
-          silhouetteClassName="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(197,155,229,.55)] transition-transform duration-700 ease-ofl motion-safe:group-hover:scale-105"
+          silhouetteClassName="absolute bottom-[-4%] left-1/2 h-[108%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,214,10,.55)] transition-transform duration-700 ease-ofl motion-safe:group-hover:scale-105"
         />
         {backdrop ? (
           <span
             data-slot="fighter-card-backdrop"
             aria-hidden="true"
-            className="pointer-events-none absolute right-3.5 top-1.5 font-display text-[clamp(72px,12vw,120px)] leading-none text-transparent [-webkit-text-stroke:1px_rgba(197,155,229,.25)]"
+            className="pointer-events-none absolute right-3.5 top-1.5 font-display text-[clamp(72px,12vw,120px)] leading-none text-transparent [-webkit-text-stroke:1px_rgba(255,214,10,.25)]"
           >
             {backdrop}
           </span>
         ) : null}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0c0c0c] to-transparent" />
         {badge ? (
-          <span data-slot="fighter-card-badge" className="absolute bottom-12 left-3 z-10 bg-brand px-2 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] text-white">
+          <span data-slot="fighter-card-badge" className="absolute bottom-12 left-3 z-10 bg-brand px-2 py-1 font-cond text-[11px] font-extrabold uppercase tracking-[.12em] text-on-brand">
             {badge}
           </span>
         ) : null}

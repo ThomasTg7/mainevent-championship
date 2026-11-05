@@ -1,5 +1,6 @@
 "use client";
 
+import { BOUT_LEVEL_LABELS } from "@/domain/bout-enums";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ export function TitleChangeDialog({ prompt, onConfirm, onSkip }: TitleChangeDial
         <DialogHeader>
           <DialogTitle>Cambio de título</DialogTitle>
           <DialogDescription>
-            {newChampionName} es el nuevo campeón {candidate.level === "pro" ? "pro" : "amateur"} de {divisionLabel}. ¿Confirmar?
+            {newChampionName} es el nuevo campeón de {BOUT_LEVEL_LABELS[candidate.level]} en {divisionLabel}. ¿Confirmar?
           </DialogDescription>
         </DialogHeader>
         {currentChampionName ? (

@@ -47,7 +47,7 @@ export function RankingCard({ division, champion, entries, updatedAt }: RankingC
             fighter={leader ?? NO_PHOTOS}
             sizes="120px"
             imageClassName="absolute inset-y-0 right-0"
-            silhouetteClassName="absolute -bottom-2.5 -right-2.5 h-[170px] text-black drop-shadow-[0_0_2px_rgba(197,155,229,.55)]"
+            silhouetteClassName="absolute -bottom-2.5 -right-2.5 h-[170px] text-black drop-shadow-[0_0_2px_rgba(255,214,10,.55)]"
           />
         </div>
       </div>

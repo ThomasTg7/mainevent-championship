@@ -1,3 +1,4 @@
+import { BOUT_LEVEL_LABELS, type BoutLevel } from "@/domain/bout-enums";
 import { formatClock } from "@/domain/clock";
 import { isWithinUpcomingGrace } from "@/domain/event-night";
 import { countryName } from "@/domain/units";
@@ -12,12 +13,10 @@ export function boutMeasure(bout: { catchweightKg: number | null; division: { na
   return bout.division ? divisionTitle(bout.division) : "";
 }
 
-/** Lo que anuncia la franja de la pelea en la cartelera: «Peso Ligero», «Pelea por el título – Peso Ligero», «… · Amateur». */
-export function boutBillingLabel(bout: Parameters<typeof boutMeasure>[0] & { isTitleFight: boolean; level: "pro" | "amateur" }): string {
+/** Lo que anuncia la franja de la pelea: «Muay Thai · Peso Ligero», «Kickboxing · Pelea por el título – Peso Ligero». */
+export function boutBillingLabel(bout: Parameters<typeof boutMeasure>[0] & { isTitleFight: boolean; level: BoutLevel }): string {
   const parts = [bout.isTitleFight ? "Pelea por el título" : "", boutMeasure(bout)].filter(Boolean);
-  const label = parts.join(" – ");
-  if (bout.level !== "amateur") return label;
-  return label ? `${label} · Amateur` : "Amateur";
+  return [BOUT_LEVEL_LABELS[bout.level], parts.join(" – ")].filter(Boolean).join(" · ");
 }
 
 /** «5 × 5 MIN». Un round que no dura minutos exactos conserva los segundos: «3 × 1:30 MIN». */

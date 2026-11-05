@@ -62,7 +62,7 @@ export function FighterHero({ fighter, figures, rankingTags = [] }: FighterHeroP
                 fighter={fighter}
                 sizes={FIGHTER_HERO_SIZES}
                 priority
-                silhouetteClassName="absolute bottom-0 left-1/2 h-[96%] -translate-x-1/2 text-black drop-shadow-[0_0_3px_rgba(197,155,229,.6)]"
+                silhouetteClassName="absolute bottom-0 left-1/2 h-[96%] -translate-x-1/2 text-black drop-shadow-[0_0_3px_rgba(255,214,10,.6)]"
               />
             </HeroParallax>
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black to-transparent lg:hidden" />

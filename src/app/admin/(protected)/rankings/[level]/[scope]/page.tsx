@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { AdminPage } from "@/components/admin/admin-page";
 import { Button } from "@/components/ui/button";
 import { db } from "@/db";
-import { BOUT_LEVELS, type BoutLevel } from "@/domain/bout-enums";
+import { BOUT_LEVEL_LABELS, BOUT_LEVELS, type BoutLevel } from "@/domain/bout-enums";
 import { getRankingEditorData, resolveScope } from "@/features/rankings/admin-queries";
 import { ChampionPicker } from "@/features/rankings/components/champion-picker";
 import { RankingEditor } from "@/features/rankings/components/ranking-editor";
@@ -37,7 +37,7 @@ export default async function AdminRankingEditorPage({ params }: PageProps<"/adm
 
   return (
     <AdminPage
-      title={`Ranking ${level === "pro" ? "pro" : "amateur"}: ${scope.label}`}
+      title={`Ranking de ${BOUT_LEVEL_LABELS[level]}: ${scope.label}`}
       actions={
         <Button asChild variant="outline">
           <Link href={adminPath(`/rankings?nivel=${level}`)}>

@@ -29,7 +29,7 @@ describe("EventHero background lettering", () => {
   it("opens Dónde ver with the configured broadcast link", () => {
     render(<EventHero event={{ ...event(cover), streamUrl: "https://youtube.com/watch?v=test" }} showCountdown={false} />);
     const trigger = screen.getByRole("button", { name: "Dónde ver" });
-    expect(trigger).toHaveClass("bg-brand", "text-white");
+    expect(trigger).toHaveClass("bg-brand", "text-on-brand");
     fireEvent.click(trigger);
     expect(screen.getByRole("dialog")).toBeVisible();
     expect(screen.getByRole("link", { name: /Ir a ver/ })).toHaveAttribute("href", "https://youtube.com/watch?v=test");
@@ -40,9 +40,9 @@ describe("EventHero background lettering", () => {
     fireEvent.click(screen.getByRole("button", { name: "Dónde ver" }));
     expect(screen.getByText("Pronto anunciaremos dónde ver este evento.")).toBeInTheDocument();
   });
-  it("draws the outlined «OFL» behind the fighters when there is no cover image", () => {
+  it("draws the gold «MAIN» behind the fighters when there is no cover image", () => {
     const { container } = render(<EventHero event={event(null)} showCountdown={false} />);
-    expect(watermark(container)?.textContent).toBe("OFL");
+    expect(watermark(container)?.textContent).toBe("MAIN");
   });
 
   it("leaves an uploaded cover image clean", () => {
@@ -68,9 +68,9 @@ describe("EventHero background lettering", () => {
 
 describe("EventHero face-off", () => {
   const headshot: MediaDTO = { ...cover, id: "face", kind: "fighter_headshot", width: 800, height: 800, alt: "Pérez, rostro" };
-  const corner = (lastName: string, photos: Pick<BoutFighterDTO, "headshotMedia" | "bodyMedia">) => ({ firstName: "X", lastName, ...photos }) as BoutFighterDTO;
+  const corner = (lastName: string, photos: Pick<BoutFighterDTO, "headshotMedia" | "bodyMedia">) => ({ firstName: "X", lastName, nationality: "CL", ...photos }) as BoutFighterDTO;
   const withMainBout = (red: BoutFighterDTO, blue: BoutFighterDTO) =>
-    ({ ...event(null), segments: [{ id: "s", name: "Estelar", startsAt: null, bouts: [{ id: "b", status: "scheduled", red, blue } as unknown as BoutDTO] }] }) as EventPageDTO;
+    ({ ...event(null), segments: [{ id: "s", name: "Estelar", startsAt: null, bouts: [{ id: "b", status: "scheduled", level: "pro", isTitleFight: false, posterTitle: null, catchweightKg: null, division: null, red, blue } as unknown as BoutDTO] }] }) as EventPageDTO;
 
   it("uses the headshot of a fighter without a body photo, and the silhouette only for one without photos", () => {
     const { container } = render(

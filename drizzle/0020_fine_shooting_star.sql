@@ -1,0 +1,1 @@
+ALTER TABLE "bouts" ADD COLUMN "poster_title" text;

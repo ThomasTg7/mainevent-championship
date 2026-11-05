@@ -1,6 +1,7 @@
 import { BRAND } from "@/domain/brand";
 import Link from "next/link";
 import { BrandMark } from "@/components/brand/brand-mark";
+import { PosterStage } from "@/components/brand/poster-stage";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui-gc/button";
 import { Tag } from "@/components/ui-gc/tag";
@@ -17,11 +18,12 @@ export function HomeHero({ hero }: { hero: HomeHeroDTO }) {
   if (hero.kind === "brand") {
     return (
       <section data-site-hero aria-labelledby="home-title" className="relative isolate flex min-h-[max(640px,100svh)] flex-col items-center justify-end overflow-hidden bg-black px-[clamp(16px,4vw,64px)] pb-[clamp(56px,10vh,120px)] pt-[76px] text-center">
-        <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_55%_at_50%_38%,#291832_0%,#0b0b0b_55%,#000_100%)]" />
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[14%] -z-[5] select-none text-center font-display text-[48vw] leading-[.85] whitespace-nowrap text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,.07)]">
-          OFL
+        <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_55%_at_50%_38%,#2a1d05_0%,#0b0b0b_55%,#000_100%)]" />
+        <PosterStage className="-z-[6]" />
+        <div aria-hidden className="mec-main-watermark pointer-events-none absolute inset-x-0 top-[14%] -z-[5] select-none text-center font-display text-[48vw] italic leading-[.85] whitespace-nowrap">
+          {BRAND.shortName}
         </div>
-        <BrandMark className="absolute right-[10%] top-[15%] -z-[4] h-[55%] opacity-60" />
+        <BrandMark className="absolute left-1/2 top-[8%] -z-[4] h-[60%] -translate-x-1/2 opacity-25" />
         <Logo size="lg" priority />
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <Tag tone="brand">Próximamente</Tag>

@@ -30,6 +30,7 @@ const bout: BoutDTO = {
   scheduledRounds: 5,
   roundSeconds: 300,
   isTitleFight: true,
+  posterTitle: null,
   status: "scheduled",
   cancelReason: null,
   division: { name: "Ligero", slug: "peso-ligero", gender: "male" },
@@ -86,7 +87,7 @@ describe("BoutRow card", () => {
 
   it("announces the title fight and the weight class in the strip at the bottom", () => {
     const container = renderRow();
-    expect(container.querySelector('[data-slot="bout-billing"]')?.textContent).toBe("Pelea por el título – Peso Ligero");
+    expect(container.querySelector('[data-slot="bout-billing"]')?.textContent).toBe("Muay Thai · Pelea por el título – Peso Ligero");
   });
 
   it("shows each corner's record next to its flag", () => {

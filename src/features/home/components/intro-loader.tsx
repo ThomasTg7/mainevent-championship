@@ -5,7 +5,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { Logo } from "@/components/brand/logo";
 import { BrandMark } from "@/components/brand/brand-mark";
 
-const SEEN_KEY = "ofl-intro-seen";
+const SEEN_KEY = "mainevent-intro-seen";
 const SHOW_MS = 1100;
 const LEAVE_MS = 300;
 
@@ -23,7 +23,7 @@ function markSeen(): boolean {
 }
 
 /**
- * Presentación OFL solo en la primera visita de la sesión y nunca con
+ * Presentación de la marca solo en la primera visita de la sesión y nunca con
  * «reducir movimiento». Aparece después de hidratar: el contenido y la imagen principal ya están pintados debajo, así que no
  * retrasa nada ni esconde información. No intercepta clics y los lectores de pantalla la ignoran.
  */

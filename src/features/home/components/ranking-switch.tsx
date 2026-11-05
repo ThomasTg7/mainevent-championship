@@ -1,5 +1,7 @@
 "use client";
 
+import { BOUT_LEVEL_LABELS } from "@/domain/bout-enums";
+import { rankingsHref } from "@/features/rankings/public-level";
 import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import { SectionHeading } from "@/components/ui-gc/section-heading";
@@ -14,7 +16,7 @@ type RankingSwitchProps = {
   kickers: { pro: string; amateur: string };
 };
 
-const LABELS: Record<Level, string> = { pro: "Pro", amateur: "Amateur" };
+const LABELS: Record<Level, string> = BOUT_LEVEL_LABELS;
 
 /**
  * «Rankings» de la home: el selector Pro/Amateur solo alterna cuál de los dos paneles (ya en la página) se ve: no pide
@@ -36,7 +38,7 @@ export function RankingSwitch({ panels, kickers }: RankingSwitchProps) {
         titleId="home-rankings-title"
         action={
           levels.length > 1 ? (
-            <div role="tablist" aria-label="Nivel del ranking" className="inline-flex border-2 border-border">
+            <div role="tablist" aria-label="Disciplina del ranking" className="inline-flex border-2 border-border">
               {levels.map((level) => (
                 <button
                   key={level}
@@ -48,7 +50,7 @@ export function RankingSwitch({ panels, kickers }: RankingSwitchProps) {
                   onClick={() => setActive(level)}
                   className={cn(
                     "min-h-11 px-5 font-cond text-sm font-extrabold uppercase tracking-[.1em] outline-none transition-opacity focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white",
-                    active === level ? "bg-brand text-white" : "text-muted-foreground hover:text-white",
+                    active === level ? "bg-brand text-on-brand" : "text-muted-foreground hover:text-white",
                   )}
                 >
                   {LABELS[level]}
@@ -64,7 +66,7 @@ export function RankingSwitch({ panels, kickers }: RankingSwitchProps) {
         </div>
       ))}
       <p className="mt-8">
-        <Link href={active === "amateur" ? "/rankings?nivel=amateur" : "/rankings"} className="inline-flex min-h-11 items-center border-b-2 border-brand pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">
+        <Link href={rankingsHref(active)} className="inline-flex min-h-11 items-center border-b-2 border-brand pb-1 font-cond text-sm font-extrabold uppercase tracking-[.1em] text-white">
           Ver todos los rankings <span aria-hidden>→</span>
         </Link>
       </p>

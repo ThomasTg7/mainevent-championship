@@ -12,7 +12,7 @@ test.describe("home con movimiento", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/eventos");
     await expect(page.locator("html")).toHaveClass(/lenis/);
-    await page.getByRole("link", { name: "Open Fight Latam inicio" }).click();
+    await page.getByRole("link", { name: "Mainevent Championship inicio" }).click();
     await expect(page.locator(".pin-spacer")).toHaveCount(1);
     const end = await page.locator("#peleadores").evaluate((section) => {
       const spacer = section.parentElement!;
@@ -51,7 +51,7 @@ test.describe("home con movimiento", () => {
     await expect(topNews.getByRole("listitem")).toHaveCount(5);
     await expect(page.getByRole("heading", { name: "No te lo pierdas" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Peleadores", level: 2 })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Open Fight Latam en cifras" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Mainevent Championship en cifras" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Rankings", level: 2 })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Asegura\s+tu lugar/ })).toBeVisible();
     await expect(page.getByRole("region", { name: "Patrocinadores", exact: true })).toBeVisible();
@@ -71,7 +71,7 @@ test.describe("home con movimiento", () => {
   test("las cifras salen de los eventos finalizados", async ({ page }) => {
     await page.goto("/");
 
-    const stats = page.getByRole("region", { name: "Open Fight Latam en cifras" });
+    const stats = page.getByRole("region", { name: "Mainevent Championship en cifras" });
     for (const label of ["Eventos", "Peleas", "Finalizaciones", "KO / TKO"]) {
       await expect(stats.getByText(label, { exact: true })).toBeVisible();
     }
@@ -117,7 +117,7 @@ test.describe("home con movimiento", () => {
     await expect(page.locator('[data-slot="intro-loader"]')).toBeVisible();
     await expect(page.locator('[data-slot="intro-loader"]')).toHaveCount(0);
 
-    const stats = page.getByRole("region", { name: "Open Fight Latam en cifras" }).locator("dl");
+    const stats = page.getByRole("region", { name: "Mainevent Championship en cifras" }).locator("dl");
     await expect(stats).toHaveCSS("opacity", "0");
     await stats.scrollIntoViewIfNeeded();
     await expect(stats).toHaveCSS("opacity", "1");
@@ -182,7 +182,7 @@ test.describe("home con «reducir movimiento»", () => {
     }
     await expect(page.getByRole("heading", { name: /Asegura\s+tu lugar/ })).toBeVisible();
     // Las cifras traen su valor final desde el HTML.
-    const stats = page.getByRole("region", { name: "Open Fight Latam en cifras" });
+    const stats = page.getByRole("region", { name: "Mainevent Championship en cifras" });
     await expect.poll(async () => Number(await stats.locator("dd").first().textContent())).toBeGreaterThan(0);
     // Sin fijar ni mover nada: el carrusel de peleadores y la cinta de patrocinadores quedan quietos.
     await expect(page.locator(".pin-spacer")).toHaveCount(0);

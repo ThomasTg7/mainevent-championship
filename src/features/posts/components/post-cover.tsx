@@ -13,7 +13,7 @@ type PostCoverProps = {
 /** Portada 16:9 de una noticia. Sin portada, un fondo de la marca (nunca una imagen rota ni un hueco). */
 export function PostCover({ cover, sizes, priority = false, className }: PostCoverProps) {
   return (
-    <div className={cn("relative aspect-video w-full overflow-hidden bg-[radial-gradient(ellipse_at_30%_20%,#291832,#0b0b0b_70%)]", className)}>
+    <div className={cn("relative aspect-video w-full overflow-hidden bg-[radial-gradient(ellipse_at_30%_20%,#2a1d05,#0b0b0b_70%)]", className)}>
       {cover ? (
         <MediaImage
           media={cover}
@@ -23,7 +23,7 @@ export function PostCover({ cover, sizes, priority = false, className }: PostCov
         />
       ) : (
         <div aria-hidden data-slot="post-cover-fallback" className="absolute inset-0 grid place-items-center">
-          <span className="font-display text-[clamp(72px,16vw,160px)] leading-none text-transparent [-webkit-text-stroke:2px_rgba(197,155,229,.45)]">{BRAND.shortName}</span>
+          <span className="font-display text-[clamp(72px,16vw,160px)] leading-none text-transparent [-webkit-text-stroke:2px_rgba(255,214,10,.45)]">{BRAND.shortName}</span>
         </div>
       )}
     </div>

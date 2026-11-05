@@ -27,7 +27,7 @@ import { SponsorStrip } from "@/features/sponsors/components/sponsor-strip";
 export function generateMetadata(): Promise<Metadata> {
   return sitePageMetadata({
     title: { absolute: HOME_TITLE },
-    description: `${BRAND.name}, la promotora de MMA de Chile: próximo evento, cartelera, peleadores, rankings, noticias y entradas.`,
+    description: `${BRAND.name}, la promotora de Muay Thai y Kickboxing: próximo evento, cartelera, peleadores, rankings, noticias y entradas.`,
     path: "/",
   });
 }

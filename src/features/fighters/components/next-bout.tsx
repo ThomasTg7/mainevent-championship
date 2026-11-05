@@ -7,7 +7,7 @@ import { FighterFace } from "./fighter-photo";
 type NextBoutProps = { nextBout: NextBoutDTO | null; lastFight: FightHistoryRow | null };
 
 const RESULT_TEXT = { win: "Victoria", loss: "Derrota", draw: "Empate", no_contest: "Sin resultado" } as const;
-const RESULT_CLASS = { win: "bg-brand text-white", loss: "bg-neutral-700 text-white", draw: "bg-neutral-800 text-neutral-200", no_contest: "bg-neutral-800 text-neutral-200" } as const;
+const RESULT_CLASS = { win: "bg-brand text-on-brand", loss: "bg-neutral-700 text-white", draw: "bg-neutral-800 text-neutral-200", no_contest: "bg-neutral-800 text-neutral-200" } as const;
 
 function OpponentPhoto({ opponent }: { opponent: OpponentDTO }) {
   const photo = (
@@ -15,7 +15,7 @@ function OpponentPhoto({ opponent }: { opponent: OpponentDTO }) {
       <FighterFace
         fighter={opponent}
         sizes="(min-width: 640px) 106px, 84px"
-        silhouetteClassName="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(197,155,229,.55)]"
+        silhouetteClassName="absolute -bottom-1 left-1/2 h-[112%] -translate-x-1/2 text-black drop-shadow-[0_0_2px_rgba(255,214,10,.55)]"
       />
     </div>
   );

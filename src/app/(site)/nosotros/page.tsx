@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const { body } = await getCachedSetting("about");
   return sitePageMetadata({
     title: "Nosotros",
-    description: `Conoce a ${BRAND.name}, la promotora de MMA de Chile.`,
+    description: `Conoce a ${BRAND.name}, la promotora de Muay Thai y Kickboxing.`,
     path: "/nosotros",
     // Sin texto la página es un «Pronto…»: no se indexa hasta que la promotora lo escriba.
     noindex: !hasPostBodyContent(body),

@@ -17,7 +17,7 @@ import { countryName } from "./units";
 export const SITE_NAME = BRAND.name;
 /** La plantilla del título del sitio: el layout la aplica a cada `title` (las páginas escriben solo su nombre). */
 export const TITLE_TEMPLATE = `%s | ${SITE_NAME}`;
-export const HOME_TITLE = `${SITE_NAME} — MMA`;
+export const HOME_TITLE = `${SITE_NAME} — Muay Thai y Kickboxing`;
 export const DESCRIPTION_MAX = 160;
 
 /** Imagen de marca de reserva (1200×630) para lo que no tiene una propia; vive en `public/`. */

@@ -124,8 +124,19 @@ describe("addBout", () => {
     const [row] = await db.select().from(bouts).where(eq(bouts.id, second.id));
     expect(row).toMatchObject({ level: "amateur", scheduledRounds: 5, roundSeconds: 180, isTitleFight: true, boutStatus: "scheduled" });
     const [defaults] = await db.select().from(bouts).where(eq(bouts.id, first.id));
-    expect(defaults).toMatchObject({ level: "pro", scheduledRounds: 3, roundSeconds: 300, isTitleFight: false, sortOrder: 0 });
+    expect(defaults).toMatchObject({ level: "pro", scheduledRounds: 3, roundSeconds: 180, isTitleFight: false, posterTitle: null, sortOrder: 0 });
     expect(await auditActions(first.id)).toEqual(["create"]);
+  });
+
+  it("keeps the poster title trimmed, and an empty one as none", async () => {
+    const { estelar, a, b, c, d } = await scenario();
+    const titled = await addBout(db, estelar, { ...versus(a, b), posterTitle: "  WMO Continental Title Bout " }, "admin-1");
+    const plain = await addBout(db, estelar, { ...versus(c, d), posterTitle: "" }, "admin-1");
+    const [titledRow] = await db.select().from(bouts).where(eq(bouts.id, titled.id));
+    const [plainRow] = await db.select().from(bouts).where(eq(bouts.id, plain.id));
+    expect(titledRow?.posterTitle).toBe("WMO Continental Title Bout");
+    expect(plainRow?.posterTitle).toBeNull();
+    await expect(addBout(db, estelar, { ...versus(c, a), posterTitle: "x".repeat(81) }, "admin-1")).rejects.toThrow("El rótulo del afiche");
   });
 
   it("does not let a fighter be in both corners", async () => {

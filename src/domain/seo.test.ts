@@ -93,6 +93,7 @@ function bout(status: "scheduled" | "cancelled", red: ReturnType<typeof boutFigh
     scheduledRounds: 3,
     roundSeconds: 300,
     isTitleFight: false,
+    posterTitle: null,
     status,
     cancelReason: null,
     division: null,
@@ -194,22 +195,22 @@ describe("pageMetadata", () => {
     expect(meta.description).toBe("Todos los peleadores.");
     expect(meta.alternates?.canonical).toBe("/peleadores");
     expect(meta.openGraph).toMatchObject({
-      title: "Peleadores | Open Fight Latam",
+      title: "Peleadores | Mainevent Championship",
       description: "Todos los peleadores.",
       url: "/peleadores",
-      siteName: "Open Fight Latam",
+      siteName: "Mainevent Championship",
       locale: "es_CL",
       type: "website",
       images: [{ url: FALLBACK, width: 1200, height: 630 }],
     });
-    expect(meta.twitter).toMatchObject({ card: "summary_large_image", title: "Peleadores | Open Fight Latam", images: [FALLBACK] });
+    expect(meta.twitter).toMatchObject({ card: "summary_large_image", title: "Peleadores | Mainevent Championship", images: [FALLBACK] });
     expect(meta.robots).toBeUndefined();
   });
 
   it("keeps an absolute title as it is (home)", () => {
-    const meta = pageMetadata({ ...base, title: { absolute: "Open Fight Latam — MMA" }, path: "/" });
-    expect(meta.title).toEqual({ absolute: "Open Fight Latam — MMA" });
-    expect(meta.openGraph).toMatchObject({ title: "Open Fight Latam — MMA" });
+    const meta = pageMetadata({ ...base, title: { absolute: "Mainevent Championship — MMA" }, path: "/" });
+    expect(meta.title).toEqual({ absolute: "Mainevent Championship — MMA" });
+    expect(meta.openGraph).toMatchObject({ title: "Mainevent Championship — MMA" });
   });
 
   it("truncates a long description to 160 characters", () => {
@@ -263,7 +264,7 @@ describe("eventJsonLd", () => {
       startDate: "2031-05-10T20:00:00-04:00",
       endDate: "2031-05-10T23:30:00-04:00",
       eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-      organizer: { "@type": "Organization", name: "Open Fight Latam" },
+      organizer: { "@type": "Organization", name: "Mainevent Championship" },
       location: {
         "@type": "Place",
         name: "Gimnasio Municipal",
@@ -364,8 +365,8 @@ describe("articleJsonLd", () => {
       dateModified: "2031-05-12T10:00:00.000Z",
       articleSection: "Resultados",
       image: [`${SITE}/media/c-1600.webp`],
-      author: { "@type": "Organization", name: "Open Fight Latam" },
-      publisher: { "@type": "Organization", name: "Open Fight Latam" },
+      author: { "@type": "Organization", name: "Mainevent Championship" },
+      publisher: { "@type": "Organization", name: "Mainevent Championship" },
       mainEntityOfPage: `${SITE}/noticias/p%C3%A9rez-gana`,
       about: [{ "@type": "Person", name: "Matías Pérez", url: `${SITE}/peleadores/matias-perez` }],
     });
@@ -390,7 +391,7 @@ describe("organizationJsonLd and websiteJsonLd", () => {
     expect(data).toMatchObject({
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "Open Fight Latam",
+      name: "Mainevent Championship",
       url: SITE,
       logo: `${SITE}/logo.png`,
       sameAs: ["https://www.instagram.com/openfightlatam", "https://facebook.com/gc"],
@@ -408,7 +409,7 @@ describe("organizationJsonLd and websiteJsonLd", () => {
   });
 
   it("describes the website in es-CL", () => {
-    expect(websiteJsonLd(SITE)).toEqual({ "@context": "https://schema.org", "@type": "WebSite", name: "Open Fight Latam", url: SITE, inLanguage: "es-CL" });
+    expect(websiteJsonLd(SITE)).toEqual({ "@context": "https://schema.org", "@type": "WebSite", name: "Mainevent Championship", url: SITE, inLanguage: "es-CL" });
   });
 });
 

@@ -41,7 +41,7 @@ const WIN_METHOD_ORDER: Method[] = ["ko_tko", "submission", "decision", "technic
 
 function measure(bout: LiveBout): string {
   const weight = bout.catchweightKg !== null ? `Peso pactado ${bout.catchweightKg} kg` : bout.divisionName ? `Peso ${bout.divisionName}${bout.divisionGender === "female" ? " fem." : ""}` : "";
-  return [weight, `${bout.scheduledRounds} × ${formatClock(bout.roundSeconds)} min`, bout.level === "amateur" ? BOUT_LEVEL_LABELS.amateur : ""].filter(Boolean).join(" · ");
+  return [weight, `${bout.scheduledRounds} × ${formatClock(bout.roundSeconds)} min`, BOUT_LEVEL_LABELS[bout.level]].filter(Boolean).join(" · ");
 }
 
 /** La pelea de ahora: botones grandes para el resultado, el método, el round y el tiempo, y «Guardar y siguiente». */

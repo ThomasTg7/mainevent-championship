@@ -1,3 +1,4 @@
+import { BOUT_LEVEL_LABELS } from "@/domain/bout-enums";
 import { BRAND } from "@/domain/brand";
 import { formatClock } from "@/domain/clock";
 import type { ComputedRecord } from "@/domain/record";
@@ -43,7 +44,7 @@ function TotalRecord({ record, title }: { record: ManualRecord; title: string })
   const extra = noContestsLabel(record.noContests);
   return (
     <>
-      <p className={RECORD_CLASS} aria-label={`Récord total ${title.toLowerCase()}: ${formatRecord(record)}`}>
+      <p className={RECORD_CLASS} aria-label={`Récord total ${title}: ${formatRecord(record)}`}>
         {formatRecord(record)}
       </p>
       {extra ? <p className="mt-2 text-sm text-muted-foreground">{extra}</p> : null}
@@ -57,7 +58,7 @@ function PromotionRecord({ record, title }: { record: ComputedRecord; title: str
     .join(" · ");
   return (
     <>
-      <p className={RECORD_CLASS} aria-label={`Récord en ${BRAND.name} ${title.toLowerCase()}: ${formatRecord(record)}`}>
+      <p className={RECORD_CLASS} aria-label={`Récord en ${BRAND.name} ${title}: ${formatRecord(record)}`}>
         {formatRecord(record)}
       </p>
       {extra ? <p className="mt-2 text-sm text-muted-foreground">{extra}</p> : null}
@@ -97,8 +98,8 @@ const labelClass = "mb-2 font-cond text-[13px] font-bold uppercase tracking-[.16
 export function RecordSummary({ manual, computed }: RecordSummaryProps) {
   const levels = (
     [
-      { key: "pro", title: "Profesional", titleClass: "text-accent-bright" },
-      { key: "amateur", title: "Amateur", titleClass: "text-[#FF7A1A]" },
+      { key: "pro", title: BOUT_LEVEL_LABELS.pro, titleClass: "text-accent-bright" },
+      { key: "amateur", title: BOUT_LEVEL_LABELS.amateur, titleClass: "text-brand-orange" },
     ] as const
   )
     .map((level) => ({ ...level, showTotal: !isEmpty(manual[level.key]), showGc: hasFights(computed[level.key]) }))
@@ -115,7 +116,7 @@ export function RecordSummary({ manual, computed }: RecordSummaryProps) {
         <div className={`mx-auto grid max-w-4xl gap-14 ${levels.length > 1 ? "md:grid-cols-2" : ""}`}>
           {levels.map(({ key, title, titleClass, showTotal, showGc }) => (
             <div key={key} data-level={key}>
-              <h3 className={`mb-4 font-cond text-[clamp(15px,4.4vw,22px)] font-extrabold uppercase tracking-[.16em] whitespace-nowrap ${titleClass}`}>Récord {title.toLowerCase()}</h3>
+              <h3 className={`mb-4 font-cond text-[clamp(15px,4.4vw,22px)] font-extrabold uppercase tracking-[.16em] whitespace-nowrap ${titleClass}`}>Récord {title}</h3>
               <div data-record-list className="flex flex-col items-center gap-8">
                 {showTotal ? (
                   <div data-record="total">

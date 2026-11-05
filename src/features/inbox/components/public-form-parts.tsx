@@ -30,7 +30,7 @@ export function ConsentField({ error, checked }: { error?: string; checked: bool
           defaultChecked={checked}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? siteFieldErrorId("consent") : undefined}
-          className="mt-1 size-5 shrink-0 accent-[#C51B3A]"
+          className="mt-1 size-5 shrink-0 accent-[#FFE500]"
         />
         <span>
           Acepto la{" "}

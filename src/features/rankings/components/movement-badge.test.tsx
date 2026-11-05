@@ -30,7 +30,7 @@ describe("MovementBadge", () => {
     const badge = screen.getByLabelText("Nuevo en el ranking");
     expect(badge.textContent).toBe("NUEVO");
     expect(badge.className).toContain("bg-brand");
-    expect(badge.className).toContain("text-white");
+    expect(badge.className).toContain("text-on-brand");
   });
 
   it("shows a dash for no change", () => {

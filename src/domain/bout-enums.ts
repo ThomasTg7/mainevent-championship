@@ -3,6 +3,11 @@
 export const EVENT_STATUSES = ["scheduled", "live", "completed", "cancelled"] as const;
 export type EventStatus = (typeof EVENT_STATUSES)[number];
 
+/**
+ * Disciplina de la pelea. Mainevent Championship organiza Muay Thai y Kickboxing: los valores guardados («pro» y
+ * «amateur») vienen de la plataforma original y se conservan para no migrar datos; `pro` = Muay Thai y
+ * `amateur` = Kickboxing. Todo texto visible sale de `BOUT_LEVEL_LABELS`.
+ */
 export const BOUT_LEVELS = ["pro", "amateur"] as const;
 export type BoutLevel = (typeof BOUT_LEVELS)[number];
 
@@ -46,7 +51,8 @@ export type Bonus = (typeof BONUSES)[number];
 export const SCHEDULED_ROUNDS = [3, 5] as const;
 export type ScheduledRounds = (typeof SCHEDULED_ROUNDS)[number];
 
-export const DEFAULT_ROUND_SECONDS = 300;
+/** Muay Thai y Kickboxing se pelean a rounds de 3 minutos. */
+export const DEFAULT_ROUND_SECONDS = 180;
 export const MIN_ROUND_SECONDS = 60;
 export const MAX_ROUND_SECONDS = 600;
 
@@ -54,7 +60,10 @@ export const MAX_ROUND_SECONDS = 600;
 
 export const EVENT_STATUS_LABELS: Record<EventStatus, string> = { scheduled: "Programado", live: "En vivo", completed: "Finalizado", cancelled: "Cancelado" };
 
-export const BOUT_LEVEL_LABELS: Record<BoutLevel, string> = { pro: "Profesional", amateur: "Amateur" };
+export const BOUT_LEVEL_LABELS: Record<BoutLevel, string> = { pro: "Muay Thai", amateur: "Kickboxing" };
+
+/** Parámetro público de cada disciplina (`/rankings?disciplina=kickboxing`). */
+export const BOUT_LEVEL_SLUGS: Record<BoutLevel, string> = { pro: "muay-thai", amateur: "kickboxing" };
 
 export const OUTCOME_LABELS: Record<Outcome, string> = {
   red_win: "Gana la esquina roja",

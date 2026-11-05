@@ -62,14 +62,14 @@ export const fighterInputSchema = z
       .max(60, "La galería admite hasta 60 fotos")
       .default([])
       .transform((ids) => [...new Set(ids)]),
-    proWins: recordCount("Las victorias profesionales"),
-    proLosses: recordCount("Las derrotas profesionales"),
-    proDraws: recordCount("Los empates profesionales"),
-    proNoContests: recordCount("Los sin resultado profesionales"),
-    amWins: recordCount("Las victorias amateur"),
-    amLosses: recordCount("Las derrotas amateur"),
-    amDraws: recordCount("Los empates amateur"),
-    amNoContests: recordCount("Los sin resultado amateur"),
+    proWins: recordCount("Las victorias de Muay Thai"),
+    proLosses: recordCount("Las derrotas de Muay Thai"),
+    proDraws: recordCount("Los empates de Muay Thai"),
+    proNoContests: recordCount("Los sin resultado de Muay Thai"),
+    amWins: recordCount("Las victorias de Kickboxing"),
+    amLosses: recordCount("Las derrotas de Kickboxing"),
+    amDraws: recordCount("Los empates de Kickboxing"),
+    amNoContests: recordCount("Los sin resultado de Kickboxing"),
     ...publicationShape,
   })
   .superRefine(requireScheduleDate);

@@ -173,7 +173,7 @@ describe("setChampion", () => {
     expect(current?.fighterIds).toEqual([old, ...ranked.slice(0, 4)]);
     const [title] = await db.select().from(titles).where(and(eq(titles.divisionId, division), eq(titles.level, "pro")));
     const titleLogs = await db.select().from(auditLog).where(and(eq(auditLog.entityType, "title"), eq(auditLog.entityId, title!.id)));
-    expect(titleLogs.map((log) => log.summary)).toEqual(expect.arrayContaining([expect.stringContaining("campeón pro de Peso Pluma (antes:")]));
+    expect(titleLogs.map((log) => log.summary)).toEqual(expect.arrayContaining([expect.stringContaining("campeón Muay Thai de Peso Pluma (antes:")]));
     const [rankingLog] = await db.select().from(auditLog).where(eq(auditLog.entityId, current!.versionId));
     expect(rankingLog?.summary).toContain("tras el cambio de título");
   });
@@ -227,7 +227,7 @@ describe("vacateTitle", () => {
     // La coronación y la vacante quedan en el historial del mismo título.
     const logs = await db.select().from(auditLog).where(and(eq(auditLog.entityType, "title"), eq(auditLog.entityId, title!.id)));
     expect(logs).toHaveLength(2);
-    expect(logs.some((log) => log.summary.startsWith("Dejó vacante el título pro de Peso Semipesado"))).toBe(true);
+    expect(logs.some((log) => log.summary.startsWith("Dejó vacante el título Muay Thai de Peso Semipesado"))).toBe(true);
     await expect(vacateTitle(db, "pro", division, "admin-1")).rejects.toThrow("ya está vacante");
   });
 });
@@ -242,7 +242,7 @@ describe("setRankingVisibility", () => {
       await setRankingVisibility(fresh.db, "amateur", false, "admin-1");
       expect(await isLevelPublic(fresh.db, "amateur")).toBe(false);
       const logs = await fresh.db.select().from(auditLog).where(and(eq(auditLog.entityType, "ranking"), eq(auditLog.entityId, "amateur")));
-      expect(logs.map((log) => log.summary).sort()).toEqual(["Mostró en el sitio los rankings amateur", "Ocultó del sitio los puestos del ranking amateur (los campeones siguen a la vista)"]);
+      expect(logs.map((log) => log.summary).sort()).toEqual(["Mostró en el sitio los rankings Kickboxing", "Ocultó del sitio los puestos del ranking Kickboxing (los campeones siguen a la vista)"]);
     } finally {
       await fresh.close();
     }

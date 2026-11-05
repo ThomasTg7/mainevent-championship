@@ -32,6 +32,8 @@ export type AdminBout = {
   scheduledRounds: number;
   roundSeconds: number;
   isTitleFight: boolean;
+  /** Rótulo del afiche («WMO Continental Title Bout»), si tiene. */
+  posterTitle: string | null;
   /** La esquina del campeón en una pelea por el título. */
   championCorner: BoutCorner;
   status: BoutStatus;
@@ -116,6 +118,7 @@ export async function getAdminCard(db: Db, eventId: string): Promise<AdminCard |
       scheduledRounds: bout.scheduledRounds,
       roundSeconds: bout.roundSeconds,
       isTitleFight: bout.isTitleFight,
+      posterTitle: bout.posterTitle,
       championCorner: bout.championCorner,
       status: bout.boutStatus,
       cancelReason: bout.cancelReason,

@@ -15,14 +15,14 @@ function CornerPhoto({ fighter, side, won }: { fighter: BoutFighterDTO; side: Si
     <div
       data-slot="bout-face"
       data-photo={photo}
-      className={`relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-b from-neutral-100 to-neutral-200 lg:aspect-auto lg:h-[176px] lg:w-[148px] border-b-4 ${
+      className={`relative aspect-[4/5] w-full overflow-hidden bg-[radial-gradient(ellipse_at_50%_30%,#3a2c0a_0%,#120e05_60%,#000_100%)] lg:aspect-auto lg:h-[176px] lg:w-[148px] border-b-4 ${
         side === "red" ? "border-[#D7263D]" : "border-[#1E6FD9]"
       }`}
     >
       {media ? (
-        <MediaImage media={media} sizes="(min-width: 640px) 190px, 30vw" anchorTop={photo === "body"} className="size-full object-cover" />
+        <MediaImage media={media} sizes="(min-width: 640px) 190px, 30vw" anchorTop={photo === "body"} className="size-full object-cover transition-transform duration-500 ease-ofl group-hover/poster:scale-[1.06] motion-reduce:transition-none" />
       ) : (
-        <FighterSilhouette className="absolute bottom-0 left-1/2 h-[92%] -translate-x-1/2 text-neutral-900" />
+        <FighterSilhouette className="absolute bottom-0 left-1/2 h-[92%] -translate-x-1/2 text-black drop-shadow-[0_0_3px_rgba(255,214,10,.55)]" />
       )}
       {won ? <VictoryTag /> : null}
     </div>
@@ -48,7 +48,7 @@ export function CornerName({ fighter, side }: { fighter: BoutFighterDTO; side: S
   );
   return (
     <h3
-      className={`min-w-0 break-words text-center font-display text-[clamp(16px,4.8vw,22px)] uppercase leading-[1.05] sm:text-[28px] text-black lg:text-[clamp(24px,2.4vw,36px)] lg:leading-[1.02] ${
+      className={`min-w-0 break-words text-center font-display text-[clamp(16px,4.8vw,22px)] uppercase leading-[1.05] sm:text-[28px] text-white lg:text-[clamp(24px,2.4vw,36px)] lg:leading-[1.02] ${
         side === "red" ? "self-end [grid-area:rn] lg:text-left" : "self-start [grid-area:bn] lg:self-end lg:text-right"
       }`}
     >

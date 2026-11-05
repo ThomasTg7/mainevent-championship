@@ -40,7 +40,7 @@ export function TicketTiers({ tiers, ticketUrl, eventName }: TicketTiersProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${tier.name}: ${formatClp(tier.priceClp)}. Comprar en la ticketera (se abre en otra pestaña)`}
-              className={`${tierClass} transition-transform duration-300 ease-ofl hover:-translate-x-2 hover:shadow-[10px_10px_0_rgba(197,155,229,.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright motion-reduce:transition-none motion-reduce:hover:translate-x-0`}
+              className={`${tierClass} transition-transform duration-300 ease-ofl hover:-translate-x-2 hover:shadow-[10px_10px_0_rgba(255,214,10,.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-bright motion-reduce:transition-none motion-reduce:hover:translate-x-0`}
             >
               <TierContent tier={tier} />
             </a>

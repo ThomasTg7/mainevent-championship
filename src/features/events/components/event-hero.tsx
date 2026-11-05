@@ -1,11 +1,13 @@
 import { BRAND } from "@/domain/brand";
 import { SmoothAnchor } from "@/components/motion/smooth-anchor";
 import { Button } from "@/components/ui-gc/button";
+import { PosterStars } from "@/components/brand/poster-stage";
+import { Flag } from "@/components/ui-gc/flag";
 import { Tag } from "@/components/ui-gc/tag";
 import { formatShortDate, formatTime } from "@/lib/format-date";
 import type { EventPageDTO } from "../dto";
 import { pickMainBout } from "../main-bout";
-import { eventStatusTag } from "../public-format";
+import { boutBillingLabel, eventStatusTag } from "../public-format";
 import { Countdown } from "./countdown";
 import { EventHeroArt } from "./event-hero-art";
 import { WatchEventButton } from "./watch-event-button";
@@ -24,19 +26,30 @@ export function EventHero({ event, ticketHref, ticketExternal = false, showCount
       <EventHeroArt event={event} main={main} />
       <div className="relative z-[4] mx-auto w-full max-w-[1320px] px-[clamp(16px,4vw,64px)] pb-12 pt-56 lg:pb-12 lg:pt-40">
         <div className="mx-auto max-w-[960px]">
+          <PosterStars className="mx-auto mb-3 hidden h-9 w-40 lg:block" />
           <p className="mb-5 hidden font-cond text-sm font-bold tracking-[.16em] text-white uppercase lg:block">{BRAND.name}</p>
           <div className="mb-5 flex flex-wrap items-center justify-center gap-2">
             <Tag tone="brand">{event.name}</Tag><Tag tone={status.tone}>{status.label}</Tag>
           </div>
           <h1 id="event-title" className="font-display text-[clamp(44px,8vw,100px)] uppercase leading-[.98] tracking-[-.025em] text-white [overflow-wrap:anywhere] lg:flex lg:flex-wrap lg:items-center lg:justify-center lg:gap-x-6">
-            {main ? <><span data-slot="hero-red" className="block">{main.red.lastName}</span><span className="my-2 block font-cond text-[.3em] font-bold tracking-[.12em] ofl-gradient-text">VS</span><span data-slot="hero-blue" className="block">{main.blue.lastName}</span></> : event.name}
+            {main ? <><span data-slot="hero-red" className="mec-enter-red block">{main.red.lastName}</span><span className="mec-enter-vs my-2 block font-cond text-[.34em] font-bold italic lowercase tracking-[.06em] ofl-gradient-text">vs</span><span data-slot="hero-blue" className="mec-enter-blue block">{main.blue.lastName}</span></> : event.name}
           </h1>
-          <div aria-hidden className="ofl-hero-rule mx-auto mt-7" />
+          {main ? (
+            <div data-slot="hero-billing" className="mec-enter-rise mt-5 flex flex-col items-center gap-1.5 font-cond uppercase">
+              <p className="flex items-center gap-3 text-sm font-bold tracking-[.12em] text-white/85">
+                <Flag code={main.red.nationality} />
+                <span>{boutBillingLabel(main)}</span>
+                <Flag code={main.blue.nationality} />
+              </p>
+              {main.posterTitle ? <p className="mec-poster-title ofl-gradient-text text-[clamp(15px,2vw,22px)] font-extrabold tracking-[.12em]">{main.posterTitle}</p> : null}
+            </div>
+          ) : null}
+          <div aria-hidden className="ofl-hero-rule mx-auto mt-6" />
           <p className="mt-5 font-cond text-base font-semibold tracking-[.03em] text-white sm:text-lg">{formatShortDate(start)} · {formatTime(start)} hrs</p>
           <p className="mt-1 text-sm text-white/70">{event.venue.name}{event.venue.city ? `, ${event.venue.city}` : ""}</p>
           {showCountdown ? <Countdown target={event.startsAt} className="my-6 justify-center" /> : <div className="h-6" />}
           <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:justify-center">
-            {ticketHref ? <Button variant="primary" className="order-1 min-w-0 whitespace-nowrap px-4 sm:px-7" asChild><a href={ticketHref} aria-label="Comprar entradas" {...(ticketExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}><span className="min-[400px]:hidden">Entradas</span><span className="hidden min-[400px]:inline">Comprar entradas</span></a></Button> : null}
+            {ticketHref ? <Button variant="primary" className="mec-glow order-1 min-w-0 whitespace-nowrap px-4 sm:px-7" asChild><a href={ticketHref} aria-label="Comprar entradas" {...(ticketExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}><span className="min-[400px]:hidden">Entradas</span><span className="hidden min-[400px]:inline">Comprar entradas</span></a></Button> : null}
             <Button variant="ghost" className="order-3 col-span-2 sm:order-2" asChild><SmoothAnchor href="#cartelera">{event.eventStatus === "completed" ? "Ver cartelera y resultados" : "Ver cartelera completa"}</SmoothAnchor></Button>
             <WatchEventButton eventName={event.name} platforms={event.watchPlatforms ?? (event.streamUrl ? [{ name: "Transmisión oficial", url: event.streamUrl, media: null }] : [])} ariaLabel="Dónde ver" className={`order-2 min-w-0 whitespace-nowrap px-4 sm:order-3 sm:px-7 ${!ticketHref ? "col-span-2" : ""}`}>{watchLabel}</WatchEventButton>
           </div>

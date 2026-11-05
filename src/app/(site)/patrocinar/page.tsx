@@ -17,7 +17,7 @@ export default function PatrocinarPage() {
     <PageShell>
       <PageHeader title="Patrocinar" className="mb-10">
         <p className="mt-6 max-w-prose text-lg text-white/90">
-          Llega a la comunidad del MMA en Chile con tu marca en nuestros eventos, en la web y en nuestras redes. Cuéntanos qué tienes en mente y conversemos.
+          Llega a la comunidad del Muay Thai y el Kickboxing con tu marca en nuestros eventos, en la web y en nuestras redes. Cuéntanos qué tienes en mente y conversemos.
         </p>
       </PageHeader>
       <div className="max-w-[760px]">

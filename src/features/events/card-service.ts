@@ -95,6 +95,7 @@ function boutColumns(data: BoutData) {
     scheduledRounds: data.scheduledRounds,
     roundSeconds: data.roundSeconds,
     isTitleFight: data.isTitleFight,
+    posterTitle: data.posterTitle,
     championCorner: data.championCorner,
   };
 }

@@ -11,6 +11,7 @@ function bout(id: string, segmentId: string): AdminBout {
     scheduledRounds: 3,
     roundSeconds: 300,
     isTitleFight: false,
+    posterTitle: null,
     championCorner: "red",
     status: "scheduled",
     cancelReason: null,

@@ -34,12 +34,13 @@ export const boutInputSchema = z
       .nullish()
       .transform((value) => value || null),
     catchweightKg: optionalNumber("El peso pactado", { min: 40, max: 200 }),
-    level: z.enum(BOUT_LEVELS, { error: "Elige el nivel" }).default("pro"),
+    level: z.enum(BOUT_LEVELS, { error: "Elige la disciplina" }).default("pro"),
     scheduledRounds,
     roundSeconds: optionalNumber("La duración del round", { min: MIN_ROUND_SECONDS, max: MAX_ROUND_SECONDS, integer: true }).transform(
       (value) => value ?? DEFAULT_ROUND_SECONDS,
     ),
     isTitleFight: booleanish,
+    posterTitle: optionalText(80, "El rótulo del afiche"),
     championCorner: z.enum(BOUT_CORNERS, { error: "Elige la esquina del campeón" }).default("red"),
   })
   .superRefine((value, ctx) => {

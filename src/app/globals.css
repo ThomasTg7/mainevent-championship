@@ -7,15 +7,20 @@
 
 @theme {
   --color-bg: #000000;
-  --color-surface: #151218;
-  --color-surface-2: #211c26;
-  --color-border: #39313f;
+  --color-surface: #13110c;
+  --color-surface-2: #1f1b12;
+  --color-border: #3b3322;
   --color-text: #ffffff;
-  --color-brand: #C51B3A;
-  --color-accent-bright: #C59BE5;
-  --color-brand-violet: #643374;
-  --color-brand-hover: #a71431;
-  --color-brand-press: #8f102b;
+  /* Mainevent Championship: logo yellow, poster gold and fire orange. Text on any of them is always black. */
+  --color-brand: #FFE500;
+  --color-on-brand: #000000;
+  --color-accent-bright: #FFD23F;
+  --color-brand-orange: #FF8A00;
+  --color-brand-gold: #E8B53A;
+  --color-brand-hover: #FFB800;
+  --color-brand-press: #FF8A00;
+  /* Readable brand ink on white surfaces (AA on #fff). */
+  --color-brand-ink: #8A4B00;
   --color-red: #d7263d;
   --color-blue: #1e6fd9;
 
@@ -27,7 +32,7 @@
 }
 
 /*
- * Tokens semánticos de shadcn/ui, mapeados a la paleta Open Fight Latam.
+ * Tokens semánticos de shadcn/ui, mapeados a la paleta Mainevent Championship.
  * El panel admin es siempre oscuro (no hay modo claro), así que se
  * definen una sola vez en :root en vez de duplicarlos bajo `.dark`.
  * `--radius: 0` mantiene los bordes rectos de la identidad visual en
@@ -47,7 +52,7 @@
   --popover: var(--color-surface-2);
   --popover-foreground: var(--color-text);
   --primary: var(--color-brand);
-  --primary-foreground: #ffffff;
+  --primary-foreground: var(--color-on-brand);
   --secondary: var(--color-surface-2);
   --secondary-foreground: var(--color-text);
   --muted: var(--color-surface-2);
@@ -68,7 +73,7 @@
   --sidebar: var(--color-surface);
   --sidebar-foreground: var(--color-text);
   --sidebar-primary: var(--color-brand);
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary-foreground: var(--color-on-brand);
   --sidebar-accent: var(--color-surface-2);
   --sidebar-accent-foreground: var(--color-text);
   --sidebar-border: var(--color-border);

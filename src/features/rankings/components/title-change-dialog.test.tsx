@@ -23,7 +23,7 @@ const prompt: TitleChangePrompt = {
 describe("TitleChangeDialog", () => {
   it("asks to confirm the new champion by name, level and division", () => {
     render(<TitleChangeDialog prompt={prompt} onConfirm={vi.fn()} onSkip={vi.fn()} />);
-    expect(screen.getByText("Diego Soto es el nuevo campeón pro de Peso Ligero. ¿Confirmar?")).toBeDefined();
+    expect(screen.getByText("Diego Soto es el nuevo campeón de Muay Thai en Peso Ligero. ¿Confirmar?")).toBeDefined();
     expect(screen.getByText(/Matías Pérez/)).toBeDefined();
   });
 

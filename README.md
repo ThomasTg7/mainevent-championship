@@ -1,52 +1,77 @@
-# OFL
+# Mainevent Championship
 
-Copia independiente de Guerra Campal. Ver [guía de OFL](docs/OFL.md) para iniciar la aplicación, acceder al panel y restaurar el respaldo.
+Sitio web y panel de administración de **Mainevent Championship**, promotora de **Muay Thai y Kickboxing**: eventos con cartelera estilo afiche, resultados, peleadores, rankings por disciplina, noticias y entradas.
 
-**Inicio local:** `docker compose up -d` y `pnpm dev --port 3002`. Sitio en http://localhost:3002; panel en http://admin.localhost:3002. Base propia en puerto 5433.
+Basado en la plataforma de Open Fight Latam / Guerra Campal (Next.js · TypeScript · Postgres + Drizzle · Better Auth · Tailwind). Cambios del rebranding: [`docs/decisions.md`](docs/decisions.md) → «[Mainevent] Rebranding».
 
----
+## Verlo en tu computador (guía paso a paso)
 
-# Guerra Campal
+**Necesitas:** [Node 22](https://nodejs.org), [pnpm](https://pnpm.io/installation) (`npm install -g pnpm`), [Docker Desktop](https://www.docker.com/products/docker-desktop/) abierto, y Git.
 
-Plataforma web de la promotora de MMA **Guerra Campal** (Chile): sitio público estilo UFC (eventos, cartelera y resultados, peleadores, rankings, noticias, entradas) y un panel de administración propio.
+1. Clona el repositorio y entra a la carpeta:
 
-**Stack:** Next.js (App Router) · TypeScript · Postgres + Drizzle · Better Auth · Tailwind · almacenamiento compatible S3. Solo Postgres estándar y S3: se despliega en Vercel o en un VPS propio sin cambiar código.
+   ```bash
+   git clone https://github.com/ThomasTg7/mainevent-championship.git
+   cd mainevent-championship
+   ```
 
-## Empezar
+2. Crea tu archivo de configuración. Luego abre `.env` y cambia `BETTER_AUTH_SECRET` por cualquier texto largo (32+ caracteres):
 
-Requisitos: Node 22, pnpm y Docker Desktop (Postgres local).
+   ```bash
+   cp .env.example .env
+   ```
 
-```bash
-cp .env.example .env        # y revisa los valores
-docker compose up -d        # Postgres
-pnpm install
-pnpm db:migrate
-pnpm db:seed                # datos de demostración (solo desarrollo)
-pnpm create-admin tu@correo.cl "una-clave-segura"
-pnpm dev
-```
+3. Levanta la base de datos (Postgres en Docker, puerto 5433):
 
-- Sitio: <http://localhost:3000> · Panel: <http://admin.localhost:3000> (el panel vive en su propio subdominio).
+   ```bash
+   docker compose up -d
+   ```
+
+4. Instala dependencias, crea las tablas y carga el demo de Mainevent (peleadores, Main XXVII con resultados y Main XXVIII: Rebound con su afiche):
+
+   ```bash
+   pnpm install --frozen-lockfile
+   pnpm db:migrate
+   pnpm db:seed
+   ```
+
+5. Crea tu usuario administrador:
+
+   ```bash
+   pnpm create-admin tu@correo.com "una-clave-segura"
+   ```
+
+6. Inicia el sitio:
+
+   ```bash
+   pnpm dev --port 3002
+   ```
+
+   - Sitio público: <http://localhost:3002>
+   - Panel de administración: <http://admin.localhost:3002> (entra con el usuario del paso 5)
+
+**Qué mirar:** la portada (careo Cardenes vs Santos con polvo dorado), la cartelera estilo afiche (botón «Ver datos» en cada pelea), `/eventos/main-xxvii` (resultados), `/eventos/main-xxviii-rebound` (afiche oficial), `/rankings` (Muay Thai) y `/rankings?disciplina=kickboxing`. En el panel: Eventos → Cartelera → editar una pelea para ver «Disciplina» y «Rótulo del afiche».
+
+**Si algo falla:**
+- *Puerto 5433 ocupado:* cierra el otro Postgres o cambia el puerto en `docker-compose.yml` y en `DATABASE_URL` de `.env`.
+- *Ves datos viejos tras recargar el demo:* detén el servidor, borra la carpeta `.next` y vuelve a ejecutar `pnpm dev --port 3002`.
+- *Empezar de cero:* `docker compose down -v`, borra `.storage` y repite desde el paso 3.
 
 ## Verificar
 
 ```bash
-pnpm test           # unitarias y de integración (Vitest + PGlite)
+pnpm test        # unitarias e integración (Vitest + PGlite)
 pnpm lint
 pnpm typecheck
-pnpm test:e2e       # Playwright (necesita Docker abierto); incluye accesibilidad con axe
-pnpm build
-pnpm lighthouse     # presupuestos de rendimiento; con `pnpm build && pnpm start` corriendo en :3000
+pnpm test:e2e    # Playwright (necesita Docker)
 ```
 
 ## Documentación
 
 | Documento | Para qué |
 |---|---|
-| [`docs/guia-admin.md`](docs/guia-admin.md) | cómo usar el panel (para la promotora) |
-| [`docs/deploy.md`](docs/deploy.md) | publicar en Vercel, paso a paso, y lanzamiento |
-| [`docs/vps-migration.md`](docs/vps-migration.md) | pasar a un VPS propio (Docker Compose) |
-| [`docs/configuracion-externa.md`](docs/configuracion-externa.md) | Google (login) y Resend (correo) |
-| [`docs/superpowers/specs/2026-09-28-guerra-campal-design.md`](docs/superpowers/specs/2026-09-28-guerra-campal-design.md) | especificación |
-| [`docs/convenciones.md`](docs/convenciones.md) · [`docs/decisions.md`](docs/decisions.md) | patrones construidos y registro de decisiones |
-| [`CLAUDE.md`](CLAUDE.md) · [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | reglas del proyecto y flujo de trabajo por planes |
+| [`docs/guia-admin.md`](docs/guia-admin.md) | cómo usar el panel |
+| [`docs/deploy.md`](docs/deploy.md) | publicar en Vercel |
+| [`docs/vps-migration.md`](docs/vps-migration.md) | pasar a un VPS propio |
+| [`docs/convenciones.md`](docs/convenciones.md) · [`docs/decisions.md`](docs/decisions.md) | patrones y registro de decisiones |
+| [`CLAUDE.md`](CLAUDE.md) | reglas del proyecto |

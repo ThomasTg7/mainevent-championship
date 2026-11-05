@@ -22,7 +22,7 @@ export function PostRelated({ fighters, events }: { fighters: PostFighterDTO[]; 
             <li key={fighter.id}>
               <Link href={`/peleadores/${fighter.slug}`} className={LINK_CLASS}>
                 <span className="grid size-12 shrink-0 place-items-center overflow-hidden bg-surface-2 text-white">
-                  <FighterFace fighter={fighter} sizes="48px" silhouetteClassName="h-full w-auto text-black drop-shadow-[0_0_1px_rgba(197,155,229,.6)]" />
+                  <FighterFace fighter={fighter} sizes="48px" silhouetteClassName="h-full w-auto text-black drop-shadow-[0_0_1px_rgba(255,214,10,.6)]" />
                 </span>
                 <span className="flex min-w-0 flex-col">
                   <span className="font-cond text-lg font-bold uppercase leading-tight tracking-[.04em] text-white group-hover:text-accent-bright">

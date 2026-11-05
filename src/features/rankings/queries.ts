@@ -4,7 +4,7 @@ import { divisions } from "@/db/schema/divisions";
 import { bouts } from "@/db/schema/events";
 import { fighters } from "@/db/schema/fighters";
 import { rankingEntries, titles } from "@/db/schema/rankings";
-import type { BoutLevel } from "@/domain/bout-enums";
+import { BOUT_LEVEL_LABELS, type BoutLevel } from "@/domain/bout-enums";
 import { P4P_SLOTS, championWord, computeMovement } from "@/domain/rankings";
 import { divisionTitle } from "@/features/fighters/labels";
 import { fighterPhotoIds, fighterPhotos, loadMedia } from "@/features/fighters/query-helpers";
@@ -160,7 +160,7 @@ export async function getPublicRankings(db: Db, level: BoutLevel): Promise<Ranki
   };
 }
 
-const LEVEL_SUFFIX: Record<BoutLevel, string> = { pro: "", amateur: " · Amateur" };
+const LEVEL_SUFFIX: Record<BoutLevel, string> = { pro: ` · ${BOUT_LEVEL_LABELS.pro}`, amateur: ` · ${BOUT_LEVEL_LABELS.amateur}` };
 const proFirst = (a: { level: BoutLevel }, b: { level: BoutLevel }) => (a.level === b.level ? 0 : a.level === "pro" ? -1 : 1);
 
 /** Una etiqueta de la ficha; `isTitle` = es campeón (se destaca). */
@@ -196,7 +196,7 @@ export async function getFighterRankingTags(db: Db, fighterId: string): Promise<
   const shown = await shownRankings(db, versions);
   const divisionById = new Map(divisionRows.map((division) => [division.id, division]));
 
-  const champion = titleRows.toSorted(proFirst).map((title) => `${championWord(title.gender)} ${title.level === "pro" ? "pro" : "amateur"} · ${divisionTitle(title)}`);
+  const champion = titleRows.toSorted(proFirst).map((title) => `${championWord(title.gender)} ${BOUT_LEVEL_LABELS[title.level]} · ${divisionTitle(title)}`);
   const ranked = versions.flatMap((version) => {
     const position = (shown.get(version.id) ?? []).indexOf(fighterId) + 1;
     if (position === 0) return [];

@@ -4,7 +4,7 @@ import { EXCERPT_MAX, TITLE_MAX } from "@/domain/post-markdown";
 // Prompt que se copia desde el paso 2 de «Con IA». Enseña a la IA el formato exacto que lee `parsePostMarkdown`:
 // si cambia una regla aquí, cambia allá (y su prueba), y al revés.
 
-const RULES = `Eres redactor de noticias de ${BRAND.name}, una promotora de MMA de Chile. Vas a escribir una noticia para su sitio web con los datos que te daré al final.
+const RULES = `Eres redactor de noticias de ${BRAND.name}, una promotora de Muay Thai y Kickboxing. Vas a escribir una noticia para su sitio web con los datos que te daré al final.
 
 Responde SOLO con la noticia, en este formato exacto, sin saludos ni explicaciones antes o después y sin bloque de código:
 

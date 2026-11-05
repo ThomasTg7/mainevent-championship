@@ -5,6 +5,7 @@ import "./globals.css";
 import "./ofl-public.css";
 import "./ofl-admin.css";
 import "./ofl-motion.css";
+import "./mainevent-poster.css";
 
 export const metadata: Metadata = {
   title: BRAND.name,

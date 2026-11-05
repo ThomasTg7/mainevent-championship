@@ -1,6 +1,6 @@
 # OFL — copia independiente de Guerra Campal
 
-Creada el 11 de octubre de 2026 desde la carpeta local GuerraCampal. Conserva frontend, backend, panel, código, historial Git, documentación, migraciones, pruebas y archivos locales de imágenes. El diseño público y del panel corresponde a Open Fight Latam. Los datos y fotos de Guerra Campal se conservan como contenido heredado de vista previa.
+Creada el 11 de octubre de 2026 desde la carpeta local GuerraCampal. Conserva frontend, backend, panel, código, historial Git, documentación, migraciones, pruebas y archivos locales de imágenes. El diseño público y del panel corresponde a Mainevent Championship. Los datos y fotos de Guerra Campal se conservan como contenido heredado de vista previa.
 
 ## Usar la copia
 
